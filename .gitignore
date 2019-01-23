@@ -1,0 +1,5 @@
+.stack-work/
+code-editor.cabal
+*~
+dist
+dist-newstyle
