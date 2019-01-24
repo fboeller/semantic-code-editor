@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Main where
 
@@ -10,7 +11,7 @@ import qualified Language.Java.Pretty as P
 import Language.Java.Syntax ( CompilationUnit(..) )
 import Text.Parsec.Error ( ParseError )
 
-import Lens.Micro ( (.~), (^.), (&), set )
+import Lens.Micro ( (.~), (^.), (&), set, Lens' )
 import Lens.Micro.TH ( makeLenses )
 import Control.Monad ( void )
 #if !(MIN_VERSION_base(4,11,0))
@@ -25,27 +26,29 @@ import Brick.Widgets.Core ( vBox, str )
 
 programStr = "import java.util.*; public class MyClass { private int abc; public Integer doStuff(String p1) { /* Something */ return 4 + 6; }}"
 
-data AppState =
+data AppState a =
   AppState { _program :: CompilationUnit
+           , focus :: Lens' CompilationUnit a
            }
 
 makeLenses ''AppState
 
-initialState :: AppState
+initialState :: AppState CompilationUnit
 initialState =
   AppState { _program = CompilationUnit Nothing [] []
+           , focus = id
            }
 
-drawUI :: AppState -> [Widget ()]
+drawUI :: AppState a -> [Widget ()]
 drawUI state = [str $ processAST $ state ^. program]
 
-compileProgram :: AppState -> EventM () (Next AppState)
+compileProgram :: AppState a -> EventM () (Next (AppState a))
 compileProgram state =
   case Java.parser Java.compilationUnit programStr of
     Right ast -> continue $ set program ast state
-    Left _ -> halt initialState
+    Left _ -> halt state
 
-appEvent :: AppState -> BrickEvent () e -> EventM () (Next AppState)
+appEvent :: AppState a -> BrickEvent () e -> EventM () (Next (AppState a))
 appEvent state (VtyEvent e) =
     case e of
       V.EvKey V.KEsc [] -> halt state
@@ -53,7 +56,7 @@ appEvent state (VtyEvent e) =
       _ -> continue state
 appEvent state _ = continue state
 
-theApp :: App AppState e ()
+theApp :: App (AppState a) e ()
 theApp =
   App { appDraw = drawUI
       , appChooseCursor = neverShowCursor
