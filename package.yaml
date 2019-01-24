@@ -22,7 +22,11 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - language-java >= 0.2.9
+- brick >= 0.46
 - parsec >= 3.1.13.0
+- microlens
+- microlens-th
+- vty
 
 library:
   source-dirs: src
