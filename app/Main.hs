@@ -2,10 +2,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeFamilies #-} 
 
 module Main where
 
 import Lib
+import PromptShow
 import qualified Language.Java.Parser as Java
 import qualified Language.Java.Pretty as P
 import qualified Language.Java.Syntax as S
@@ -41,23 +43,29 @@ initialState =
            , _output = ""
            }
 
+data Element = Class | Method | Function | Variable | Interface | Parameter | Body | Statement | Annotation | Extension
+
 class Focusable a where
-  printSignature :: a -> String
+  list_classes :: a -> [S.ClassDecl]
 
 instance Focusable S.CompilationUnit where
-  printSignature (S.CompilationUnit Nothing _ _) = "/"
-  printSignature (S.CompilationUnit (Just packageDecl) _ _) = printSignature packageDecl
+  list_classes (S.CompilationUnit _ _ typeDecls) = typeDecls >>= list_classes
 
-instance Focusable S.PackageDecl where
-  printSignature packageDecl = show $ P.pretty packageDecl
-  
+instance Focusable S.TypeDecl where
+  list_classes (S.ClassTypeDecl classDecl) = [classDecl]
+  list_classes _ = []
+
+instance Focusable S.ClassDecl where
+  list_classes _ = []
+
 compileProgram :: AppState a -> Either ParseError (AppState a)
 compileProgram state = (\comp -> set program comp state) <$> Java.parser Java.compilationUnit programStr
 
-eval' :: String -> AppState a -> Either String (AppState a)
+eval' :: (PromptShow a) => String -> AppState a -> Either String (AppState a)
 eval' "quit" state = Left "Done!"
 eval' "c" state = first show $ compileProgram state
 eval' "r" state = Right $ set output (show $ P.pretty $ state ^. program) state
+eval' "lc" state = Right $ set output (unlines $ printSignature <$> list_classes (state ^. program)) state
 eval' input state = Right $ set output input state
 
 read' :: String -> IO String
@@ -71,10 +79,12 @@ print' state =
     "" -> ""
     str -> str ++ "\n"
 
-prompt :: (Focusable a) => AppState a -> String
-prompt state = printSignature $ state ^. program ^. (getFocusLens (state ^. focus))
+getFocus state = state ^. program ^. (getFocusLens (state ^. focus))
 
-step :: (Focusable a) => AppState a -> IO (Maybe (AppState a))
+prompt :: (PromptShow a) => AppState a -> String
+prompt state = printSignature $ getFocus state
+
+step :: (PromptShow a) => AppState a -> IO (Maybe (AppState a))
 step state = do
   input <- read' $ prompt state
   let maybeState = eval' input state
