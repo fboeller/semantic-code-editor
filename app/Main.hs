@@ -53,7 +53,11 @@ read' = putStr "REPL> "
         >> getLine
      
 print' :: AppState a -> String
-print' state = state ^. output
+print' state =
+  case state ^. output of
+    "" -> ""
+    str -> str ++ "\n"
+    
 
 step :: AppState a -> IO (Maybe (AppState a))
 step state = do
@@ -61,7 +65,7 @@ step state = do
   let maybeState = eval' input state
   case maybeState of
     Right newState -> do
-      putStrLn $ print' newState
+      putStr $ print' newState
       step newState
     Left _ -> do
       putStrLn "Exit"
