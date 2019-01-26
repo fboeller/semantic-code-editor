@@ -44,6 +44,7 @@ compileProgram state = (\comp -> set program comp state) <$> Java.parser Java.co
 eval' :: String -> AppState a -> Either String (AppState a)
 eval' "quit" state = Left "Done!"
 eval' "c" state = first show $ compileProgram state
+eval' "r" state = Right $ set output (show $ P.pretty $ state ^. program) state
 eval' input state = Right $ set output input state
 
 read' :: IO String
@@ -52,7 +53,7 @@ read' = putStr "REPL> "
         >> getLine
      
 print' :: AppState a -> String
-print' state = unlines [state ^. output, show $ P.pretty $ state ^. program]
+print' state = state ^. output
 
 step :: AppState a -> IO (Maybe (AppState a))
 step state = do
