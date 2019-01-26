@@ -23,6 +23,9 @@ programStr = "import java.util.*; public class MyClass { private int abc; public
 /* Wrapper for a lens to prevent impredicative polymorphism */
 data FocusLens a = FocusLens (Lens' CompilationUnit a)
 
+getFocusLens :: FocusLens a -> Lens' CompilationUnit a
+getFocusLens (FocusLens lens) = lens
+
 data AppState a =
   AppState { _program :: CompilationUnit
            , _focus :: FocusLens a
@@ -47,8 +50,8 @@ eval' "c" state = first show $ compileProgram state
 eval' "r" state = Right $ set output (show $ P.pretty $ state ^. program) state
 eval' input state = Right $ set output input state
 
-read' :: IO String
-read' = putStr "REPL> "
+read' :: String -> IO String
+read' prompt = putStr (prompt ++ "> ")
         >> hFlush stdout
         >> getLine
      
@@ -57,11 +60,13 @@ print' state =
   case state ^. output of
     "" -> ""
     str -> str ++ "\n"
-    
 
-step :: AppState a -> IO (Maybe (AppState a))
+prompt :: (Show a) => AppState a -> String
+prompt state = show $ state ^. program ^. (getFocusLens (state ^. focus))
+
+step :: (Show a) => AppState a -> IO (Maybe (AppState a))
 step state = do
-  input <- read'
+  input <- read' $ prompt state
   let maybeState = eval' input state
   case maybeState of
     Right newState -> do
