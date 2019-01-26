@@ -26,9 +26,12 @@ import Brick.Widgets.Core ( vBox, str )
 
 programStr = "import java.util.*; public class MyClass { private int abc; public Integer doStuff(String p1) { /* Something */ return 4 + 6; }}"
 
+/* Wrapper for a lens to prevent impredicative polymorphism */
+data FocusLens a = FocusLens (Lens' CompilationUnit a)
+
 data AppState a =
   AppState { _program :: CompilationUnit
-           , focus :: Lens' CompilationUnit a
+           , _focus :: FocusLens a
            }
 
 makeLenses ''AppState
@@ -36,7 +39,7 @@ makeLenses ''AppState
 initialState :: AppState CompilationUnit
 initialState =
   AppState { _program = CompilationUnit Nothing [] []
-           , focus = id
+           , _focus = FocusLens id
            }
 
 drawUI :: AppState a -> [Widget ()]
