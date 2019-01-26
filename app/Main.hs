@@ -46,17 +46,24 @@ initialState =
 data Element = Class | Method | Function | Variable | Interface | Parameter | Body | Statement | Annotation | Extension
 
 class Focusable a where
-  list_classes :: a -> [S.ClassDecl]
+  listClasses :: a -> [S.ClassDecl]
 
 instance Focusable S.CompilationUnit where
-  list_classes (S.CompilationUnit _ _ typeDecls) = typeDecls >>= list_classes
+  listClasses (S.CompilationUnit _ _ typeDecls) = typeDecls >>= listClasses
 
 instance Focusable S.TypeDecl where
-  list_classes (S.ClassTypeDecl classDecl) = [classDecl]
-  list_classes _ = []
+  listClasses (S.ClassTypeDecl classDecl) = [classDecl]
+  listClasses _ = []
 
 instance Focusable S.ClassDecl where
-  list_classes _ = []
+  listClasses _ = []
+
+instance Focusable S.ClassBody where
+  listClasses (S.ClassBody decls) = decls >>= listClasses
+
+instance Focusable S.Decl where
+  listClasses (S.MemberDecl _) = []
+  listClasses (S.InitDecl _ _) = []
 
 compileProgram :: AppState a -> Either ParseError (AppState a)
 compileProgram state = (\comp -> set program comp state) <$> Java.parser Java.compilationUnit programStr
@@ -65,7 +72,7 @@ eval' :: (PromptShow a) => String -> AppState a -> Either String (AppState a)
 eval' "quit" state = Left "Done!"
 eval' "c" state = first show $ compileProgram state
 eval' "r" state = Right $ set output (show $ P.pretty $ state ^. program) state
-eval' "lc" state = Right $ set output (unlines $ printSignature <$> list_classes (state ^. program)) state
+eval' "lc" state = Right $ set output (unlines $ printSignature <$> listClasses (state ^. program)) state
 eval' input state = Right $ set output input state
 
 read' :: String -> IO String
