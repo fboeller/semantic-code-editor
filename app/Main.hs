@@ -65,6 +65,9 @@ initialState =
 
 class Focusable a where
   listClasses :: a -> [J.Class]
+  listSelectedClasses :: String -> a -> [J.Class]
+  listSelectedClasses term package =
+    filter (\c -> c ^. J.className ^. J.idName == term) $ listClasses package
 
 instance Focusable J.Package where
   listClasses package = package ^. J.classes
@@ -85,6 +88,7 @@ eval' :: (PromptShow a) => String -> AppState a -> Either String (AppState a)
 eval' "quit" state = Left "Done!"
 eval' "r" state = Right $ set output (show $ state ^. program) state
 eval' "lc" state = Right $ set output (unlines $ printSignature <$> listClasses (state ^. program)) state
+eval' ('l':'c':' ':searchTerm) state = Right $ set output (unlines $ printSignature <$> listSelectedClasses searchTerm (state ^. program)) state
 eval' input state = Right $ set output input state
 
 read' :: String -> IO String
