@@ -1,22 +1,23 @@
 module PromptShow where
 
-import Language.Java.Syntax
-import Language.Java.Pretty ( pretty )
+import Java as J
+
+import Control.Lens
 
 class PromptShow a where
   printSignature :: a -> String
 
-instance PromptShow CompilationUnit where
-  printSignature (CompilationUnit Nothing _ _) = "/"
-  printSignature (CompilationUnit (Just packageDecl) _ _) = printSignature packageDecl
+instance PromptShow J.Package where
+  printSignature p = p ^. J.packageName ^. idName
 
-instance PromptShow PackageDecl where
-  printSignature packageDecl = show $ pretty packageDecl
+instance PromptShow J.Class where
+  printSignature c = c ^. J.className ^. idName
 
-instance PromptShow TypeDecl where
-  printSignature typeDecl = show $ pretty typeDecl
+instance PromptShow J.Method where
+  printSignature m = m ^. J.methodName ^. idName
 
-instance PromptShow ClassDecl where
-  printSignature (ClassDecl modifiers (Ident ident) _ _ _ _) =
-    unwords ((show <$> modifiers) ++ [ident])
-  printSignature classDecl = show $ pretty classDecl
+instance PromptShow J.Parameter where
+  printSignature p = p ^. J.parameterName ^. idName
+
+instance PromptShow J.Field where
+  printSignature f = f ^. J.fieldName ^. idName

@@ -2,76 +2,70 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TypeFamilies #-} 
 
 module Main where
 
 import Lib
 import PromptShow
-import qualified Language.Java.Parser as Java
-import qualified Language.Java.Pretty as P
-import qualified Language.Java.Syntax as S
+import Java as J
 import Text.Parsec.Error ( ParseError )
 import System.IO ( hFlush, stdout )
 import Data.Bifunctor ( first )
 
-import Lens.Micro ( (.~), (^.), (&), set, Lens' )
-import Lens.Micro.TH ( makeLenses )
+import Control.Lens
 import Control.Monad ( void )
 import qualified Graphics.Vty as V
 
-programStr = "package abc; import java.util.*; public class MyClass { private int abc; public Integer doStuff(String p1) { /* Something */ return 4 + 6; }}"
+-- Wrapper for a lens to prevent impredicative polymorphism
+data FocusLens a = FocusLens (Lens' J.Package a)
 
-/* Wrapper for a lens to prevent impredicative polymorphism */
-data FocusLens a = FocusLens (Lens' S.CompilationUnit a)
-
-getFocusLens :: FocusLens a -> Lens' S.CompilationUnit a
+getFocusLens :: FocusLens a -> Lens' J.Package a
 getFocusLens (FocusLens lens) = lens
 
 data AppState a =
-  AppState { _program :: S.CompilationUnit
+  AppState { _program :: J.Package
            , _focus :: FocusLens a
            , _output :: String
            }
 
 makeLenses ''AppState
 
-initialState :: AppState S.CompilationUnit
+initialState :: AppState J.Package
 initialState =
-  AppState { _program = S.CompilationUnit Nothing [] []
+  AppState { _program =
+             J.Package { _packageName = J.Identifier { _idName = "java.abc" },
+                         _classes = [ Class { _className = J.Identifier { _idName = "MyClass" }
+                                            , _classFields = []
+                                            , _classMethods = []
+                                            , _classVisibility = J.Public
+                                            }
+                                    ]
+                       }
            , _focus = FocusLens id
            , _output = ""
            }
 
-data Element = Class | Method | Function | Variable | Interface | Parameter | Body | Statement | Annotation | Extension
-
 class Focusable a where
-  listClasses :: a -> [S.ClassDecl]
+  listClasses :: a -> [J.Class]
 
-instance Focusable S.CompilationUnit where
-  listClasses (S.CompilationUnit _ _ typeDecls) = typeDecls >>= listClasses
+instance Focusable J.Package where
+  listClasses package = package ^. J.classes
 
-instance Focusable S.TypeDecl where
-  listClasses (S.ClassTypeDecl classDecl) = [classDecl]
+instance Focusable J.Class where
   listClasses _ = []
 
-instance Focusable S.ClassDecl where
+instance Focusable J.Method where
   listClasses _ = []
 
-instance Focusable S.ClassBody where
-  listClasses (S.ClassBody decls) = decls >>= listClasses
+instance Focusable J.Parameter where
+  listClasses _ = []
 
-instance Focusable S.Decl where
-  listClasses (S.MemberDecl _) = []
-  listClasses (S.InitDecl _ _) = []
-
-compileProgram :: AppState a -> Either ParseError (AppState a)
-compileProgram state = (\comp -> set program comp state) <$> Java.parser Java.compilationUnit programStr
+instance Focusable J.Field where
+  listClasses _ = []
 
 eval' :: (PromptShow a) => String -> AppState a -> Either String (AppState a)
 eval' "quit" state = Left "Done!"
-eval' "c" state = first show $ compileProgram state
-eval' "r" state = Right $ set output (show $ P.pretty $ state ^. program) state
+eval' "r" state = Right $ set output (show $ state ^. program) state
 eval' "lc" state = Right $ set output (unlines $ printSignature <$> listClasses (state ^. program)) state
 eval' input state = Right $ set output input state
 
