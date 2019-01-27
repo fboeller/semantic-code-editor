@@ -7,7 +7,7 @@ module Main where
 
 import Lib
 import PromptShow
-import Java as J
+import qualified Java as J
 import Text.Parsec.Error ( ParseError )
 import System.IO ( hFlush, stdout )
 import Data.Bifunctor ( first )
@@ -33,12 +33,30 @@ makeLenses ''AppState
 initialState :: AppState J.Package
 initialState =
   AppState { _program =
-             J.Package { _packageName = J.Identifier { _idName = "java.abc" },
-                         _classes = [ Class { _className = J.Identifier { _idName = "MyClass" }
-                                            , _classFields = []
-                                            , _classMethods = []
-                                            , _classVisibility = J.Public
-                                            }
+             J.Package { J._packageName = J.Identifier { J._idName = "java.abc" },
+                         J._classes = [ J.Class { J._className = J.Identifier { J._idName = "Car" }
+                                              , J._classFields = [ J.Field { J._fieldName = J.Identifier { J._idName = "speed" }
+                                                                         , J._fieldType = J.Datatype { J._datatypeName = "int" }
+                                                                         , J._fieldVisibility = J.Private
+                                                                         }
+                                                               ]
+                                              , J._classMethods = [ J.Method { J._methodName = J.Identifier { J._idName = "drive" }
+                                                                           , J._methodParameters = []
+                                                                           , J._methodReturnType = J.Datatype { J._datatypeName = "void" }
+                                                                           , J._methodVisibility = J.Public
+                                                                           }
+                                                                ]
+                                              , J._classVisibility = J.Public
+                                              }
+                                    , J.Class { J._className = J.Identifier { J._idName = "Bus" }
+                                              , J._classFields = [ J.Field { J._fieldName = J.Identifier { J._idName = "doors" }
+                                                                         , J._fieldType = J.Datatype { J._datatypeName = "int" }
+                                                                         , J._fieldVisibility = J.Private
+                                                                         }
+                                                               ]
+                                              , J._classMethods = []
+                                              , J._classVisibility = J.Public
+                                              }
                                     ]
                        }
            , _focus = FocusLens id

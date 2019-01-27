@@ -37,6 +37,7 @@ makeLenses ''Parameter
 data Method =
   Method { _methodName :: Identifier
          , _methodParameters :: [Parameter]
+         , _methodReturnType :: Datatype
          , _methodVisibility :: Visibility
          }
   deriving (Show)
