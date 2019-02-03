@@ -27,6 +27,7 @@ dependencies:
 - microlens-th
 - lens
 - vty
+- ansi-terminal
 
 library:
   source-dirs: src

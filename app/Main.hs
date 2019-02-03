@@ -12,6 +12,7 @@ import qualified Actions as A
 import Text.Parsec.Error ( ParseError )
 import System.IO ( hFlush, stdout )
 import Data.Bifunctor ( first )
+import System.Console.ANSI
 
 import Control.Lens
 import Control.Monad ( void )
@@ -28,18 +29,22 @@ eval "f .." state = Right $ A.focusUp state
 eval "" state = Right $ state
 eval input state = Right $ set output (putStrLn $ "Command '" ++ input ++ "' is unknown") state
 
-readInput :: String -> IO String
-readInput prompt = putStr (prompt ++ " > ")
-        >> hFlush stdout
-        >> getLine
+readInput :: IO String
+readInput = hFlush stdout >> getLine
      
-prompt :: AppState -> String
-prompt state = printSignature $ state ^.to leafFocus
+prompt :: AppState -> IO ()
+prompt state = do
+  setSGR [SetColor Foreground Vivid Blue]
+  putStr $ printSignature $ state ^.to leafFocus
+  putStr " > "
+  setSGR [Reset]
+  
 
 step :: AppState -> IO (Maybe AppState)
 step state = do
   let cleanState = clearOutput state
-  input <- readInput $ prompt cleanState
+  prompt cleanState
+  input <- readInput 
   let maybeState = eval input cleanState
   case maybeState of
     Right newState -> do
