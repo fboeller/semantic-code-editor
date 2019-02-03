@@ -25,10 +25,13 @@ listSelectedClasses term state = set output (putStrLn $ unlines $ printClassSign
 
 focusFirst :: (J.Element -> [a]) -> (a -> J.Element) -> AppState -> AppState
 focusFirst subElements toElement state =
-  over focus changeFocus state
-  where
-    changeFocus oldFocus = F.focusDown element oldFocus
-    element = toElement $ head $ subElements (state ^.to leafFocus)
+  case subElements (state ^.to leafFocus) of
+    [] -> set output (putStrLn "No focusable element in scope") state
+    elements -> over focus changeFocus state
+      where
+        changeFocus oldFocus = F.focusDown element oldFocus
+        element = toElement $ head elements
+    
 
 focusClass :: AppState -> AppState
 focusClass = focusFirst JA.classes J.EClass
