@@ -38,7 +38,7 @@ listSelectedClasses term state = set output (ResultList $ J.EClass <$> JA.select
 focusFirst :: (J.Element -> [a]) -> (a -> J.Element) -> AppState -> AppState
 focusFirst subElements toElement state =
   case subElements (state ^.to leafFocus) of
-    [] -> set output (Other $ putStrLn "No focusable element in scope") state
+    [] -> set output (Error $ putStrLn "No focusable element in scope") state
     elements -> over focus changeFocus state
       where
         changeFocus oldFocus = F.focusDown element oldFocus
@@ -64,6 +64,5 @@ focusLastOutputByIndex index state =
       if index > 0 && index <= length elements then
         over focus (F.focusDown $ elements !! (index - 1)) state
       else
-        set output (Other $ putStrLn $ "The index " ++ show index ++ " does not exist in the last result list") state
-    Other io ->
-      set output (Other $ putStrLn $ "The last output was not a result list") state
+        set output (Error $ putStrLn $ "The index " ++ show index ++ " does not exist in the last result list") state
+    _ -> set output (Error $ putStrLn $ "The last output was not a result list") state

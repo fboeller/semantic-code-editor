@@ -39,7 +39,7 @@ eval "" state = state
 eval input state = failParsing input state
 
 failParsing :: String -> AppState -> AppState
-failParsing input state = set output (Other $ putStrLn $ "Command '" ++ input ++ "' is unknown") state
+failParsing input state = set output (Error $ putStrLn $ "Command '" ++ input ++ "' is unknown") state
 
 readInput :: IO String
 readInput = hFlush stdout >> getLine
