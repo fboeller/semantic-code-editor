@@ -7,7 +7,7 @@ module Main where
 
 import Lib
 import PromptShow
-import AppState (AppState, program, focus, output, initialState)
+import AppState (AppState, program, focus, output, initialState, leafFocus)
 import qualified Actions as A
 import Text.Parsec.Error ( ParseError )
 import System.IO ( hFlush, stdout )
@@ -24,6 +24,7 @@ eval "lc" state = Right $ A.listClasses state
 eval ('l':'c':' ':searchTerm) state = Right $ A.listSelectedClasses searchTerm state
 eval "lv" state = Right $ A.listVariables state
 eval "fc" state = Right $ A.focusClass state
+eval "f .." state = Right $ A.focusUp state
 eval input state = Right $ set output input state
 
 readInput :: String -> IO String
@@ -38,7 +39,7 @@ printState state =
     str -> str ++ "\n"
 
 prompt :: AppState -> String
-prompt state = printSignature $ state ^. focus
+prompt state = printSignature $ state ^.to leafFocus
 
 step :: AppState -> IO (Maybe AppState)
 step state = do
