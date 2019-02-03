@@ -4,18 +4,18 @@ import Control.Lens
 
 import qualified Java as J
 import qualified JavaAccessors as JA
-import AppState (AppState, program, focus, output, leafFocus)
+import AppState (AppState, program, focus, output, leafFocus, Output(..))
 import qualified Focus as F
 import PromptShow
 
 read :: AppState -> AppState
-read state = set output (putStrLn $ printCommon $ state ^. to leafFocus) state
+read state = set output (Other $ putStrLn $ printCommon $ state ^. to leafFocus) state
 
 list :: (J.Element -> [a]) -> (a -> String) -> AppState -> IO ()
 list subElements toString state = putStr $ unlines $ toString <$> subElements (state ^.to leafFocus)
 
 listAll :: AppState -> AppState
-listAll state = set output results state
+listAll state = set output (Other results) state
   where
     results = do
       list JA.classes printClassSignature state
@@ -23,21 +23,21 @@ listAll state = set output results state
       list JA.variables printFieldSignature state
 
 listClasses :: AppState -> AppState
-listClasses state = set output (list JA.classes printClassSignature state) state
+listClasses state = set output (Other $ list JA.classes printClassSignature state) state
 
 listMethods :: AppState -> AppState
-listMethods state = set output (list JA.methods printMethodSignature state) state
+listMethods state = set output (Other $ list JA.methods printMethodSignature state) state
 
 listVariables :: AppState -> AppState
-listVariables state = set output (list JA.variables printFieldSignature state) state
+listVariables state = set output (Other $ list JA.variables printFieldSignature state) state
 
 listSelectedClasses :: String -> AppState -> AppState
-listSelectedClasses term state = set output (putStrLn $ unlines $ printClassSignature <$> JA.selectedClasses term (state ^.to leafFocus)) state
+listSelectedClasses term state = set output (Other $ putStrLn $ unlines $ printClassSignature <$> JA.selectedClasses term (state ^.to leafFocus)) state
 
 focusFirst :: (J.Element -> [a]) -> (a -> J.Element) -> AppState -> AppState
 focusFirst subElements toElement state =
   case subElements (state ^.to leafFocus) of
-    [] -> set output (putStrLn "No focusable element in scope") state
+    [] -> set output (Other $ putStrLn "No focusable element in scope") state
     elements -> over focus changeFocus state
       where
         changeFocus oldFocus = F.focusDown element oldFocus

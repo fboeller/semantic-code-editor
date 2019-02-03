@@ -7,7 +7,7 @@ module Main where
 
 import Lib
 import PromptShow
-import AppState (AppState, program, focus, output, initialState, leafFocus, clearOutput)
+import AppState (AppState, program, focus, output, initialState, leafFocus, clearOutput, Output(..), printOutput)
 import qualified Actions as A
 import Text.Parsec.Error ( ParseError )
 import System.IO ( hFlush, stdout )
@@ -31,7 +31,7 @@ eval "fm" state = Right $ A.focusMethod state
 eval "fv" state = Right $ A.focusVariable state
 eval "f .." state = Right $ A.focusUp state
 eval "" state = Right $ state
-eval input state = Right $ set output (putStrLn $ "Command '" ++ input ++ "' is unknown") state
+eval input state = Right $ set output (Other $ putStrLn $ "Command '" ++ input ++ "' is unknown") state
 
 readInput :: IO String
 readInput = hFlush stdout >> getLine
@@ -52,7 +52,7 @@ step state = do
   let maybeState = eval input cleanState
   case maybeState of
     Right newState -> do
-      newState ^. output
+      printOutput newState
       step newState
     Left _ -> do
       putStrLn "Exit"

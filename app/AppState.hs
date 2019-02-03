@@ -4,12 +4,17 @@ module AppState where
 
 import qualified Java as J
 import Focus
+import PromptShow
 import Control.Lens
 
+data Output =
+  ResultList [J.Element] |
+  Other (IO ())
+  
 data AppState =
   AppState { _program :: J.Package
            , _focus :: Focus
-           , _output :: IO ()
+           , _output :: Output
            }
 
 makeLenses ''AppState
@@ -21,7 +26,13 @@ leafFocus state =
     leaf:_ -> leaf
 
 clearOutput :: AppState -> AppState
-clearOutput = set output mempty
+clearOutput = set output (Other mempty)
+
+printOutput :: AppState -> IO ()
+printOutput state =
+  case state ^. output of
+    ResultList elements -> putStr $ unlines $ printSignature <$> elements
+    Other io -> io
               
 initialState :: AppState
 initialState =
@@ -30,7 +41,7 @@ initialState =
                        , J._classes = [ car, bus ]
                        }
            , _focus = [J.EClass car]
-           , _output = mempty
+           , _output = (Other mempty)
            }
   where
     car = J.Class { J._className = J.Identifier { J._idName = "Car" }
