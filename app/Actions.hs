@@ -12,10 +12,13 @@ read :: AppState -> AppState
 read state = set output (putStrLn $ printCommon $ state ^. to leafFocus) state
 
 listClasses :: AppState -> AppState
-listClasses state = set output (putStrLn $ unlines $ printClassSignature <$> JA.classes (state ^.to leafFocus)) state
+listClasses state = set output (putStr $ unlines $ printClassSignature <$> JA.classes (state ^.to leafFocus)) state
 
 listMethods :: AppState -> AppState
-listMethods state = set output (putStrLn $ unlines $ printMethodSignature <$> JA.methods (state ^.to leafFocus)) state
+listMethods state = set output (putStr $ unlines $ printMethodSignature <$> JA.methods (state ^.to leafFocus)) state
+
+listVariables :: AppState -> AppState
+listVariables state = set output (putStr $ unlines $ printFieldSignature <$> JA.variables (state ^.to leafFocus)) state
 
 listSelectedClasses :: String -> AppState -> AppState
 listSelectedClasses term state = set output (putStrLn $ unlines $ printClassSignature <$> JA.selectedClasses term (state ^.to leafFocus)) state
@@ -26,6 +29,3 @@ focusClass state = over focus changeFocus state
 
 focusUp :: AppState -> AppState
 focusUp state = over focus F.focusUp state
-
-listVariables :: AppState -> AppState
-listVariables state = set output (putStrLn $ unlines $ printFieldSignature <$> JA.variables (state ^.to leafFocus)) state
