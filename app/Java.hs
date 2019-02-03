@@ -58,3 +58,9 @@ data Package =
           }
   deriving (Show)
 makeLenses ''Package
+
+data Element = EField Field
+             | EParameter Parameter
+             | EMethod Method
+             | EClass Class
+             | EPackage Package
