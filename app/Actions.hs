@@ -32,7 +32,7 @@ listVariables :: AppState -> AppState
 listVariables state = set output (Other $ list JA.variables printFieldSignature state) state
 
 listSelectedClasses :: String -> AppState -> AppState
-listSelectedClasses term state = set output (Other $ putStrLn $ unlines $ printClassSignature <$> JA.selectedClasses term (state ^.to leafFocus)) state
+listSelectedClasses term state = set output (ResultList $ J.EClass <$> JA.selectedClasses term (state ^.to leafFocus)) state
 
 focusFirst :: (J.Element -> [a]) -> (a -> J.Element) -> AppState -> AppState
 focusFirst subElements toElement state =

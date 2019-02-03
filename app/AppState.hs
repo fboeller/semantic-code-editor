@@ -31,8 +31,11 @@ clearOutput = set output (Other mempty)
 printOutput :: AppState -> IO ()
 printOutput state =
   case state ^. output of
-    ResultList elements -> putStr $ unlines $ printSignature <$> elements
+    ResultList elements -> putStr $ unlines $ withIndex $ printSignature <$> elements
     Other io -> io
+  where
+    withIndex :: [String] -> [String]
+    withIndex = zipWith (\i e -> show i ++ ": " ++ e) [1..]
               
 initialState :: AppState
 initialState =
