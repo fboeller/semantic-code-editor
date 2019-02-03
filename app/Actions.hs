@@ -11,14 +11,17 @@ import PromptShow
 read :: AppState -> AppState
 read state = set output (putStrLn $ printCommon $ state ^. to leafFocus) state
 
+list :: (J.Element -> [a]) -> (a -> String) -> AppState -> AppState
+list subElements toString state = set output (putStr $ unlines $ toString <$> subElements (state ^.to leafFocus)) state
+
 listClasses :: AppState -> AppState
-listClasses state = set output (putStr $ unlines $ printClassSignature <$> JA.classes (state ^.to leafFocus)) state
+listClasses = list JA.classes printClassSignature
 
 listMethods :: AppState -> AppState
-listMethods state = set output (putStr $ unlines $ printMethodSignature <$> JA.methods (state ^.to leafFocus)) state
+listMethods = list JA.methods printMethodSignature
 
 listVariables :: AppState -> AppState
-listVariables state = set output (putStr $ unlines $ printFieldSignature <$> JA.variables (state ^.to leafFocus)) state
+listVariables = list JA.variables printFieldSignature
 
 listSelectedClasses :: String -> AppState -> AppState
 listSelectedClasses term state = set output (putStrLn $ unlines $ printClassSignature <$> JA.selectedClasses term (state ^.to leafFocus)) state
