@@ -73,7 +73,7 @@ focusClass state = over focus changeFocus state
 eval :: String -> AppState -> Either String AppState
 eval "quit" state = Left "Done!"
 eval "r" state = Right $ set output (show $ state ^. program) state
-eval "lc" state = Right $ set output (unlines $ printClassSignature <$> classes (J.EPackage $ state ^. program)) state
+eval "lc" state = Right $ set output (unlines $ printClassSignature <$> classes (state ^. focus)) state
 eval ('l':'c':' ':searchTerm) state = Right $ set output (unlines $ printClassSignature <$> selectedClasses searchTerm (J.EPackage $ state ^. program)) state
 eval "fc" state = Right $ focusClass state
 eval input state = Right $ set output input state
