@@ -18,3 +18,4 @@ variables _ = []
 
 methods :: J.Element -> [J.Method]
 methods (J.EClass c) = c ^. J.classMethods
+methods _ = []
