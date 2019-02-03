@@ -12,3 +12,6 @@ selectedClasses :: String -> J.Element -> [J.Class]
 selectedClasses term package =
   filter (\c -> c ^. J.className ^. J.idName == term) $ classes package
 
+variables :: J.Element -> [J.Field]
+variables (J.EClass c) = c ^. J.classFields
+variables _ = []

@@ -20,3 +20,5 @@ focusClass :: AppState -> AppState
 focusClass state = over focus changeFocus state
   where changeFocus oldFocus = J.EClass $ head $ JA.classes oldFocus
 
+listVariables :: AppState -> AppState
+listVariables state = set output (unlines $ printFieldSignature <$> JA.variables (state ^. focus)) state

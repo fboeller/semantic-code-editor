@@ -22,6 +22,7 @@ eval "quit" state = Left "Done!"
 eval "r" state = Right $ A.read state
 eval "lc" state = Right $ A.listClasses state
 eval ('l':'c':' ':searchTerm) state = Right $ A.listSelectedClasses searchTerm state
+eval "lv" state = Right $ A.listVariables state
 eval "fc" state = Right $ A.focusClass state
 eval input state = Right $ set output input state
 
