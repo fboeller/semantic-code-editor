@@ -7,7 +7,7 @@ module Main where
 
 import Lib
 import PromptShow
-import AppState (AppState, program, focus, output, initialState, leafFocus)
+import AppState (AppState, program, focus, output, initialState, leafFocus, clearOutput)
 import qualified Actions as A
 import Text.Parsec.Error ( ParseError )
 import System.IO ( hFlush, stdout )
@@ -25,7 +25,7 @@ eval ('l':'c':' ':searchTerm) state = Right $ A.listSelectedClasses searchTerm s
 eval "lv" state = Right $ A.listVariables state
 eval "fc" state = Right $ A.focusClass state
 eval "f .." state = Right $ A.focusUp state
-eval input state = Right $ set output input state
+eval input state = Right $ set output ("Command '" ++ input ++ "' is unknown") state
 
 readInput :: String -> IO String
 readInput prompt = putStr (prompt ++ " > ")
@@ -43,8 +43,9 @@ prompt state = printSignature $ state ^.to leafFocus
 
 step :: AppState -> IO (Maybe AppState)
 step state = do
-  input <- readInput $ prompt state
-  let maybeState = eval input state
+  let cleanState = clearOutput state
+  input <- readInput $ prompt cleanState
+  let maybeState = eval input cleanState
   case maybeState of
     Right newState -> do
       putStr $ printState newState

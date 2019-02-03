@@ -19,7 +19,10 @@ leafFocus state =
   case state ^. focus of
     [] -> J.EPackage $ state ^. program
     leaf:_ -> leaf
-                    
+
+clearOutput :: AppState -> AppState
+clearOutput = set output ""
+              
 initialState :: AppState
 initialState =
   AppState { _program =
