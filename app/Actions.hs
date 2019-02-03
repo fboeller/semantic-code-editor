@@ -9,13 +9,13 @@ import qualified Focus as F
 import PromptShow
 
 read :: AppState -> AppState
-read state = set output (printCommon $ state ^. to leafFocus) state
+read state = set output (putStrLn $ printCommon $ state ^. to leafFocus) state
 
 listClasses :: AppState -> AppState
-listClasses state = set output (unlines $ printClassSignature <$> JA.classes (state ^.to leafFocus)) state
+listClasses state = set output (putStrLn $ unlines $ printClassSignature <$> JA.classes (state ^.to leafFocus)) state
 
 listSelectedClasses :: String -> AppState -> AppState
-listSelectedClasses term state = set output (unlines $ printClassSignature <$> JA.selectedClasses term (state ^.to leafFocus)) state
+listSelectedClasses term state = set output (putStrLn $ unlines $ printClassSignature <$> JA.selectedClasses term (state ^.to leafFocus)) state
 
 focusClass :: AppState -> AppState
 focusClass state = over focus changeFocus state
@@ -25,4 +25,4 @@ focusUp :: AppState -> AppState
 focusUp state = over focus F.focusUp state
 
 listVariables :: AppState -> AppState
-listVariables state = set output (unlines $ printFieldSignature <$> JA.variables (state ^.to leafFocus)) state
+listVariables state = set output (putStrLn $ unlines $ printFieldSignature <$> JA.variables (state ^.to leafFocus)) state

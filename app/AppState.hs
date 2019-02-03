@@ -9,7 +9,7 @@ import Control.Lens
 data AppState =
   AppState { _program :: J.Package
            , _focus :: Focus
-           , _output :: String
+           , _output :: IO ()
            }
 
 makeLenses ''AppState
@@ -21,7 +21,7 @@ leafFocus state =
     leaf:_ -> leaf
 
 clearOutput :: AppState -> AppState
-clearOutput = set output ""
+clearOutput = set output mempty
               
 initialState :: AppState
 initialState =
@@ -30,7 +30,7 @@ initialState =
                        , J._classes = [ car, bus ]
                        }
            , _focus = [J.EClass car]
-           , _output = ""
+           , _output = mempty
            }
   where
     car = J.Class { J._className = J.Identifier { J._idName = "Car" }

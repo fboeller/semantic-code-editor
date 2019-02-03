@@ -25,19 +25,14 @@ eval ('l':'c':' ':searchTerm) state = Right $ A.listSelectedClasses searchTerm s
 eval "lv" state = Right $ A.listVariables state
 eval "fc" state = Right $ A.focusClass state
 eval "f .." state = Right $ A.focusUp state
-eval input state = Right $ set output ("Command '" ++ input ++ "' is unknown") state
+eval "" state = Right $ state
+eval input state = Right $ set output (putStrLn $ "Command '" ++ input ++ "' is unknown") state
 
 readInput :: String -> IO String
 readInput prompt = putStr (prompt ++ " > ")
         >> hFlush stdout
         >> getLine
      
-printState :: AppState -> String
-printState state =
-  case state ^. output of
-    "" -> ""
-    str -> str ++ "\n"
-
 prompt :: AppState -> String
 prompt state = printSignature $ state ^.to leafFocus
 
@@ -48,7 +43,7 @@ step state = do
   let maybeState = eval input cleanState
   case maybeState of
     Right newState -> do
-      putStr $ printState newState
+      newState ^. output
       step newState
     Left _ -> do
       putStrLn "Exit"
