@@ -11,25 +11,26 @@ import PromptShow
 read :: AppState -> AppState
 read state = set output (Other $ putStrLn $ printCommon $ state ^. to leafFocus) state
 
-list :: (J.Element -> [a]) -> (a -> String) -> AppState -> IO ()
-list subElements toString state = putStr $ unlines $ toString <$> subElements (state ^.to leafFocus)
+list :: (J.Element -> [a]) -> AppState -> [a]
+list subElements state = subElements (state ^.to leafFocus)
 
 listAll :: AppState -> AppState
-listAll state = set output (Other results) state
+listAll state = set output (ResultList results) state
   where
-    results = do
-      list JA.classes printClassSignature state
-      list JA.methods printMethodSignature state
-      list JA.variables printFieldSignature state
+    results = concat
+      [ J.EClass <$> list JA.classes state
+      , J.EMethod <$> list JA.methods state
+      , J.EField <$> list JA.variables state
+      ]
 
 listClasses :: AppState -> AppState
-listClasses state = set output (Other $ list JA.classes printClassSignature state) state
+listClasses state = set output (ResultList $ J.EClass <$> list JA.classes state) state
 
 listMethods :: AppState -> AppState
-listMethods state = set output (Other $ list JA.methods printMethodSignature state) state
+listMethods state = set output (ResultList $ J.EMethod <$> list JA.methods state) state
 
 listVariables :: AppState -> AppState
-listVariables state = set output (Other $ list JA.variables printFieldSignature state) state
+listVariables state = set output (ResultList $ J.EField <$> list JA.variables state) state
 
 listSelectedClasses :: String -> AppState -> AppState
 listSelectedClasses term state = set output (ResultList $ J.EClass <$> JA.selectedClasses term (state ^.to leafFocus)) state
