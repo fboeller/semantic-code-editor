@@ -15,3 +15,6 @@ selectedClasses term package =
 variables :: J.Element -> [J.Field]
 variables (J.EClass c) = c ^. J.classFields
 variables _ = []
+
+methods :: J.Element -> [J.Method]
+methods (J.EClass c) = c ^. J.classMethods

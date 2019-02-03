@@ -14,6 +14,9 @@ read state = set output (putStrLn $ printCommon $ state ^. to leafFocus) state
 listClasses :: AppState -> AppState
 listClasses state = set output (putStrLn $ unlines $ printClassSignature <$> JA.classes (state ^.to leafFocus)) state
 
+listMethods :: AppState -> AppState
+listMethods state = set output (putStrLn $ unlines $ printMethodSignature <$> JA.methods (state ^.to leafFocus)) state
+
 listSelectedClasses :: String -> AppState -> AppState
 listSelectedClasses term state = set output (putStrLn $ unlines $ printClassSignature <$> JA.selectedClasses term (state ^.to leafFocus)) state
 
