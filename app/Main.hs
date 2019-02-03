@@ -21,6 +21,7 @@ import qualified Graphics.Vty as V
 eval :: String -> AppState -> Either String AppState
 eval "quit" state = Left "Done!"
 eval "r" state = Right $ A.read state
+eval "l" state = Right $ A.listAll state
 eval "lc" state = Right $ A.listClasses state
 eval "lm" state = Right $ A.listMethods state
 eval "lv" state = Right $ A.listVariables state
