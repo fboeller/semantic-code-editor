@@ -14,6 +14,7 @@ data Output =
 data AppState =
   AppState { _program :: J.Package
            , _focus :: Focus
+           , _lastOutput :: Output
            , _output :: Output
            }
 
@@ -26,7 +27,9 @@ leafFocus state =
     leaf:_ -> leaf
 
 clearOutput :: AppState -> AppState
-clearOutput = set output (Other mempty)
+clearOutput state = state
+  & lastOutput .~ state ^. output
+  & output .~ Other mempty
 
 printOutput :: AppState -> IO ()
 printOutput state =
@@ -44,7 +47,8 @@ initialState =
                        , J._classes = [ car, bus ]
                        }
            , _focus = [J.EClass car]
-           , _output = (Other mempty)
+           , _lastOutput = Other mempty
+           , _output = Other mempty
            }
   where
     car = J.Class { J._className = J.Identifier { J._idName = "Car" }

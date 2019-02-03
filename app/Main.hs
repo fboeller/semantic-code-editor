@@ -13,25 +13,33 @@ import Text.Parsec.Error ( ParseError )
 import System.IO ( hFlush, stdout )
 import Data.Bifunctor ( first )
 import System.Console.ANSI
+import Text.Read (readMaybe)
 
 import Control.Lens
 import Control.Monad ( void )
 import qualified Graphics.Vty as V
           
-eval :: String -> AppState -> Either String AppState
-eval "quit" state = Left "Done!"
-eval "r" state = Right $ A.read state
-eval "l" state = Right $ A.listAll state
-eval "lc" state = Right $ A.listClasses state
-eval "lm" state = Right $ A.listMethods state
-eval "lv" state = Right $ A.listVariables state
-eval ('l':'c':' ':searchTerm) state = Right $ A.listSelectedClasses searchTerm state
-eval "fc" state = Right $ A.focusClass state
-eval "fm" state = Right $ A.focusMethod state
-eval "fv" state = Right $ A.focusVariable state
-eval "f .." state = Right $ A.focusUp state
-eval "" state = Right $ state
-eval input state = Right $ set output (Other $ putStrLn $ "Command '" ++ input ++ "' is unknown") state
+eval :: String -> AppState -> AppState
+eval "quit" state = state & output .~ (Other $ putStr "Done!")
+eval "r" state = A.read state
+eval "l" state = A.listAll state
+eval "lc" state = A.listClasses state
+eval "lm" state = A.listMethods state
+eval "lv" state = A.listVariables state
+eval ('l':'c':' ':searchTerm) state = A.listSelectedClasses searchTerm state
+eval "fc" state = A.focusClass state
+eval "fm" state = A.focusMethod state
+eval "fv" state = A.focusVariable state
+eval "f .." state = A.focusUp state
+eval input@('f':' ':term) state =
+  case readMaybe term :: Maybe Int of
+    Nothing -> failParsing input state 
+    Just number -> A.focusLastOutputByIndex number state
+eval "" state = state
+eval input state = failParsing input state
+
+failParsing :: String -> AppState -> AppState
+failParsing input state = set output (Other $ putStrLn $ "Command '" ++ input ++ "' is unknown") state
 
 readInput :: IO String
 readInput = hFlush stdout >> getLine
@@ -49,14 +57,9 @@ step state = do
   let cleanState = clearOutput state
   prompt cleanState
   input <- readInput 
-  let maybeState = eval input cleanState
-  case maybeState of
-    Right newState -> do
-      printOutput newState
-      step newState
-    Left _ -> do
-      putStrLn "Exit"
-      return Nothing
+  let newState = eval input cleanState
+  printOutput newState
+  step newState
 
 main :: IO ()
 main = void $ step initialState

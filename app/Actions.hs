@@ -4,7 +4,7 @@ import Control.Lens
 
 import qualified Java as J
 import qualified JavaAccessors as JA
-import AppState (AppState, program, focus, output, leafFocus, Output(..))
+import AppState (AppState, program, focus, output, lastOutput, leafFocus, Output(..))
 import qualified Focus as F
 import PromptShow
 
@@ -56,3 +56,14 @@ focusVariable = focusFirst JA.variables J.EField
 
 focusUp :: AppState -> AppState
 focusUp state = over focus F.focusUp state
+
+focusLastOutputByIndex :: Int -> AppState -> AppState
+focusLastOutputByIndex index state =
+  case state ^. lastOutput of
+    ResultList elements ->
+      if index > 0 && index <= length elements then
+        over focus (F.focusDown $ elements !! (index - 1)) state
+      else
+        set output (Other $ putStrLn $ "The index " ++ show index ++ " does not exist in the last result list") state
+    Other io ->
+      set output (Other $ putStrLn $ "The last output was not a result list") state

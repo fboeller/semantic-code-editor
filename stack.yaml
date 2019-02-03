@@ -51,6 +51,12 @@ extra-deps:
 # Extra package databases containing global packages
 # extra-package-dbs: []
 
+ghc-options:
+  # All packages
+  "$locals": -fwarn-incomplete-patterns
+  "$targets": -Werror
+  "$everything": -O2
+
 # Control whether we use the GHC we find on the path
 # system-ghc: true
 #
