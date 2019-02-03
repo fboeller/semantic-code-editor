@@ -1,26 +1,86 @@
 module PromptShow where
 
-import Java as J
+import Java
 import Control.Lens
+import Data.List (intercalate)
 
-printPackageSignature :: J.Package -> String
-printPackageSignature p = p ^. J.packageName ^. idName
+printPackageSignature :: Package -> String
+printPackageSignature p = unwords
+  [ "package"
+  , p ^. packageName ^. idName
+  ]
 
-printClassSignature :: J.Class -> String
-printClassSignature c = c ^. J.className ^. idName
+printClassSignature :: Class -> String
+printClassSignature c = unwords
+  [ printVisibilityCommon $ c ^. classVisibility
+  , "class"
+  , c ^. className ^. idName
+  ]
 
-printMethodSignature :: J.Method -> String
-printMethodSignature m = m ^. J.methodName ^. idName
+printMethodSignature :: Method -> String
+printMethodSignature m = unwords
+  [ printVisibilityCommon $ m ^. methodVisibility
+  , m ^. methodReturnType ^. datatypeName
+  , m ^. methodName ^. idName
+  , "(" ++ (intercalate ", " $ printParameterSignature <$> m ^. methodParameters) ++ ")"
+  ]
 
-printParameterSignature :: J.Parameter -> String
-printParameterSignature p = p ^. J.parameterName ^. idName
+printParameterSignature :: Parameter -> String
+printParameterSignature p = unwords
+  [ p ^. parameterType ^. datatypeName
+  , p ^. parameterName ^. idName
+  ]
 
-printFieldSignature :: J.Field -> String
-printFieldSignature f = f ^. J.fieldName ^. idName
+printFieldSignature :: Field -> String
+printFieldSignature f = unwords
+  [ printVisibilityCommon $ f ^. fieldVisibility
+  , f ^. fieldType ^. datatypeName
+  , f ^. fieldName ^. idName
+  ]
 
-printSignature :: J.Element -> String
-printSignature (J.EPackage p) = printPackageSignature p
-printSignature (J.EClass c) = printClassSignature c
-printSignature (J.EMethod m) = printMethodSignature m
-printSignature (J.EParameter p) = printParameterSignature p
-printSignature (J.EField f) = printFieldSignature f
+printSignature :: Element -> String
+printSignature (EPackage p) = printPackageSignature p
+printSignature (EClass c) = printClassSignature c
+printSignature (EMethod m) = printMethodSignature m
+printSignature (EParameter p) = printParameterSignature p
+printSignature (EField f) = printFieldSignature f
+
+printVisibilityCommon :: Visibility -> String
+printVisibilityCommon Private = "private"
+printVisibilityCommon Protected = "protected"
+printVisibilityCommon Public = "public"
+
+printPackageCommon :: Package -> String
+printPackageCommon p = p ^. packageName ^. idName
+
+printClassCommon :: Class -> String
+printClassCommon c = unwords
+  [ printClassSignature c
+  , "{"
+  , concat $ ("\n  "++) <$> (++";") <$> printFieldSignature <$> c ^. classFields
+  , concat $ ("\n  "++) <$> printMethodCommon <$> c ^. classMethods
+  , "\n}"
+  ]
+
+printMethodCommon :: Method -> String
+printMethodCommon m = unwords $
+  [ printMethodSignature m
+  , "{"
+  , "..."
+  , "}"
+  ]
+
+printParameterCommon :: Parameter -> String
+printParameterCommon p = p ^. parameterName ^. idName
+
+printFieldCommon :: Field -> String
+printFieldCommon f = f ^. fieldName ^. idName
+
+printCommon :: Element -> String
+printCommon (EPackage p) = printPackageCommon p
+printCommon (EClass c) = printClassCommon c
+printCommon (EMethod m) = printMethodCommon m
+printCommon (EParameter p) = printParameterCommon p
+printCommon (EField f) = printFieldCommon f
+
+

@@ -8,7 +8,7 @@ import AppState (AppState, program, focus, output)
 import PromptShow
 
 read :: AppState -> AppState
-read state = set output (show $ state ^. program) state
+read state = set output (printCommon $ state ^. focus) state
 
 listClasses :: AppState -> AppState
 listClasses state = set output (unlines $ printClassSignature <$> JA.classes (state ^. focus)) state

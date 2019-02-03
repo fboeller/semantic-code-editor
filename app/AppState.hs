@@ -28,6 +28,10 @@ initialState =
                                                , J._fieldType = J.Datatype { J._datatypeName = "int" }
                                                , J._fieldVisibility = J.Private
                                                }
+                                     , J.Field { J._fieldName = J.Identifier { J._idName = "altitude" }
+                                               , J._fieldType = J.Datatype { J._datatypeName = "int" }
+                                               , J._fieldVisibility = J.Protected
+                                               }
                                      ]
                   , J._classMethods = [ J.Method { J._methodName = J.Identifier { J._idName = "drive" }
                                                  , J._methodParameters = []
