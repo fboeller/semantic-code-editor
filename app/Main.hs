@@ -29,6 +29,7 @@ eval (P.Single P.Focus) = A.focusAny
 eval (P.Double P.List elementType) = A.listElementsOfType elementType
 eval (P.TermDouble P.List elementType term) = A.listSelectedElementsOfType elementType term
 eval (P.TermSingle P.List term) = A.listSelectedElements term
+eval (P.TermDouble P.Focus elementType term) = A.focusFirstSelectedElementOfType elementType term
 eval (P.TermSingle P.Focus term) = A.focusFirstSelectedElement term
 eval (P.Double P.Focus P.Class) = A.focusClass
 eval (P.Double P.Focus P.Method) = A.focusMethod
