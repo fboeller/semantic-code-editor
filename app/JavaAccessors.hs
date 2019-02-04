@@ -4,6 +4,7 @@ import Control.Lens hiding (elements)
 
 import qualified Java as J
 import CommandParser (SecondCommand(..))
+import Data.List (isPrefixOf)
 
 selectedElements :: String -> J.Element -> [J.Element]
 selectedElements term element =
@@ -14,19 +15,19 @@ selectedElementsOfType elementType term element =
   filter (matchesElement term) $ elementsOfType elementType element
 
 matchesElement :: String -> J.Element -> Bool
-matchesElement term (J.EClass c) = matchesClass term c
-matchesElement term (J.EField c) = matchesField term c
-matchesElement term (J.EMethod c) = matchesMethod term c
+matchesElement term (J.EClass c) = isPrefixOf term $ searchPropertiesOfClass c
+matchesElement term (J.EField f) = isPrefixOf term $ searchPropertiesOfField f
+matchesElement term (J.EMethod m) = isPrefixOf term $ searchPropertiesOfMethod m
 matchesElement _ _ = False
 
-matchesClass :: String -> J.Class -> Bool
-matchesClass term c = c ^. J.className ^. J.idName == term
+searchPropertiesOfClass :: J.Class -> String
+searchPropertiesOfClass c = c ^. J.className ^. J.idName
 
-matchesField :: String -> J.Field -> Bool
-matchesField term c = c ^. J.fieldName ^. J.idName == term
+searchPropertiesOfField :: J.Field -> String
+searchPropertiesOfField f = f ^. J.fieldName ^. J.idName
 
-matchesMethod :: String -> J.Method -> Bool
-matchesMethod term c = c ^. J.methodName ^. J.idName == term
+searchPropertiesOfMethod :: J.Method -> String
+searchPropertiesOfMethod m = m ^. J.methodName ^. J.idName
 
 classes :: J.Element -> [J.Class]
 classes (J.EPackage p) = p ^. J.classes
