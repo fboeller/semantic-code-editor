@@ -25,6 +25,7 @@ eval P.Exit state = state & output .~ (Other $ putStr "Done!")
 eval P.Empty state = state
 eval (P.Single P.Read) state = A.read state
 eval (P.Single P.List) state = A.listAll state
+eval (P.Single P.Focus) state = A.focusAny state
 eval (P.Double P.List P.Class) state = A.listClasses state
 eval (P.Double P.List P.Method) state = A.listMethods state
 eval (P.Double P.List P.Variable) state = A.listVariables state

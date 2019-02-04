@@ -19,3 +19,10 @@ variables _ = []
 methods :: J.Element -> [J.Method]
 methods (J.EClass c) = c ^. J.classMethods
 methods _ = []
+
+elements :: J.Element -> [J.Element]
+elements e = concat
+  [ J.EClass <$> classes e
+  , J.EField <$> variables e
+  , J.EMethod <$> methods e
+  ]

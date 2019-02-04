@@ -44,6 +44,8 @@ focusFirst subElements toElement state =
         changeFocus oldFocus = F.focusDown element oldFocus
         element = toElement $ head elements
     
+focusAny :: AppState -> AppState
+focusAny = focusFirst JA.elements id
 
 focusClass :: AppState -> AppState
 focusClass = focusFirst JA.classes J.EClass
