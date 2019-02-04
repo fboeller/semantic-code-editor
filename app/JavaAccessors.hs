@@ -3,14 +3,30 @@ module JavaAccessors where
 import Control.Lens
 
 import qualified Java as J
+import CommandParser (SecondCommand(..))
+
+selectedElementsOfType :: SecondCommand -> String -> J.Element -> [J.Element]
+selectedElementsOfType elementType term package =
+  filter (matchesElement term) $ elementsOfType elementType package
+
+matchesElement :: String -> J.Element -> Bool
+matchesElement term (J.EClass c) = matchesClass term c
+matchesElement term (J.EField c) = matchesField term c
+matchesElement term (J.EMethod c) = matchesMethod term c
+matchesElement _ _ = False
+
+matchesClass :: String -> J.Class -> Bool
+matchesClass term c = c ^. J.className ^. J.idName == term
+
+matchesField :: String -> J.Field -> Bool
+matchesField term c = c ^. J.fieldName ^. J.idName == term
+
+matchesMethod :: String -> J.Method -> Bool
+matchesMethod term c = c ^. J.methodName ^. J.idName == term
 
 classes :: J.Element -> [J.Class]
 classes (J.EPackage p) = p ^. J.classes
 classes _ = []
-
-selectedClasses :: String -> J.Element -> [J.Class]
-selectedClasses term package =
-  filter (\c -> c ^. J.className ^. J.idName == term) $ classes package
 
 variables :: J.Element -> [J.Field]
 variables (J.EClass c) = c ^. J.classFields
@@ -26,3 +42,9 @@ elements e = concat
   , J.EField <$> variables e
   , J.EMethod <$> methods e
   ]
+
+elementsOfType :: SecondCommand -> J.Element -> [J.Element]
+elementsOfType Class = fmap J.EClass . classes
+elementsOfType Variable = fmap J.EField . variables
+elementsOfType Method = fmap J.EMethod . methods
+elementsOfType _ = \_ -> []

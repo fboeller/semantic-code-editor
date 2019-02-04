@@ -33,35 +33,36 @@ runParser str = case parse command "Parser for commands" (str ++ ";") of
 
 firstCommand :: Parser FirstCommand
 firstCommand = choice
-  [ lexeme (char 'r') *> pure Read
-  , lexeme (char 'f') *> pure Focus
-  , lexeme (char 'l') *> pure List
+  [ char 'r' *> pure Read
+  , char 'f' *> pure Focus
+  , char 'l' *> pure List
   ]
 
 secondCommand :: Parser SecondCommand
 secondCommand = choice
-  [ lexeme (char 'c') *> pure Class
-  , lexeme (char 'm') *> pure Method
-  , lexeme (char 'f') *> pure Function
-  , lexeme (char 'v') *> pure Variable
+  [ char 'c' *> pure Class
+  , char 'm' *> pure Method
+  , char 'f' *> pure Function
+  , char 'v' *> pure Variable
   ]
 
 path :: Parser Path
-path = lexeme (string "..") *> pure Upper
+path = string ".." *> pure Upper
 
 (<||>) :: Parser a -> Parser a -> Parser a
 p <||> q = try p <|> q
 
 command :: Parser Command
-command = (lexeme (char 'q') *> pure Exit)
+command = (char 'q' *> pure Exit)
   <||> (Index <$> integer)
-  <||> (TermDouble <$> firstCommand <*> secondCommand <*> stringLiteral)
+  <||> (TermDouble <$> firstCommand <*> secondCommand <* space <*> identifier)
   <||> (Double <$> firstCommand <*> secondCommand)
-  <||> (PathSingle <$> firstCommand <*> path)
-  <||> (TermSingle <$> firstCommand <*> stringLiteral)
-  <||> (IndexSingle <$> firstCommand <*> integer)
+  <||> (TermSingle <$> firstCommand <* space <*> identifier)
+  <||> (PathSingle <$> firstCommand <* space <*> path)
+  <||> (IndexSingle <$> firstCommand <* space <*> integer)
   <||> (Single <$> firstCommand)
   <||> ((mempty :: Parser String) *> pure Empty)
+  <* whiteSpace
   <* semi
 
 -- Lexer
@@ -70,5 +71,8 @@ lexer = P.makeTokenParser emptyDef
 
 integer = P.integer lexer 
 stringLiteral = P.stringLiteral lexer
+identifier = P.identifier lexer
 lexeme = P.lexeme lexer
 semi = P.semi lexer
+whiteSpace = P.whiteSpace lexer
+space = char ' ' :: Parser Char

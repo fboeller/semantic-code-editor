@@ -6,6 +6,7 @@ import qualified Java as J
 import qualified JavaAccessors as JA
 import AppState (AppState, program, focus, output, lastOutput, leafFocus, Output(..))
 import qualified Focus as F
+import CommandParser (SecondCommand(..))
 import PromptShow
 
 read :: AppState -> AppState
@@ -23,6 +24,12 @@ listAll state = set output (ResultList results) state
       , J.EField <$> list JA.variables state
       ]
 
+listElementsOfType :: SecondCommand -> AppState -> AppState
+listElementsOfType Class = listClasses
+listElementsOfType Method = listMethods
+listElementsOfType Variable = listVariables
+listElementsOfType _ = id
+
 listClasses :: AppState -> AppState
 listClasses state = set output (ResultList $ J.EClass <$> list JA.classes state) state
 
@@ -32,8 +39,9 @@ listMethods state = set output (ResultList $ J.EMethod <$> list JA.methods state
 listVariables :: AppState -> AppState
 listVariables state = set output (ResultList $ J.EField <$> list JA.variables state) state
 
-listSelectedClasses :: String -> AppState -> AppState
-listSelectedClasses term state = set output (ResultList $ J.EClass <$> JA.selectedClasses term (state ^.to leafFocus)) state
+listSelectedElementsOfType :: SecondCommand -> String -> AppState -> AppState
+listSelectedElementsOfType elementType term state =
+  state & output .~ (ResultList $ JA.selectedElementsOfType elementType term (state ^.to leafFocus))
 
 focusFirst :: (J.Element -> [a]) -> (a -> J.Element) -> AppState -> AppState
 focusFirst subElements toElement state =
