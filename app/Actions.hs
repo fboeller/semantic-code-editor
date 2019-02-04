@@ -55,6 +55,9 @@ focusFirst subElements toElement state =
       where
         changeFocus oldFocus = F.focusDown element oldFocus
         element = toElement $ head elements
+
+focusFirstSelectedElement :: String -> AppState -> AppState
+focusFirstSelectedElement term = focusFirst (JA.selectedElements term) id
     
 focusAny :: AppState -> AppState
 focusAny = focusFirst JA.elements id
