@@ -27,7 +27,7 @@ data Command =
   deriving Show
 
 runParser :: String -> Either String Command
-runParser str = case parse command "Parser for commands" str of
+runParser str = case parse command "Parser for commands" (str ++ ";") of
   Left err -> Left $ show err
   Right val -> Right val
 
@@ -62,6 +62,7 @@ command = (lexeme (char 'q') *> pure Exit)
   <||> (IndexSingle <$> firstCommand <*> integer)
   <||> (Single <$> firstCommand)
   <||> ((mempty :: Parser String) *> pure Empty)
+  <* semi
 
 -- Lexer
 
@@ -70,3 +71,4 @@ lexer = P.makeTokenParser emptyDef
 integer = P.integer lexer 
 stringLiteral = P.stringLiteral lexer
 lexeme = P.lexeme lexer
+semi = P.semi lexer
