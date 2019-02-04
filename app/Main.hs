@@ -9,6 +9,7 @@ import Lib
 import PromptShow
 import AppState (AppState, program, focus, output, initialState, leafFocus, clearOutput, Output(..), printOutput)
 import qualified Actions as A
+import qualified CommandParser as P
 import Text.Parsec.Error ( ParseError )
 import System.IO ( hFlush, stdout )
 import Data.Bifunctor ( first )
@@ -19,27 +20,27 @@ import Control.Lens
 import Control.Monad ( void )
 import qualified Graphics.Vty as V
           
-eval :: String -> AppState -> AppState
-eval "quit" state = state & output .~ (Other $ putStr "Done!")
-eval "r" state = A.read state
-eval "l" state = A.listAll state
-eval "lc" state = A.listClasses state
-eval "lm" state = A.listMethods state
-eval "lv" state = A.listVariables state
-eval ('l':'c':' ':searchTerm) state = A.listSelectedClasses searchTerm state
-eval "fc" state = A.focusClass state
-eval "fm" state = A.focusMethod state
-eval "fv" state = A.focusVariable state
-eval "f .." state = A.focusUp state
-eval input@('f':' ':term) state =
-  case readMaybe term :: Maybe Int of
-    Nothing -> failParsing input state 
-    Just number -> A.focusLastOutputByIndex number state
-eval "" state = state
-eval input state = failParsing input state
+eval :: P.Command -> AppState -> AppState
+eval P.Exit state = state & output .~ (Other $ putStr "Done!")
+eval P.Empty state = state
+eval (P.Single P.Read) state = A.read state
+eval (P.Single P.List) state = A.listAll state
+eval (P.Double P.List P.Class) state = A.listClasses state
+eval (P.Double P.List P.Method) state = A.listMethods state
+eval (P.Double P.List P.Variable) state = A.listVariables state
+eval (P.TermDouble P.List P.Class searchTerm) state = A.listSelectedClasses searchTerm state
+eval (P.Double P.Focus P.Class) state = A.focusClass state
+eval (P.Double P.Focus P.Method) state = A.focusMethod state
+eval (P.Double P.Focus P.Variable) state = A.focusVariable state
+eval (P.PathSingle P.Focus P.Upper) state = A.focusUp state
+eval (P.IndexSingle P.Focus number) state = A.focusLastOutputByIndex (fromInteger number) state
+eval input state = state & output .~ (Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented")
 
-failParsing :: String -> AppState -> AppState
-failParsing input state = set output (Error $ putStrLn $ "Command '" ++ input ++ "' is unknown") state
+process :: String -> AppState -> AppState
+process input state =
+  case P.runParser input of
+    Left err -> state & output .~ Error (putStrLn err)
+    Right command -> eval command state
 
 readInput :: IO String
 readInput = hFlush stdout >> getLine
@@ -57,7 +58,7 @@ step state = do
   let cleanState = clearOutput state
   prompt cleanState
   input <- readInput 
-  let newState = eval input cleanState
+  let newState = process input cleanState
   printOutput newState
   step newState
 
