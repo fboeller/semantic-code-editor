@@ -39,6 +39,10 @@ listMethods state = set output (ResultList $ J.EMethod <$> list JA.methods state
 listVariables :: AppState -> AppState
 listVariables state = set output (ResultList $ J.EField <$> list JA.variables state) state
 
+listSelectedElements :: String -> AppState -> AppState
+listSelectedElements term state =
+  state & output .~ (ResultList $ JA.selectedElements term (state ^.to leafFocus))
+
 listSelectedElementsOfType :: SecondCommand -> String -> AppState -> AppState
 listSelectedElementsOfType elementType term state =
   state & output .~ (ResultList $ JA.selectedElementsOfType elementType term (state ^.to leafFocus))

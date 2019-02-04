@@ -1,13 +1,17 @@
 module JavaAccessors where
 
-import Control.Lens
+import Control.Lens hiding (elements)
 
 import qualified Java as J
 import CommandParser (SecondCommand(..))
 
+selectedElements :: String -> J.Element -> [J.Element]
+selectedElements term element =
+  filter (matchesElement term) $ elements element
+
 selectedElementsOfType :: SecondCommand -> String -> J.Element -> [J.Element]
-selectedElementsOfType elementType term package =
-  filter (matchesElement term) $ elementsOfType elementType package
+selectedElementsOfType elementType term element =
+  filter (matchesElement term) $ elementsOfType elementType element
 
 matchesElement :: String -> J.Element -> Bool
 matchesElement term (J.EClass c) = matchesClass term c

@@ -28,6 +28,7 @@ eval (P.Single P.List) state = A.listAll state
 eval (P.Single P.Focus) state = A.focusAny state
 eval (P.Double P.List elementType) state = A.listElementsOfType elementType state
 eval (P.TermDouble P.List elementType term) state = A.listSelectedElementsOfType elementType term state
+eval (P.TermSingle P.List term) state = A.listSelectedElements term state
 eval (P.Double P.Focus P.Class) state = A.focusClass state
 eval (P.Double P.Focus P.Method) state = A.focusMethod state
 eval (P.Double P.Focus P.Variable) state = A.focusVariable state
