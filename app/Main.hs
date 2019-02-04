@@ -21,20 +21,20 @@ import Control.Monad ( void )
 import qualified Graphics.Vty as V
           
 eval :: P.Command -> AppState -> AppState
-eval P.Exit state = state & output .~ (Other $ putStr "Done!")
-eval P.Empty state = state
-eval (P.Single P.Read) state = A.read state
-eval (P.Single P.List) state = A.listAll state
-eval (P.Single P.Focus) state = A.focusAny state
-eval (P.Double P.List elementType) state = A.listElementsOfType elementType state
-eval (P.TermDouble P.List elementType term) state = A.listSelectedElementsOfType elementType term state
-eval (P.TermSingle P.List term) state = A.listSelectedElements term state
-eval (P.Double P.Focus P.Class) state = A.focusClass state
-eval (P.Double P.Focus P.Method) state = A.focusMethod state
-eval (P.Double P.Focus P.Variable) state = A.focusVariable state
-eval (P.PathSingle P.Focus P.Upper) state = A.focusUp state
-eval (P.IndexSingle P.Focus number) state = A.focusLastOutputByIndex (fromInteger number) state
-eval input state = state & output .~ (Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented")
+eval P.Exit = set output (Other $ putStr "Done!")
+eval P.Empty = id
+eval (P.Single P.Read) = A.read
+eval (P.Single P.List) = A.listAll
+eval (P.Single P.Focus) = A.focusAny
+eval (P.Double P.List elementType) = A.listElementsOfType elementType
+eval (P.TermDouble P.List elementType term) = A.listSelectedElementsOfType elementType term
+eval (P.TermSingle P.List term) = A.listSelectedElements term
+eval (P.Double P.Focus P.Class) = A.focusClass
+eval (P.Double P.Focus P.Method) = A.focusMethod
+eval (P.Double P.Focus P.Variable) = A.focusVariable
+eval (P.PathSingle P.Focus P.Upper) = A.focusUp
+eval (P.IndexSingle P.Focus number) = A.focusLastOutputByIndex (fromInteger number)
+eval input = set output (Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented")
 
 process :: String -> AppState -> AppState
 process input state =
