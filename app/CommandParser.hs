@@ -8,7 +8,7 @@ import Control.Applicative hiding ((<|>))
 data FirstCommand = Read | Focus | List
   deriving Show
 
-data SecondCommand = Class | Method | Function | Variable
+data ElementType = Class | Method | Function | Variable
   deriving Show
 
 data Path = Upper
@@ -19,10 +19,10 @@ data Command =
   Exit |
   Index Integer |
   Single FirstCommand |
-  Double FirstCommand SecondCommand |
+  Double FirstCommand ElementType |
   IndexSingle FirstCommand Integer |
   TermSingle FirstCommand String |
-  TermDouble FirstCommand SecondCommand String |
+  TermDouble FirstCommand ElementType String |
   PathSingle FirstCommand Path
   deriving Show
 
@@ -38,7 +38,7 @@ firstCommand = choice
   , char 'l' *> pure List
   ]
 
-secondCommand :: Parser SecondCommand
+secondCommand :: Parser ElementType
 secondCommand = choice
   [ char 'c' *> pure Class
   , char 'm' *> pure Method

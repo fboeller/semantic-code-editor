@@ -3,14 +3,14 @@ module JavaAccessors where
 import Control.Lens hiding (elements)
 
 import qualified Java as J
-import CommandParser (SecondCommand(..))
+import CommandParser (ElementType(..))
 import Data.List (isPrefixOf)
 
 selectedElements :: String -> J.Element -> [J.Element]
 selectedElements term element =
   filter (matchesElement term) $ elements element
 
-selectedElementsOfType :: SecondCommand -> String -> J.Element -> [J.Element]
+selectedElementsOfType :: ElementType -> String -> J.Element -> [J.Element]
 selectedElementsOfType elementType term element =
   filter (matchesElement term) $ elementsOfType elementType element
 
@@ -48,7 +48,7 @@ elements e = concat
   , J.EMethod <$> methods e
   ]
 
-elementsOfType :: SecondCommand -> J.Element -> [J.Element]
+elementsOfType :: ElementType -> J.Element -> [J.Element]
 elementsOfType Class = fmap J.EClass . classes
 elementsOfType Variable = fmap J.EField . variables
 elementsOfType Method = fmap J.EMethod . methods

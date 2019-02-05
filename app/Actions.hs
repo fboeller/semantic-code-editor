@@ -6,7 +6,7 @@ import qualified Java as J
 import qualified JavaAccessors as JA
 import AppState (AppState, program, focus, output, lastOutput, leafFocus, Output(..))
 import qualified Focus as F
-import CommandParser (SecondCommand(..))
+import CommandParser (ElementType(..))
 import PromptShow
 
 read :: AppState -> AppState
@@ -24,7 +24,7 @@ listAll state = set output (ResultList results) state
       , J.EField <$> list JA.variables state
       ]
 
-listElementsOfType :: SecondCommand -> AppState -> AppState
+listElementsOfType :: ElementType -> AppState -> AppState
 listElementsOfType Class = listClasses
 listElementsOfType Method = listMethods
 listElementsOfType Variable = listVariables
@@ -43,7 +43,7 @@ listSelectedElements :: String -> AppState -> AppState
 listSelectedElements term state =
   state & output .~ (ResultList $ JA.selectedElements term (state ^.to leafFocus))
 
-listSelectedElementsOfType :: SecondCommand -> String -> AppState -> AppState
+listSelectedElementsOfType :: ElementType -> String -> AppState -> AppState
 listSelectedElementsOfType elementType term state =
   state & output .~ (ResultList $ JA.selectedElementsOfType elementType term (state ^.to leafFocus))
 
@@ -56,7 +56,7 @@ focusFirst subElements toElement state =
         changeFocus oldFocus = F.focusDown element oldFocus
         element = toElement $ head elements
 
-focusFirstSelectedElementOfType :: SecondCommand -> String -> AppState -> AppState
+focusFirstSelectedElementOfType :: ElementType -> String -> AppState -> AppState
 focusFirstSelectedElementOfType elementType term = focusFirst (JA.selectedElementsOfType elementType term) id
 
 focusFirstSelectedElement :: String -> AppState -> AppState
