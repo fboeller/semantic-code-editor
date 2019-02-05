@@ -24,6 +24,7 @@ import qualified Graphics.Vty as V
 eval :: P.Command -> AppState -> AppState
 eval P.Exit = set output $ Other $ putStr "Done!"
 eval P.Empty = id
+eval (P.Meta _) = id
 eval (P.Single P.Read) = A.read
 eval (P.Single P.List) = A.listAll
 eval (P.Single P.Focus) = A.focusAny
@@ -40,11 +41,15 @@ eval (P.Index number) = A.focusLastOutputByIndex (fromInteger number)
 eval (P.IndexSingle P.Focus number) = A.focusLastOutputByIndex (fromInteger number)
 eval input = set output $ Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented"
 
-processCommand :: String -> AppState -> AppState
+evalMeta :: P.Command -> AppState -> IO AppState
+evalMeta (P.Meta (P.LoadFile path)) state = processJavaInput path state
+evalMeta _ state = return state
+
+processCommand :: String -> AppState -> IO AppState
 processCommand input state =
   case P.runParser input of
-    Left err -> state & output .~ Error (putStrLn err)
-    Right command -> eval command state
+    Left err -> return $ state & output .~ Error (putStrLn err)
+    Right command -> eval command <$> evalMeta command state
 
 processJavaInput :: String -> AppState -> IO AppState
 processJavaInput input state = do
@@ -68,12 +73,9 @@ step state = do
   let cleanState = clearOutput state
   prompt cleanState
   input <- readInput 
-  let newState = processCommand input cleanState
+  newState <- processCommand input cleanState
   printOutput newState
   step newState
 
 main :: IO ()
-main = do
-  input <- processJavaInput "data/Dog.java" initialState
-  step input
-  return ()
+main = void $ step initialState

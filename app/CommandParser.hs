@@ -14,9 +14,14 @@ data ElementType = Class | Method | Function | Variable
 data Path = Upper
   deriving Show
 
+data MetaCommand =
+  LoadFile String
+  deriving Show
+
 data Command =
   Empty |
   Exit |
+  Meta MetaCommand |
   Index Integer |
   Single FirstCommand |
   Double FirstCommand ElementType |
@@ -55,6 +60,7 @@ p <||> q = try p <|> q
 command :: Parser Command
 command = (char 'q' *> pure Exit)
   <||> (Index <$> integer)
+  <||> (Meta <$> LoadFile <$> (char ':' *> string "l" *> space *> stringLiteral))
   <||> (TermDouble <$> firstCommand <*> secondCommand <* space <*> identifier)
   <||> (Double <$> firstCommand <*> secondCommand)
   <||> (TermSingle <$> firstCommand <* space <*> identifier)
