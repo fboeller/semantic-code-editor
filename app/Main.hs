@@ -36,6 +36,7 @@ eval (P.Double P.Focus P.Class) = A.focusClass
 eval (P.Double P.Focus P.Method) = A.focusMethod
 eval (P.Double P.Focus P.Variable) = A.focusVariable
 eval (P.PathSingle P.Focus P.Upper) = A.focusUp
+eval (P.Index number) = A.focusLastOutputByIndex (fromInteger number)
 eval (P.IndexSingle P.Focus number) = A.focusLastOutputByIndex (fromInteger number)
 eval input = set output $ Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented"
 
