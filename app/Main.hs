@@ -46,9 +46,10 @@ processCommand input state =
     Left err -> state & output .~ Error (putStrLn err)
     Right command -> eval command state
 
-processJavaInput :: String -> AppState -> AppState
-processJavaInput input state =
-  case JP.runParser input of
+processJavaInput :: String -> AppState -> IO AppState
+processJavaInput input state = do
+  parseResult <- JP.runParserOnFile input
+  return $ case parseResult of
     Left err -> state & output .~ Error (putStrLn err)
     Right javaProgram -> state & program .~ javaProgram
 
@@ -72,5 +73,7 @@ step state = do
   step newState
 
 main :: IO ()
-main = void $ step $ processJavaInput JP.testProgram initialState
-  
+main = do
+  input <- processJavaInput "data/Dog.java" initialState
+  step input
+  return ()

@@ -10,9 +10,13 @@ import qualified Java as J
 testProgram = "public class Dog { String breed; int age; String color; public void barking() { } private int hungry() { return 42; } protected void sleeping() { } }"
 
 runParser :: String -> Either String J.Package
-runParser str = case parser compilationUnit str of
-  Left err -> Left $ show err
-  Right val -> Right $ convertCompilationUnit val
+runParser programStr = convertParseResult $ parser compilationUnit programStr
+
+runParserOnFile :: String -> IO (Either String J.Package)
+runParserOnFile file = convertParseResult <$> parser compilationUnit <$> readFile file
+
+convertParseResult (Left err) = Left $ show err
+convertParseResult (Right val) = Right $ convertCompilationUnit val
 
 convertCompilationUnit :: CompilationUnit -> J.Package
 convertCompilationUnit (CompilationUnit maybePackageDecl _ typeDecls) =
