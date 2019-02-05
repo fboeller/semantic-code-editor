@@ -57,7 +57,7 @@ initialState =
              J.Package { J._packageName = J.Identifier { J._idName = "java.abc" }
                        , J._classes = [ car, bus ]
                        }
-           , _focus = [J.EClass car]
+           , _focus = []
            , _lastOutput = Other mempty
            , _output = Other mempty
            }

@@ -10,6 +10,7 @@ import PromptShow
 import AppState (AppState, program, focus, output, initialState, leafFocus, clearOutput, Output(..), printOutput)
 import qualified Actions as A
 import qualified CommandParser as P
+import qualified JavaParser as JP
 import Text.Parsec.Error ( ParseError )
 import System.IO ( hFlush, stdout )
 import Data.Bifunctor ( first )
@@ -38,11 +39,17 @@ eval (P.PathSingle P.Focus P.Upper) = A.focusUp
 eval (P.IndexSingle P.Focus number) = A.focusLastOutputByIndex (fromInteger number)
 eval input = set output $ Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented"
 
-process :: String -> AppState -> AppState
-process input state =
+processCommand :: String -> AppState -> AppState
+processCommand input state =
   case P.runParser input of
     Left err -> state & output .~ Error (putStrLn err)
     Right command -> eval command state
+
+processJavaInput :: String -> AppState -> AppState
+processJavaInput input state =
+  case JP.runParser input of
+    Left err -> state & output .~ Error (putStrLn err)
+    Right javaProgram -> state & program .~ javaProgram
 
 readInput :: IO String
 readInput = hFlush stdout >> getLine
@@ -54,16 +61,15 @@ prompt state = do
   putStr " > "
   setSGR [Reset]
   
-
 step :: AppState -> IO (Maybe AppState)
 step state = do
   let cleanState = clearOutput state
   prompt cleanState
   input <- readInput 
-  let newState = process input cleanState
+  let newState = processCommand input cleanState
   printOutput newState
   step newState
 
 main :: IO ()
-main = void $ step initialState
+main = void $ step $ processJavaInput JP.testProgram initialState
   
