@@ -60,6 +60,7 @@ p <||> q = try p <|> q
 command :: Parser Command
 command = (char 'q' *> pure Exit)
   <||> (Index <$> integer)
+  <||> (Meta <$> LoadFile <$> (\className -> "data/" ++ className ++ ".java") <$> (char ':' *> string "l" *> space *> identifier))
   <||> (Meta <$> LoadFile <$> (char ':' *> string "l" *> space *> stringLiteral))
   <||> (TermDouble <$> firstCommand <*> secondCommand <* space <*> identifier)
   <||> (Double <$> firstCommand <*> secondCommand)
