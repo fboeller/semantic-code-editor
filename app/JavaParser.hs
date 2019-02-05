@@ -5,6 +5,7 @@ import Language.Java.Syntax
 import Language.Java.Pretty
 import Data.Maybe (maybe, mapMaybe)
 import Data.List (find)
+import Control.Exception
 import qualified Java as J
 
 testProgram = "public class Dog { String breed; int age; String color; public void barking() { } private int hungry() { return 42; } protected void sleeping() { } }"
@@ -13,7 +14,7 @@ runParser :: String -> Either String J.Package
 runParser programStr = convertParseResult $ parser compilationUnit programStr
 
 runParserOnFile :: String -> IO (Either String J.Package)
-runParserOnFile file = convertParseResult <$> parser compilationUnit <$> readFile file
+runParserOnFile file = (convertParseResult <$> parser compilationUnit <$> readFile file) `catch` (\e -> return $ Left $ show (e :: IOException))
 
 convertParseResult (Left err) = Left $ show err
 convertParseResult (Right val) = Right $ convertCompilationUnit val
