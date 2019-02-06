@@ -52,8 +52,8 @@ processCommand input state =
     Right command -> eval command <$> evalMeta command state
 
 processJavaInput :: String -> AppState -> IO AppState
-processJavaInput input state = do
-  parseResult <- JP.runParserOnFile input
+processJavaInput path state = do
+  parseResult <- JP.runParserOnFile path
   return $ case parseResult of
     Left err -> state & output .~ Error (putStrLn err)
     Right javaProgram -> state & program .~ javaProgram & focus .~ []

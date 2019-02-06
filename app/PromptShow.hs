@@ -4,7 +4,7 @@ import Java
 import Control.Lens
 import Data.List (intercalate)
 
-printPackageSignature :: Package -> String
+printPackageSignature :: JavaFile -> String
 printPackageSignature p = unwords
   [ "package"
   , p ^. packageName ^. idName
@@ -39,7 +39,7 @@ printFieldSignature f = unwords
   ]
 
 printSignature :: Element -> String
-printSignature (EPackage p) = printPackageSignature p
+printSignature (EJavaFile p) = printPackageSignature p
 printSignature (EClass c) = printClassSignature c
 printSignature (EMethod m) = printMethodSignature m
 printSignature (EParameter p) = printParameterSignature p
@@ -50,7 +50,7 @@ printVisibilityCommon Private = "private"
 printVisibilityCommon Protected = "protected"
 printVisibilityCommon Public = "public"
 
-printPackageCommon :: Package -> String
+printPackageCommon :: JavaFile -> String
 printPackageCommon p = p ^. packageName ^. idName
 
 printClassCommon :: Class -> String
@@ -77,7 +77,7 @@ printFieldCommon :: Field -> String
 printFieldCommon f = f ^. fieldName ^. idName
 
 printCommon :: Element -> String
-printCommon (EPackage p) = printPackageCommon p
+printCommon (EJavaFile p) = printPackageCommon p
 printCommon (EClass c) = printClassCommon c
 printCommon (EMethod m) = printMethodCommon m
 printCommon (EParameter p) = printParameterCommon p

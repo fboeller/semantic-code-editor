@@ -14,7 +14,7 @@ data Output =
   Error (IO ())
   
 data AppState =
-  AppState { _program :: J.Package
+  AppState { _program :: J.JavaFile
            , _focus :: Focus
            , _lastOutput :: Output
            , _output :: Output
@@ -26,7 +26,7 @@ makeLenses ''AppState
 leafFocus :: AppState -> J.Element
 leafFocus state =
   case state ^. focus of
-    [] -> J.EPackage $ state ^. program
+    [] -> J.EJavaFile $ state ^. program
     leaf:_ -> leaf
 
 -- Sets the last output to the current output if it is not an error and clears the current output
@@ -54,9 +54,9 @@ printOutput state =
 initialState :: AppState
 initialState =
   AppState { _program =
-             J.Package { J._packageName = J.Identifier { J._idName = "java.abc" }
-                       , J._classes = [ car, bus ]
-                       }
+             J.JavaFile { J._packageName = J.Identifier { J._idName = "java.abc" }
+                        , J._classes = [ car, bus ]
+                        }
            , _focus = []
            , _lastOutput = Other mempty
            , _output = Other mempty

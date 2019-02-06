@@ -30,7 +30,7 @@ searchPropertiesOfMethod :: J.Method -> String
 searchPropertiesOfMethod m = m ^. J.methodName ^. J.idName
 
 classes :: J.Element -> [J.Class]
-classes (J.EPackage p) = p ^. J.classes
+classes (J.EJavaFile p) = p ^. J.classes
 classes _ = []
 
 variables :: J.Element -> [J.Field]

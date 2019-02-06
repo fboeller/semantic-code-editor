@@ -52,15 +52,15 @@ data Class =
   deriving (Show)
 makeLenses ''Class
 
-data Package =
-  Package { _packageName :: Identifier
-          , _classes :: [Class]
-          }
+data JavaFile =
+  JavaFile { _packageName :: Identifier
+           , _classes :: [Class]
+           }
   deriving (Show)
-makeLenses ''Package
+makeLenses ''JavaFile
 
 data Element = EField Field
              | EParameter Parameter
              | EMethod Method
              | EClass Class
-             | EPackage Package
+             | EJavaFile JavaFile
