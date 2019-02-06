@@ -54,7 +54,8 @@ printOutput state =
 initialState :: AppState
 initialState =
   AppState { _program = J.Project { J._javaFiles =
-                                      [ J.JavaFile { J._packageName = J.Identifier { J._idName = "java.abc" }
+                                      [ J.JavaFile { J._fileName = ""
+                                                   , J._packageName = J.Identifier { J._idName = "java.abc" }
                                                    , J._classes = [ car, bus ]
                                                    }
                                       ]

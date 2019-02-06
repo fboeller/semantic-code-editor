@@ -8,6 +8,7 @@ import Data.List (find)
 import Control.Exception
 import System.Directory
 import System.FilePath
+import Text.Parsec.Error (ParseError)
 import Data.List (isSuffixOf)
 import System.Posix.Files
 import qualified Java as J
@@ -22,7 +23,7 @@ runParserOnPath :: FilePath -> IO (Maybe String, J.Project)
 runParserOnPath path = do
     _ :/ tree <- readDirectoryWith return path
     dirtree <- traverse runParserOnFile $ filterDir myPred tree
-    let maybeJavaFiles = foldr mappend (Nothing, []) $ convertEither <$> dirtree
+    let maybeJavaFiles = foldr mappend (Nothing, []) $ convertEither <$> dirtree -- TODO Not sure if the errors get concatenated
     return $ filesToProject <$> maybeJavaFiles
   where myPred (Dir ('.':_) _) = False
         myPred (File n _) = takeExtension n == ".java"
@@ -34,20 +35,22 @@ runParserOnPath path = do
 testProgram = "public class Dog { String breed; int age; String color; public void barking() { } private int hungry() { return 42; } protected void sleeping() { } }"
 
 runParser :: String -> Either String J.JavaFile
-runParser programStr = convertParseResult $ parser compilationUnit programStr
+runParser programStr = convertParseResult "" $ parser compilationUnit programStr
 
 runParserOnFile :: FilePath -> IO (Either String J.JavaFile)
-runParserOnFile file = (convertParseResult <$> parser compilationUnit <$> readFile file) `catch` (\e -> return $ Left $ show (e :: IOException))
+runParserOnFile file = (convertParseResult file <$> parser compilationUnit <$> readFile file) `catch` (\e -> return $ Left $ show (e :: IOException))
 
-convertParseResult (Left err) = Left $ show err
-convertParseResult (Right val) = Right $ convertCompilationUnit val
+convertParseResult :: FilePath -> Either ParseError CompilationUnit -> Either String J.JavaFile
+convertParseResult _ (Left err) = Left $ show err
+convertParseResult file (Right val) = Right $ convertCompilationUnit file val
 
 filesToProject :: [J.JavaFile] -> J.Project
 filesToProject javaFiles = J.Project { J._javaFiles = javaFiles }
 
-convertCompilationUnit :: CompilationUnit -> J.JavaFile
-convertCompilationUnit (CompilationUnit maybePackageDecl _ typeDecls) =
-  J.JavaFile { J._packageName = convertMaybePackageDecl maybePackageDecl
+convertCompilationUnit :: FilePath -> CompilationUnit -> J.JavaFile
+convertCompilationUnit path (CompilationUnit maybePackageDecl _ typeDecls) =
+  J.JavaFile { J._fileName = path
+             , J._packageName = convertMaybePackageDecl maybePackageDecl
              , J._classes = convertTypeDeclsToClasses typeDecls
              }
 

@@ -53,7 +53,8 @@ data Class =
 makeLenses ''Class
 
 data JavaFile =
-  JavaFile { _packageName :: Identifier
+  JavaFile { _fileName :: FilePath
+           , _packageName :: Identifier
            , _classes :: [Class]
            }
   deriving (Show)
