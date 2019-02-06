@@ -56,7 +56,7 @@ processJavaInput input state = do
   parseResult <- JP.runParserOnFile input
   return $ case parseResult of
     Left err -> state & output .~ Error (putStrLn err)
-    Right javaProgram -> state & program .~ javaProgram
+    Right javaProgram -> state & program .~ javaProgram & focus .~ []
 
 readInput :: IO String
 readInput = hFlush stdout >> getLine
