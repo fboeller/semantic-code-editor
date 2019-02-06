@@ -23,7 +23,7 @@ runParserOnPath path = do
     _ :/ tree <- readDirectoryWith return path
     dirtree <- traverse runParserOnFile $ filterDir myPred tree
     let maybeJavaFiles = foldr mappend (Nothing, []) $ convertEither <$> dirtree
-    return $ (\javaFiles -> J.Project { J._javaFiles = javaFiles }) <$> maybeJavaFiles
+    return $ filesToProject <$> maybeJavaFiles
   where myPred (Dir ('.':_) _) = False
         myPred (File n _) = takeExtension n == ".java"
         myPred _ = True
@@ -35,18 +35,6 @@ testProgram = "public class Dog { String breed; int age; String color; public vo
 
 runParser :: String -> Either String J.JavaFile
 runParser programStr = convertParseResult $ parser compilationUnit programStr
-
-deprecated :: FilePath -> FilePath -> IO (Either String J.Project)
-deprecated basedir path = do
-  fileStatus <- getFileStatus $ basedir </> path
-  if isDirectory fileStatus then
-    let (newBaseDir, latestDir) = splitFileName basedir in
-      deprecated newBaseDir (latestDir </> path)
-  else if isRegularFile fileStatus then do
-    parsedFile <- runParserOnFile $ basedir </> path
-    return $ fmap (\javaFile -> J.Project { J._javaFiles = [javaFile] }) parsedFile
-  else
-    return $ Left "The path is neither a regular file nor a directory"
 
 runParserOnFile :: FilePath -> IO (Either String J.JavaFile)
 runParserOnFile file = (convertParseResult <$> parser compilationUnit <$> readFile file) `catch` (\e -> return $ Left $ show (e :: IOException))
