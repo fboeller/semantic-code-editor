@@ -11,38 +11,46 @@ import System.FilePath
 import Data.List (isSuffixOf)
 import System.Posix.Files
 import qualified Java as J
+import Data.Traversable (traverse)
+import System.Directory.Tree (
+    AnchoredDirTree(..), DirTree(..),
+    filterDir, readDirectoryWith
+    )
+import System.FilePath (takeExtension)
+
+runParserOnPath :: FilePath -> IO (Maybe String, J.Project)
+runParserOnPath path = do
+    _ :/ tree <- readDirectoryWith return path
+    dirtree <- traverse runParserOnFile $ filterDir myPred tree
+    putStrLn "bli"
+    let maybeJavaFiles = foldr mappend (Nothing, []) $ convertEither <$> dirtree
+    return $ (\javaFiles -> J.Project { J._javaFiles = javaFiles }) <$> maybeJavaFiles
+  where myPred (Dir ('.':_) _) = False
+        myPred (File n _) = takeExtension n == ".java"
+        myPred _ = True
+        convertEither :: Either String J.JavaFile -> (Maybe String, [J.JavaFile])
+        convertEither (Left m) = (Just m, [])
+        convertEither (Right javaFile) = (Nothing, [javaFile])
 
 testProgram = "public class Dog { String breed; int age; String color; public void barking() { } private int hungry() { return 42; } protected void sleeping() { } }"
 
 runParser :: String -> Either String J.JavaFile
 runParser programStr = convertParseResult $ parser compilationUnit programStr
 
-runParserOnPath :: FilePath -> IO (Either String J.Project)
-runParserOnPath path = do
-  fileStatus <- getFileStatus path
+deprecated :: FilePath -> FilePath -> IO (Either String J.Project)
+deprecated basedir path = do
+  fileStatus <- getFileStatus $ basedir </> path
   if isDirectory fileStatus then
-    runParserOnDirectory path
+    let (newBaseDir, latestDir) = splitFileName basedir in
+      deprecated newBaseDir (latestDir </> path)
   else if isRegularFile fileStatus then do
-    parsedFile <- runParserOnFile path
+    parsedFile <- runParserOnFile $ basedir </> path
     return $ fmap (\javaFile -> J.Project { J._javaFiles = [javaFile] }) parsedFile
   else
     return $ Left "The path is neither a regular file nor a directory"
 
 runParserOnFile :: FilePath -> IO (Either String J.JavaFile)
 runParserOnFile file = (convertParseResult <$> parser compilationUnit <$> readFile file) `catch` (\e -> return $ Left $ show (e :: IOException))
-
-isJavaFile :: FilePath -> Bool
-isJavaFile f = ".java" `isSuffixOf` f
-
-getAllJavaPaths :: FilePath -> IO [FilePath]
-getAllJavaPaths path = map (path </>) <$> filter isJavaFile <$> getDirectoryContents path
-
--- Will probably not parse recursively
-runParserOnDirectory :: FilePath -> IO (Either String J.Project)
-runParserOnDirectory dir = do
-  javaFiles <- getAllJavaPaths dir
-  parsedFiles <- sequence $ runParserOnFile <$> javaFiles
-  return $ filesToProject <$> sequence parsedFiles
 
 convertParseResult (Left err) = Left $ show err
 convertParseResult (Right val) = Right $ convertCompilationUnit val

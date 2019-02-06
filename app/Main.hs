@@ -55,8 +55,9 @@ processJavaInput :: String -> AppState -> IO AppState
 processJavaInput path state = do
   parseResult <- JP.runParserOnPath path
   return $ case parseResult of
-    Left err -> state & output .~ Error (putStrLn err)
-    Right javaProgram -> state & program .~ javaProgram & focus .~ []
+    -- TODO Clean up
+    (Just err, javaProgram) -> state & output .~ Error (putStrLn err) & program .~ javaProgram & focus .~ []
+    (Nothing, javaProgram) -> state & program .~ javaProgram & focus .~ []
 
 readInput :: IO String
 readInput = hFlush stdout >> getLine
@@ -80,5 +81,6 @@ step state = do
 main :: IO ()
 main = do
   loadedState <- processJavaInput "./data" initialState
+  printOutput loadedState
   step loadedState
   return ()

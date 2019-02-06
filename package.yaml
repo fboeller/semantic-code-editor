@@ -30,6 +30,7 @@ dependencies:
 - ansi-terminal
 - filepath
 - directory
+- directory-tree
 - unix
 
 library:
