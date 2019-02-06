@@ -28,6 +28,9 @@ dependencies:
 - lens
 - vty
 - ansi-terminal
+- filepath
+- directory
+- unix
 
 library:
   source-dirs: src

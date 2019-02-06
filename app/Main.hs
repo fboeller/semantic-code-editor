@@ -53,7 +53,7 @@ processCommand input state =
 
 processJavaInput :: String -> AppState -> IO AppState
 processJavaInput path state = do
-  parseResult <- JP.runParserOnFile path
+  parseResult <- JP.runParserOnPath path
   return $ case parseResult of
     Left err -> state & output .~ Error (putStrLn err)
     Right javaProgram -> state & program .~ javaProgram & focus .~ []

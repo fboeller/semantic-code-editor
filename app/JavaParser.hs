@@ -6,6 +6,10 @@ import Language.Java.Pretty
 import Data.Maybe (maybe, mapMaybe)
 import Data.List (find)
 import Control.Exception
+import System.Directory
+import System.FilePath
+import Data.List (isSuffixOf)
+import System.Posix.Files
 import qualified Java as J
 
 testProgram = "public class Dog { String breed; int age; String color; public void barking() { } private int hungry() { return 42; } protected void sleeping() { } }"
@@ -13,17 +17,44 @@ testProgram = "public class Dog { String breed; int age; String color; public vo
 runParser :: String -> Either String J.JavaFile
 runParser programStr = convertParseResult $ parser compilationUnit programStr
 
-runParserOnFile :: String -> IO (Either String J.JavaFile)
+runParserOnPath :: FilePath -> IO (Either String J.Project)
+runParserOnPath path = do
+  fileStatus <- getFileStatus path
+  if isDirectory fileStatus then
+    runParserOnDirectory path
+  else if isRegularFile fileStatus then do
+    parsedFile <- runParserOnFile path
+    return $ fmap (\javaFile -> J.Project { J._javaFiles = [javaFile] }) parsedFile
+  else
+    return $ Left "The path is neither a regular file nor a directory"
+
+runParserOnFile :: FilePath -> IO (Either String J.JavaFile)
 runParserOnFile file = (convertParseResult <$> parser compilationUnit <$> readFile file) `catch` (\e -> return $ Left $ show (e :: IOException))
+
+isJavaFile :: FilePath -> Bool
+isJavaFile f = ".java" `isSuffixOf` f
+
+getAllJavaPaths :: FilePath -> IO [FilePath]
+getAllJavaPaths path = map (path </>) <$> filter isJavaFile <$> getDirectoryContents path
+
+-- Will probably not parse recursively
+runParserOnDirectory :: FilePath -> IO (Either String J.Project)
+runParserOnDirectory dir = do
+  javaFiles <- getAllJavaPaths dir
+  parsedFiles <- sequence $ runParserOnFile <$> javaFiles
+  return $ filesToProject <$> sequence parsedFiles
 
 convertParseResult (Left err) = Left $ show err
 convertParseResult (Right val) = Right $ convertCompilationUnit val
 
+filesToProject :: [J.JavaFile] -> J.Project
+filesToProject javaFiles = J.Project { J._javaFiles = javaFiles }
+
 convertCompilationUnit :: CompilationUnit -> J.JavaFile
 convertCompilationUnit (CompilationUnit maybePackageDecl _ typeDecls) =
   J.JavaFile { J._packageName = convertMaybePackageDecl maybePackageDecl
-            , J._classes = convertTypeDeclsToClasses typeDecls
-            }
+             , J._classes = convertTypeDeclsToClasses typeDecls
+             }
 
 convertTypeDeclsToClasses :: [TypeDecl] -> [J.Class]
 convertTypeDeclsToClasses = mapMaybe convertTypeDeclToClass
