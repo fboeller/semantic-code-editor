@@ -78,4 +78,7 @@ step state = do
   step newState
 
 main :: IO ()
-main = void $ step initialState
+main = do
+  loadedState <- processJavaInput "./data" initialState
+  step loadedState
+  return ()
