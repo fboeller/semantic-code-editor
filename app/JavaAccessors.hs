@@ -30,6 +30,7 @@ searchPropertiesOfMethod :: J.Method -> String
 searchPropertiesOfMethod m = m ^. J.methodName ^. J.idName
 
 classes :: J.Element -> [J.Class]
+classes (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= classes
 classes (J.EJavaFile p) = p ^. J.classes
 classes _ = []
 

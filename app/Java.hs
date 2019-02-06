@@ -59,8 +59,15 @@ data JavaFile =
   deriving (Show)
 makeLenses ''JavaFile
 
+data Project =
+  Project { _javaFiles :: [JavaFile]
+          }
+  deriving (Show)
+makeLenses ''Project
+
 data Element = EField Field
              | EParameter Parameter
              | EMethod Method
              | EClass Class
              | EJavaFile JavaFile
+             | EProject Project
