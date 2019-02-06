@@ -22,7 +22,6 @@ runParserOnPath :: FilePath -> IO (Maybe String, J.Project)
 runParserOnPath path = do
     _ :/ tree <- readDirectoryWith return path
     dirtree <- traverse runParserOnFile $ filterDir myPred tree
-    putStrLn "bli"
     let maybeJavaFiles = foldr mappend (Nothing, []) $ convertEither <$> dirtree
     return $ (\javaFiles -> J.Project { J._javaFiles = javaFiles }) <$> maybeJavaFiles
   where myPred (Dir ('.':_) _) = False
