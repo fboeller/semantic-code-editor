@@ -78,11 +78,12 @@ convertDeclToMethod (MemberDecl memberDecl) = convertMemberDeclToMethod memberDe
 convertDeclToMethod (InitDecl _ _) = Nothing
 
 convertMemberDeclToMethod :: MemberDecl -> Maybe J.Method
-convertMemberDeclToMethod (MethodDecl modifiers _ maybeT ident formalParams _ _ _) = Just $
+convertMemberDeclToMethod (MethodDecl modifiers _ maybeT ident formalParams _ _ body) = Just $
   J.Method { J._methodName = J.Identifier { J._idName = prettyPrint ident }
            , J._methodParameters = convertFormalParam <$> formalParams
            , J._methodReturnType = maybe (J.Datatype { J._datatypeName = "void" }) convertVarDeclToType maybeT
            , J._methodVisibility = convertModifiersToVisibility modifiers
+           , J._methodBody = prettyPrint body
            }
 convertMemberDeclToMethod _ = Nothing
 

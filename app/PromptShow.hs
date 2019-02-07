@@ -72,9 +72,7 @@ printClassCommon c = unwords
 printMethodCommon :: Method -> String
 printMethodCommon m = unwords $
   [ printMethodSignature m
-  , "{"
-  , "..."
-  , "}"
+  , m ^. methodBody
   ]
 
 printParameterCommon :: Parameter -> String

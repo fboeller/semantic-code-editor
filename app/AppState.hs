@@ -79,6 +79,7 @@ initialState =
                                                  , J._methodParameters = []
                                                  , J._methodReturnType = J.Datatype { J._datatypeName = "void" }
                                                  , J._methodVisibility = J.Public
+                                                 , J._methodBody = ""
                                                  }
                                       ]
                   , J._classVisibility = J.Public

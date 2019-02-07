@@ -39,6 +39,7 @@ data Method =
          , _methodParameters :: [Parameter]
          , _methodReturnType :: Datatype
          , _methodVisibility :: Visibility
+         , _methodBody :: String -- TODO Include syntactic information
          }
   deriving (Show)
 makeLenses ''Method
