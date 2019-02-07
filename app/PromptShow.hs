@@ -65,7 +65,7 @@ printClassCommon c = unwords
   [ printClassSignature c
   , "{"
   , concat $ ("\n  "++) <$> (++";") <$> printFieldSignature <$> c ^. classFields
-  , concat $ ("\n  "++) <$> printMethodCommon <$> c ^. classMethods
+  , concat $ ("\n  "++) <$> printMethodSignature <$> c ^. classMethods
   , "\n}"
   ]
 
