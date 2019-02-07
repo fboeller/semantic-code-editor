@@ -26,23 +26,14 @@ listAll state = set output (ResultList results) state
       ]
 
 listElementsOfType :: ElementType -> AppState -> AppState
-listElementsOfType Class = listClasses
-listElementsOfType Method = listMethods
-listElementsOfType Variable = listVariables
-listElementsOfType Parameter = listParameters
+listElementsOfType Class = listElementsWithYielder J.EClass JA.classes
+listElementsOfType Method = listElementsWithYielder J.EMethod JA.methods
+listElementsOfType Variable = listElementsWithYielder J.EField JA.variables
+listElementsOfType Parameter = listElementsWithYielder J.EParameter JA.parameters
 listElementsOfType _ = id
 
-listClasses :: AppState -> AppState
-listClasses state = set output (ResultList $ J.EClass <$> list JA.classes state) state
-
-listMethods :: AppState -> AppState
-listMethods state = set output (ResultList $ J.EMethod <$> list JA.methods state) state
-
-listVariables :: AppState -> AppState
-listVariables state = set output (ResultList $ J.EField <$> list JA.variables state) state
-
-listParameters :: AppState -> AppState
-listParameters state = set output (ResultList $ J.EParameter <$> list JA.parameters state) state
+listElementsWithYielder :: (a -> J.Element) -> (J.Element -> [a]) -> AppState -> AppState
+listElementsWithYielder f g state = set output (ResultList $ f <$> list g state) state
 
 listSelectedElements :: String -> AppState -> AppState
 listSelectedElements term state =
