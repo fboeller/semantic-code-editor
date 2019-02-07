@@ -1,5 +1,5 @@
 .stack-work/
-code-editor.cabal
+semantic-code-editor.cabal
 *~
 dist
 dist-newstyle
