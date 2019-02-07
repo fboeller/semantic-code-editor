@@ -28,6 +28,7 @@ listElementsOfType :: ElementType -> AppState -> AppState
 listElementsOfType Class = listClasses
 listElementsOfType Method = listMethods
 listElementsOfType Variable = listVariables
+listElementsOfType Parameter = listParameters
 listElementsOfType _ = id
 
 listClasses :: AppState -> AppState
@@ -38,6 +39,9 @@ listMethods state = set output (ResultList $ J.EMethod <$> list JA.methods state
 
 listVariables :: AppState -> AppState
 listVariables state = set output (ResultList $ J.EField <$> list JA.variables state) state
+
+listParameters :: AppState -> AppState
+listParameters state = set output (ResultList $ J.EParameter <$> list JA.parameters state) state
 
 listSelectedElements :: String -> AppState -> AppState
 listSelectedElements term state =

@@ -8,7 +8,7 @@ import Control.Applicative hiding ((<|>))
 data FirstCommand = Read | Focus | List
   deriving Show
 
-data ElementType = Class | Method | Function | Variable
+data ElementType = Class | Method | Function | Variable | Parameter
   deriving Show
 
 data Path = Upper
@@ -49,6 +49,7 @@ secondCommand = choice
   , char 'm' *> pure Method
   , char 'f' *> pure Function
   , char 'v' *> pure Variable
+  , char 'p' *> pure Parameter
   ]
 
 path :: Parser Path

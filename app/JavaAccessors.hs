@@ -38,6 +38,10 @@ variables :: J.Element -> [J.Field]
 variables (J.EClass c) = c ^. J.classFields
 variables _ = []
 
+parameters :: J.Element -> [J.Parameter]
+parameters (J.EMethod p) = p ^. J.methodParameters
+parameters _ = []
+
 methods :: J.Element -> [J.Method]
 methods (J.EClass c) = c ^. J.classMethods
 methods _ = []
