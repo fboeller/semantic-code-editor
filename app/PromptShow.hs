@@ -27,7 +27,10 @@ printClassSignature c = unwords $ catMaybes
   , Just $ "class"
   , Just $ c ^. className ^. idName
   , fmap ("extends "++) $ fmap (view idName) $ c ^. classExtends
+  , fmap ("implements "++) $ notEmpty $ intercalate ", " $ fmap (view idName) $ c ^. classImplements
   ]
+  where notEmpty "" = Nothing
+        notEmpty str = Just $ str
 
 printMethodSignature :: Method -> String
 printMethodSignature m = unwords
