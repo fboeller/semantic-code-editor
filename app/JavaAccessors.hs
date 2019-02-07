@@ -5,6 +5,7 @@ import Control.Lens hiding (elements)
 import qualified Java as J
 import CommandParser (ElementType(..))
 import Data.List (isPrefixOf)
+import Data.Char (toLower)
 
 selectedElements :: String -> J.Element -> [J.Element]
 selectedElements term element =
@@ -15,12 +16,14 @@ selectedElementsOfType elementType term element =
   filter (matchesElement term) $ elementsOfType elementType element
 
 matchesElement :: String -> J.Element -> Bool
-matchesElement term (J.EProject p) = isPrefixOf term $ searchPropertiesOfProject p
-matchesElement term (J.EJavaFile j) = isPrefixOf term $ searchPropertiesOfJavaFile j
-matchesElement term (J.EClass c) = isPrefixOf term $ searchPropertiesOfClass c
-matchesElement term (J.EField f) = isPrefixOf term $ searchPropertiesOfField f
-matchesElement term (J.EMethod m) = isPrefixOf term $ searchPropertiesOfMethod m
-matchesElement term (J.EParameter p) = isPrefixOf term $ searchPropertiesOfParameter p
+matchesElement term element = isPrefixOf (fmap toLower $ term) $ fmap toLower $
+  case element of
+    (J.EProject p) -> searchPropertiesOfProject p
+    (J.EJavaFile j) -> searchPropertiesOfJavaFile j
+    (J.EClass c) -> searchPropertiesOfClass c
+    (J.EField f) -> searchPropertiesOfField f
+    (J.EMethod m) -> searchPropertiesOfMethod m
+    (J.EParameter p) -> searchPropertiesOfParameter p
 
 searchPropertiesOfProject :: J.Project -> String
 searchPropertiesOfProject p = ""
