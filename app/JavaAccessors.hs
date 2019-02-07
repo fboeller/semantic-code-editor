@@ -15,10 +15,18 @@ selectedElementsOfType elementType term element =
   filter (matchesElement term) $ elementsOfType elementType element
 
 matchesElement :: String -> J.Element -> Bool
+matchesElement term (J.EProject p) = isPrefixOf term $ searchPropertiesOfProject p
+matchesElement term (J.EJavaFile j) = isPrefixOf term $ searchPropertiesOfJavaFile j
 matchesElement term (J.EClass c) = isPrefixOf term $ searchPropertiesOfClass c
 matchesElement term (J.EField f) = isPrefixOf term $ searchPropertiesOfField f
 matchesElement term (J.EMethod m) = isPrefixOf term $ searchPropertiesOfMethod m
-matchesElement _ _ = False
+matchesElement term (J.EParameter p) = isPrefixOf term $ searchPropertiesOfParameter p
+
+searchPropertiesOfProject :: J.Project -> String
+searchPropertiesOfProject p = ""
+
+searchPropertiesOfJavaFile :: J.JavaFile -> String
+searchPropertiesOfJavaFile j = j ^. J.fileName
 
 searchPropertiesOfClass :: J.Class -> String
 searchPropertiesOfClass c = c ^. J.className ^. J.idName
@@ -28,6 +36,9 @@ searchPropertiesOfField f = f ^. J.fieldName ^. J.idName
 
 searchPropertiesOfMethod :: J.Method -> String
 searchPropertiesOfMethod m = m ^. J.methodName ^. J.idName
+
+searchPropertiesOfParameter :: J.Parameter -> String
+searchPropertiesOfParameter p = p ^. J.parameterName ^. J.idName
 
 classes :: J.Element -> [J.Class]
 classes (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= classes
@@ -51,10 +62,12 @@ elements e = concat
   [ J.EClass <$> classes e
   , J.EField <$> variables e
   , J.EMethod <$> methods e
+  , J.EParameter <$> parameters e
   ]
 
 elementsOfType :: ElementType -> J.Element -> [J.Element]
 elementsOfType Class = fmap J.EClass . classes
 elementsOfType Variable = fmap J.EField . variables
 elementsOfType Method = fmap J.EMethod . methods
-elementsOfType _ = \_ -> []
+elementsOfType Parameter = fmap J.EParameter . parameters
+elementsOfType Function = \_ -> []

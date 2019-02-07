@@ -30,7 +30,7 @@ listElementsOfType Class = listElementsWithYielder J.EClass JA.classes
 listElementsOfType Method = listElementsWithYielder J.EMethod JA.methods
 listElementsOfType Variable = listElementsWithYielder J.EField JA.variables
 listElementsOfType Parameter = listElementsWithYielder J.EParameter JA.parameters
-listElementsOfType _ = id
+listElementsOfType Function = id
 
 listElementsWithYielder :: (a -> J.Element) -> (J.Element -> [a]) -> AppState -> AppState
 listElementsWithYielder f g state = set output (ResultList $ f <$> list g state) state
