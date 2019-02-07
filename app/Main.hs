@@ -1,6 +1,6 @@
 module Main where
 
-import PromptShow (printSignature)
+import PromptShow (printPrompt)
 import AppState (AppState, initialState, leafFocus, clearOutput, printOutput)
 import Evaluation (processCommand, processJavaInput)
 import System.IO ( hFlush, stdout )
@@ -14,7 +14,7 @@ readInput = hFlush stdout >> getLine
 prompt :: AppState -> IO ()
 prompt state = do
   setSGR [SetColor Foreground Vivid Blue]
-  putStr $ printSignature $ state ^.to leafFocus
+  putStr $ printPrompt $ state ^.to leafFocus
   putStr " > "
   setSGR [Reset]
   

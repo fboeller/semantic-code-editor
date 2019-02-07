@@ -4,6 +4,13 @@ import Java
 import Control.Lens
 import Data.List (intercalate)
 
+printPrompt :: Element -> String
+printPrompt e =
+  printSignature e ++ case e of
+    (EClass _) -> " { ... }"
+    (EMethod _) -> " { ... }"
+    _ -> ""
+  
 printProjectSignature :: Project -> String
 printProjectSignature p = "/"
 
@@ -65,7 +72,7 @@ printClassCommon c = unwords
   [ printClassSignature c
   , "{"
   , concat $ ("\n  "++) <$> (++";") <$> printFieldSignature <$> c ^. classFields
-  , concat $ ("\n  "++) <$> printMethodSignature <$> c ^. classMethods
+  , concat $ ("\n  "++) <$> printPrompt <$> EMethod <$> c ^. classMethods
   , "\n}"
   ]
 
