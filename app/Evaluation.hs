@@ -42,7 +42,7 @@ processJavaInput :: String -> AppState -> IO AppState
 processJavaInput path state = do
   (errors, javaProgram) <- runParserOnPath path
   return $ state
-    & output .~ Error (putStrLn $ printErrors errors)
+    & output .~ Error (putStr $ printErrors errors)
     & program .~ javaProgram & focus .~ []
 
 printErrors :: [FileParseError] -> String
