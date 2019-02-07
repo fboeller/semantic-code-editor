@@ -22,6 +22,7 @@ listAll state = set output (ResultList results) state
       [ J.EClass <$> list JA.classes state
       , J.EMethod <$> list JA.methods state
       , J.EField <$> list JA.variables state
+      , J.EParameter <$> list JA.parameters state
       ]
 
 listElementsOfType :: ElementType -> AppState -> AppState
