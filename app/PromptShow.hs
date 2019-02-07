@@ -3,6 +3,7 @@ module PromptShow where
 import Java
 import Control.Lens
 import Data.List (intercalate)
+import Data.Maybe (catMaybes)
 
 printPrompt :: Element -> String
 printPrompt e =
@@ -21,10 +22,11 @@ printPackageSignature p = unwords
   ]
 
 printClassSignature :: Class -> String
-printClassSignature c = unwords
-  [ printVisibilityCommon $ c ^. classVisibility
-  , "class"
-  , c ^. className ^. idName
+printClassSignature c = unwords $ catMaybes
+  [ Just $ printVisibilityCommon $ c ^. classVisibility
+  , Just $ "class"
+  , Just $ c ^. className ^. idName
+  , fmap ("extends "++) $ fmap (view idName) $ c ^. classExtends
   ]
 
 printMethodSignature :: Method -> String

@@ -66,13 +66,17 @@ convertTypeDeclToClass (ClassTypeDecl classDecl) = convertClassDeclToClass class
 convertTypeDeclToClass (InterfaceTypeDecl interfaceDecl) = Nothing
 
 convertClassDeclToClass :: ClassDecl -> Maybe J.Class
-convertClassDeclToClass (ClassDecl modifiers (Ident name) _ _ _ classBody) = Just $
+convertClassDeclToClass (ClassDecl modifiers (Ident name) _ maybeExtends _ classBody) = Just $
   J.Class { J._className = J.Identifier { J._idName = name }
           , J._classFields = convertClassBodyToFields classBody
           , J._classMethods = convertClassBodyToMethods classBody
           , J._classVisibility = convertModifiersToVisibility modifiers
+          , J._classExtends = fmap convertExtendsToExtends maybeExtends
           }
 convertClassDeclToClass (EnumDecl _ _ _ _) = Nothing
+
+convertExtendsToExtends :: RefType -> J.Identifier
+convertExtendsToExtends refType = J.Identifier { J._idName = prettyPrint refType }
 
 convertClassBodyToMethods :: ClassBody -> [J.Method]
 convertClassBodyToMethods (ClassBody decls) = mapMaybe convertDeclToMethod decls

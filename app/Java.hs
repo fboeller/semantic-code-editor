@@ -49,6 +49,7 @@ data Class =
         , _classFields :: [Field]
         , _classMethods :: [Method]
         , _classVisibility :: Visibility
+        , _classExtends :: Maybe Identifier
         }
   deriving (Show)
 makeLenses ''Class
