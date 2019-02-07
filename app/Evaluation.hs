@@ -1,10 +1,11 @@
 module Evaluation where
 
 import qualified Actions as A
-import JavaParser (runParserOnPath)
+import JavaParser (runParserOnPath, FileParseError(..))
 import qualified CommandParser as P
 import AppState (AppState, program, focus, output, Output(..))
 
+import Data.List (intercalate)
 import Control.Lens
 
 processCommand :: String -> AppState -> IO AppState
@@ -39,8 +40,13 @@ evalMeta _ state = return state
 
 processJavaInput :: String -> AppState -> IO AppState
 processJavaInput path state = do
-  parseResult <- runParserOnPath path
-  return $ case parseResult of
-    -- TODO Clean up
-    (Just err, javaProgram) -> state & output .~ Error (putStrLn err) & program .~ javaProgram & focus .~ []
-    (Nothing, javaProgram) -> state & program .~ javaProgram & focus .~ []
+  (errors, javaProgram) <- runParserOnPath path
+  return $ state
+    & output .~ Error (putStrLn $ printErrors errors)
+    & program .~ javaProgram & focus .~ []
+
+printErrors :: [FileParseError] -> String
+printErrors =
+  intercalate "\n" . fmap printError
+  where
+    printError (FileParseError path error) = "File could not be loaded: " ++ path ++ " " ++ error

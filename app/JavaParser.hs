@@ -19,29 +19,33 @@ import System.Directory.Tree (
     )
 import System.FilePath (takeExtension)
 
-runParserOnPath :: FilePath -> IO (Maybe String, J.Project)
+data FileParseError = FileParseError FilePath String
+
+runParserOnPath :: FilePath -> IO ([FileParseError], J.Project)
 runParserOnPath path = do
     _ :/ tree <- readDirectoryWith return path
     dirtree <- traverse runParserOnFile $ filterDir myPred tree
-    let maybeJavaFiles = foldr mappend (Nothing, []) $ convertEither <$> dirtree -- TODO Not sure if the errors get concatenated
+    let maybeJavaFiles = foldr mappend ([], []) $ convertEither <$> dirtree -- TODO Not sure if the errors get concatenated
     return $ filesToProject <$> maybeJavaFiles
   where myPred (Dir ('.':_) _) = False
         myPred (File n _) = takeExtension n == ".java"
         myPred _ = True
-        convertEither :: Either String J.JavaFile -> (Maybe String, [J.JavaFile])
-        convertEither (Left m) = (Just m, [])
-        convertEither (Right javaFile) = (Nothing, [javaFile])
+        convertEither :: Either a b -> ([a], [b])
+        convertEither (Left l) = ([l], [])
+        convertEither (Right r) = ([], [r])
 
 testProgram = "public class Dog { String breed; int age; String color; public void barking() { } private int hungry() { return 42; } protected void sleeping() { } }"
 
-runParser :: String -> Either String J.JavaFile
+runParser :: String -> Either FileParseError J.JavaFile
 runParser programStr = convertParseResult "" $ parser compilationUnit programStr
 
-runParserOnFile :: FilePath -> IO (Either String J.JavaFile)
-runParserOnFile file = (convertParseResult file <$> parser compilationUnit <$> readFile file) `catch` (\e -> return $ Left $ show (e :: IOException))
+runParserOnFile :: FilePath -> IO (Either FileParseError J.JavaFile)
+runParserOnFile file =
+  (convertParseResult file <$> parser compilationUnit <$> readFile file)
+  `catch` (\e -> return $ Left $ FileParseError file $ show (e :: IOException))
 
-convertParseResult :: FilePath -> Either ParseError CompilationUnit -> Either String J.JavaFile
-convertParseResult _ (Left err) = Left $ show err
+convertParseResult :: FilePath -> Either ParseError CompilationUnit -> Either FileParseError J.JavaFile
+convertParseResult file (Left err) = Left $ FileParseError file $ show err
 convertParseResult file (Right val) = Right $ convertCompilationUnit file val
 
 filesToProject :: [J.JavaFile] -> J.Project
