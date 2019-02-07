@@ -78,13 +78,19 @@ convertDeclToMethod (MemberDecl memberDecl) = convertMemberDeclToMethod memberDe
 convertDeclToMethod (InitDecl _ _) = Nothing
 
 convertMemberDeclToMethod :: MemberDecl -> Maybe J.Method
-convertMemberDeclToMethod (MethodDecl modifiers _ maybeT ident _ _ _ _) = Just $
+convertMemberDeclToMethod (MethodDecl modifiers _ maybeT ident formalParams _ _ _) = Just $
   J.Method { J._methodName = J.Identifier { J._idName = prettyPrint ident }
-           , J._methodParameters = []
+           , J._methodParameters = convertFormalParam <$> formalParams
            , J._methodReturnType = maybe (J.Datatype { J._datatypeName = "void" }) convertVarDeclToType maybeT
            , J._methodVisibility = convertModifiersToVisibility modifiers
            }
 convertMemberDeclToMethod _ = Nothing
+
+convertFormalParam :: FormalParam -> J.Parameter
+convertFormalParam (FormalParam modifiers t _ varDeclId) =
+  J.Parameter { J._parameterName = J.Identifier { J._idName = convertVarDeclIdToFieldName varDeclId }
+              , J._parameterType = convertVarDeclToType t
+              }
 
 convertMemberDeclToMethods _ = []
 
@@ -112,8 +118,11 @@ convertVarDeclToType t =
   J.Datatype { J._datatypeName = prettyPrint t }
 
 convertVarDeclToFieldName :: VarDecl -> String
-convertVarDeclToFieldName (VarDecl (VarId (Ident name)) _) = name
-convertVarDeclToFieldName _ = "No name out of array init yet" -- TODO
+convertVarDeclToFieldName (VarDecl varId _) = convertVarDeclIdToFieldName varId
+
+convertVarDeclIdToFieldName :: VarDeclId -> String
+convertVarDeclIdToFieldName (VarId (Ident name)) = name
+convertVarDeclIdToFieldName _ = "No name out of array init yet" -- TODO
 
 convertModifiersToVisibility :: [Modifier] -> J.Visibility
 convertModifiersToVisibility modifiers =
