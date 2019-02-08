@@ -20,15 +20,15 @@ listAll state = set output (ResultList results) state
   where
     results = concat
       [ J.EClass <$> list JA.classes state
-      , J.EMethod <$> list JA.methods state
       , J.EField <$> list JA.variables state
+      , J.EMethod <$> list JA.methods state
       , J.EParameter <$> list JA.parameters state
       ]
 
 listElementsOfType :: ElementType -> AppState -> AppState
 listElementsOfType Class = listElementsWithYielder J.EClass JA.classes
-listElementsOfType Method = listElementsWithYielder J.EMethod JA.methods
 listElementsOfType Variable = listElementsWithYielder J.EField JA.variables
+listElementsOfType Method = listElementsWithYielder J.EMethod JA.methods
 listElementsOfType Parameter = listElementsWithYielder J.EParameter JA.parameters
 listElementsOfType Function = id
 
