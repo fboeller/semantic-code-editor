@@ -24,6 +24,7 @@ printPackageSignature p = unwords
 printClassSignature :: Class -> String
 printClassSignature c = unwords $ catMaybes
   [ Just $ printVisibilityCommon $ c ^. classVisibility
+  , if c ^. classFinal then Just "final" else Nothing
   , Just $ "class"
   , Just $ c ^. className ^. idName
   , fmap ("extends "++) $ fmap (view idName) $ c ^. classExtends
@@ -33,11 +34,12 @@ printClassSignature c = unwords $ catMaybes
         notEmpty str = Just $ str
 
 printMethodSignature :: Method -> String
-printMethodSignature m = unwords
-  [ printVisibilityCommon $ m ^. methodVisibility
-  , m ^. methodReturnType ^. datatypeName
-  , m ^. methodName ^. idName
-  , "(" ++ (intercalate ", " $ printParameterSignature <$> m ^. methodParameters) ++ ")"
+printMethodSignature m = unwords $ catMaybes
+  [ Just $ printVisibilityCommon $ m ^. methodVisibility
+  , if m ^. methodStatic then Just "static" else Nothing
+  , Just $ m ^. methodReturnType ^. datatypeName
+  , Just $ m ^. methodName ^. idName
+  , Just $ "(" ++ (intercalate ", " $ printParameterSignature <$> m ^. methodParameters) ++ ")"
   ]
 
 printParameterSignature :: Parameter -> String
@@ -47,10 +49,12 @@ printParameterSignature p = unwords
   ]
 
 printFieldSignature :: Field -> String
-printFieldSignature f = unwords
-  [ printVisibilityCommon $ f ^. fieldVisibility
-  , f ^. fieldType ^. datatypeName
-  , f ^. fieldName ^. idName
+printFieldSignature f = unwords $ catMaybes
+  [ Just $ printVisibilityCommon $ f ^. fieldVisibility
+  , if f ^. fieldStatic then Just "static" else Nothing
+  , if f ^. fieldFinal then Just "final" else Nothing
+  , Just $ f ^. fieldType ^. datatypeName
+  , Just $ f ^. fieldName ^. idName
   ]
 
 printSignature :: Element -> String

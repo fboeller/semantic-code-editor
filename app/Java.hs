@@ -23,6 +23,8 @@ data Field =
   Field { _fieldName :: Identifier
         , _fieldType :: Datatype
         , _fieldVisibility :: Visibility
+        , _fieldStatic :: Bool
+        , _fieldFinal :: Bool
         }
   deriving (Show)
 makeLenses ''Field
@@ -40,6 +42,7 @@ data Method =
          , _methodReturnType :: Datatype
          , _methodVisibility :: Visibility
          , _methodBody :: String -- TODO Include syntactic information
+         , _methodStatic :: Bool
          }
   deriving (Show)
 makeLenses ''Method
@@ -51,6 +54,7 @@ data Class =
         , _classVisibility :: Visibility
         , _classExtends :: Maybe Identifier
         , _classImplements :: [Identifier]
+        , _classFinal :: Bool
         }
   deriving (Show)
 makeLenses ''Class

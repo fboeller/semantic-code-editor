@@ -73,6 +73,7 @@ convertClassDeclToClass (ClassDecl modifiers (Ident name) _ maybeExtends impleme
           , J._classVisibility = convertModifiersToVisibility modifiers
           , J._classExtends = convertRefTypeToIdentifier <$> maybeExtends
           , J._classImplements = convertRefTypeToIdentifier <$> implements
+          , J._classFinal = isFinal modifiers
           }
 convertClassDeclToClass (EnumDecl _ _ _ _) = Nothing
 
@@ -93,6 +94,7 @@ convertMemberDeclToMethod (MethodDecl modifiers _ maybeT ident formalParams _ _ 
            , J._methodReturnType = maybe (J.Datatype { J._datatypeName = "void" }) convertVarDeclToType maybeT
            , J._methodVisibility = convertModifiersToVisibility modifiers
            , J._methodBody = prettyPrint body
+           , J._methodStatic = isStatic modifiers
            }
 convertMemberDeclToMethod _ = Nothing
 
@@ -121,6 +123,8 @@ convertMemberDeclToField modifiers t varDecl =
   J.Field { J._fieldName = J.Identifier { J._idName = convertVarDeclToFieldName varDecl }
           , J._fieldType = convertVarDeclToType t
           , J._fieldVisibility = convertModifiersToVisibility modifiers
+          , J._fieldStatic = isStatic modifiers
+          , J._fieldFinal = isFinal modifiers
           }
 
 convertVarDeclToType :: Type -> J.Datatype
@@ -141,9 +145,14 @@ convertModifiersToVisibility modifiers =
     Just Public -> J.Public
     Just Private -> J.Private
     Just Protected -> J.Protected
-    Just _ -> error "Non visibility modifier although filtered out"
-    
-    
+    Just _ -> error "Non visibility modifier although filtered out"    
+
+isStatic :: [Modifier] -> Bool
+isStatic = any (==Static)
+
+isFinal :: [Modifier] -> Bool
+isFinal = any (==Final)
+
 convertMaybePackageDecl :: Maybe PackageDecl -> J.Identifier
 convertMaybePackageDecl maybePackageDecl =
   maybe (J.Identifier { J._idName = "" }) convertPackageDecl maybePackageDecl
