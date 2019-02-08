@@ -73,6 +73,9 @@ focusVariable = focusFirst JA.variables J.EField
 focusUp :: AppState -> AppState
 focusUp state = over focus F.focusUp state
 
+focusRoot :: AppState -> AppState
+focusRoot state = over focus F.focusRoot state
+
 focusLastOutputByIndex :: Int -> AppState -> AppState
 focusLastOutputByIndex index state =
   case state ^. lastOutput of

@@ -11,7 +11,7 @@ data FirstCommand = Read | Focus | List
 data ElementType = Class | Method | Function | Variable | Parameter
   deriving Show
 
-data Path = Upper
+data Path = Upper | Root
   deriving Show
 
 data MetaCommand =
@@ -53,7 +53,9 @@ secondCommand = choice
   ] <?> "a second command symbol 'c', 'm', 'f', 'v' or 'p'"
 
 path :: Parser Path
-path = string ".." *> pure Upper <?> "path"
+path = (string ".." *> pure Upper)
+  <||> (char '/' *> pure Root)
+  <?> "path"
 
 (<||>) :: Parser a -> Parser a -> Parser a
 p <||> q = try p <|> q

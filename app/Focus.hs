@@ -11,3 +11,6 @@ focusUp = drop 1
 
 focusDown :: Element -> Focus -> Focus
 focusDown = (:)
+
+focusRoot :: Focus -> Focus
+focusRoot _ = []
