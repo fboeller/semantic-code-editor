@@ -67,13 +67,7 @@ extensions (J.EClass c) = maybeToList $ emptyClass <$> (c ^. J.classExtends)
 extensions _ = []
 
 elements :: J.Element -> [J.Element]
-elements e = concat
-  [ J.EClass <$> classes e
-  , J.EField <$> variables e
-  , J.EMethod <$> methods e
-  , J.EParameter <$> parameters e
-  , J.EClass <$> extensions e
-  ]
+elements e = concat $ (\t -> elementsOfType t e) <$> [Class, Variable, Method, Parameter, Extension]
 
 treeprune :: Int -> Tree a -> Tree a
 treeprune 0 t = Node (rootLabel t) []
