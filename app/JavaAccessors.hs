@@ -9,16 +9,23 @@ import Data.Tree
 import Data.Char (toLower)
 import Data.Maybe (maybeToList)
 
-selectedElements :: String -> J.Element -> [J.Element]
+type SearchTerm = String
+
+selectedElements :: SearchTerm -> J.Element -> [J.Element]
 selectedElements term element =
-  filter (matchesElement term) $ elements element
+  filter (matchesTerm term) $ elements element
 
-selectedElementsOfType :: ElementType -> String -> J.Element -> [J.Element]
+selectedElementsOfType :: ElementType -> SearchTerm -> J.Element -> [J.Element]
 selectedElementsOfType elementType term element =
-  filter (matchesElement term) $ elementsOfType elementType element
+  filter (matchesTerm term) $ filter (matchesType elementType) $ elements element
 
-matchesElement :: String -> J.Element -> Bool
-matchesElement term element = isPrefixOf (fmap toLower $ term) $ fmap toLower $
+elementsOfType :: ElementType -> J.Element -> [J.Element]
+elementsOfType elementType element =
+  filter (matchesType elementType) $ elements element
+
+
+matchesTerm :: SearchTerm -> J.Element -> Bool
+matchesTerm term element = isPrefixOf (toLower <$> term) $ fmap toLower $
   case element of
     (J.EProject p) -> searchPropertiesOfProject p
     (J.EJavaFile j) -> searchPropertiesOfJavaFile j
@@ -45,6 +52,24 @@ searchPropertiesOfMethod m = m ^. J.methodName ^. J.idName
 searchPropertiesOfParameter :: J.Parameter -> String
 searchPropertiesOfParameter p = p ^. J.parameterName ^. J.idName
 
+matchesType :: ElementType -> J.Element -> Bool
+matchesType Class (J.EClass _) = True
+matchesType Variable (J.EField _) = True
+matchesType Method (J.EMethod _) = True
+matchesType Parameter (J.EParameter _) = True
+matchesType Extension (J.EClass _) = True
+matchesType _ _ = False
+
+
+elements :: J.Element -> [J.Element]
+elements e = concat
+  [ J.EClass <$> classes e
+  , J.EField <$> variables e
+  , J.EMethod <$> methods e
+  , J.EParameter <$> parameters e
+  , J.EClass <$> extensions e
+  ]
+
 classes :: J.Element -> [J.Class]
 classes (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= classes
 classes (J.EJavaFile p) = p ^. J.classes
@@ -66,8 +91,6 @@ extensions :: J.Element -> [J.Class]
 extensions (J.EClass c) = maybeToList $ emptyClass <$> (c ^. J.classExtends)
 extensions _ = []
 
-elements :: J.Element -> [J.Element]
-elements e = concat $ (\t -> elementsOfType t e) <$> [Class, Variable, Method, Parameter, Extension]
 
 treeprune :: Int -> Tree a -> Tree a
 treeprune 0 t = Node (rootLabel t) []
@@ -78,14 +101,6 @@ elementsRecursivelyLimited limit = treeprune limit . elementsRecursively
 
 elementsRecursively :: J.Element -> Tree J.Element
 elementsRecursively = unfoldTree (\b -> (b, elements b))
-
-elementsOfType :: ElementType -> J.Element -> [J.Element]
-elementsOfType Class = fmap J.EClass . classes
-elementsOfType Variable = fmap J.EField . variables
-elementsOfType Method = fmap J.EMethod . methods
-elementsOfType Parameter = fmap J.EParameter . parameters
-elementsOfType Extension = fmap J.EClass . extensions
-elementsOfType Function = \_ -> []
 
 emptyClass :: J.Identifier -> J.Class
 emptyClass identifier =
