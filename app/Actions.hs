@@ -11,37 +11,41 @@ import CommandParser (ElementType(..))
 import PromptShow
 
 read :: AppState -> AppState
-read state = set output (Other $ putStrLn $ printCommon $ state ^. to leafFocus) state
+read state =
+  state & output .~ (Other $ putStrLn $ printCommon $ state ^.to leafFocus)
 
 listAll :: AppState -> AppState
-listAll state = set output (ResultTree $ JA.elementsRecursively $ leafFocus state) state
+listAll state =
+  state & output .~ (ResultTree $ JA.elementsRecursively $ state ^.to leafFocus)
 
 listElementsOfType :: ElementType -> AppState -> AppState
 listElementsOfType t state =
-  state & output .~ (ResultList $ JA.elementsOfType t (state ^.to leafFocus))
+  state & output .~ (ResultList $ JA.elementsOfType t $ state ^.to leafFocus)
 
 listSelectedElements :: String -> AppState -> AppState
 listSelectedElements term state =
-  state & output .~ (ResultList $ JA.selectedElements term (state ^.to leafFocus))
+  state & output .~ (ResultList $ JA.selectedElements term $ state ^.to leafFocus)
 
 listSelectedElementsOfType :: ElementType -> String -> AppState -> AppState
 listSelectedElementsOfType elementType term state =
-  state & output .~ (ResultList $ JA.selectedElementsOfType elementType term (state ^.to leafFocus))
+  state & output .~ (ResultList $ JA.selectedElementsOfType elementType term $ state ^.to leafFocus)
 
 focusFirst :: (J.Element -> [a]) -> (a -> J.Element) -> AppState -> AppState
 focusFirst subElements toElement state =
   case subElements (state ^.to leafFocus) of
-    [] -> set output (Error $ putStrLn "No focusable element in scope") state
-    elements -> over focus changeFocus state
+    [] -> state & output .~ (Error $ putStrLn "No focusable element in scope")
+    elements -> state & focus %~ changeFocus
       where
         changeFocus oldFocus = F.focusDown element oldFocus
         element = toElement $ head elements
 
 focusFirstSelectedElementOfType :: ElementType -> String -> AppState -> AppState
-focusFirstSelectedElementOfType elementType term = focusFirst (JA.selectedElementsOfType elementType term) id
+focusFirstSelectedElementOfType elementType term =
+  focusFirst (JA.selectedElementsOfType elementType term) id
 
 focusFirstSelectedElement :: String -> AppState -> AppState
-focusFirstSelectedElement term = focusFirst (JA.selectedElements term) id
+focusFirstSelectedElement term =
+  focusFirst (JA.selectedElements term) id
     
 focusAny :: AppState -> AppState
 focusAny = focusFirst JA.elements id
@@ -56,17 +60,17 @@ focusVariable :: AppState -> AppState
 focusVariable = focusFirst JA.variables J.EField
 
 focusUp :: AppState -> AppState
-focusUp state = over focus F.focusUp state
+focusUp state = state & focus %~ F.focusUp
 
 focusRoot :: AppState -> AppState
-focusRoot state = over focus F.focusRoot state
+focusRoot state = state & focus %~ F.focusRoot
 
 focusLastOutputByIndex :: Int -> AppState -> AppState
 focusLastOutputByIndex index state =
   case state ^. lastOutput of
     ResultList elements ->
       if index > 0 && index <= length elements then
-        over focus (F.focusDown $ elements !! (index - 1)) state
+        state & focus %~ (F.focusDown $ elements !! (index - 1))
       else
-        set output (Error $ putStrLn $ "The index " ++ show index ++ " does not exist in the last result list") state
-    _ -> set output (Error $ putStrLn $ "The last output was not a result list") state
+        state & output .~ (Error $ putStrLn $ "The index " ++ show index ++ " does not exist in the last result list")
+    _ -> state & output .~ (Error $ putStrLn $ "The last output was not a result list")
