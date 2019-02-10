@@ -8,21 +8,16 @@ import Data.List (isPrefixOf)
 import Data.Tree
 import Data.Char (toLower)
 import Data.Maybe (maybeToList)
+import Control.Applicative (liftA2)
 
 type SearchTerm = String
 
-selectedElements :: SearchTerm -> J.Element -> [J.Element]
-selectedElements term element =
-  filter (matchesTerm term) $ elements element
-
-selectedElementsOfType :: ElementType -> SearchTerm -> J.Element -> [J.Element]
-selectedElementsOfType elementType term element =
-  filter (matchesTerm term) $ filter (matchesType elementType) $ elements element
-
-elementsOfType :: ElementType -> J.Element -> [J.Element]
-elementsOfType elementType element =
-  filter (matchesType elementType) $ elements element
-
+selectedElements :: [J.Element -> Bool] -> J.Element -> [J.Element]
+selectedElements predicates element =
+  filter allPredicates $ elements element
+  where
+    allPredicates :: J.Element -> Bool
+    allPredicates = foldr (liftA2 (&&)) (pure True) predicates
 
 matchesTerm :: SearchTerm -> J.Element -> Bool
 matchesTerm term element = isPrefixOf (toLower <$> term) $ fmap toLower $

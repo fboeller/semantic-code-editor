@@ -19,16 +19,16 @@ listAll state =
   state & output .~ (ResultTree $ JA.elementsRecursively $ state ^.to leafFocus)
 
 listElementsOfType :: ElementType -> AppState -> AppState
-listElementsOfType t state =
-  state & output .~ (ResultList $ JA.elementsOfType t $ state ^.to leafFocus)
+listElementsOfType elementType state =
+  state & output .~ (ResultList $ JA.selectedElements [JA.matchesType elementType] $ state ^.to leafFocus)
 
 listSelectedElements :: String -> AppState -> AppState
 listSelectedElements term state =
-  state & output .~ (ResultList $ JA.selectedElements term $ state ^.to leafFocus)
+  state & output .~ (ResultList $ JA.selectedElements [JA.matchesTerm term] $ state ^.to leafFocus)
 
 listSelectedElementsOfType :: ElementType -> String -> AppState -> AppState
 listSelectedElementsOfType elementType term state =
-  state & output .~ (ResultList $ JA.selectedElementsOfType elementType term $ state ^.to leafFocus)
+  state & output .~ (ResultList $ JA.selectedElements [JA.matchesType elementType, JA.matchesTerm term] $ state ^.to leafFocus)
 
 focusFirst :: [J.Element] -> AppState -> AppState
 focusFirst elements state =
@@ -38,11 +38,11 @@ focusFirst elements state =
 
 focusFirstSelectedElementOfType :: ElementType -> String -> AppState -> AppState
 focusFirstSelectedElementOfType elementType term state =
-  focusFirst (JA.selectedElementsOfType elementType term $ state ^.to leafFocus) state
+  focusFirst (JA.selectedElements [JA.matchesType elementType, JA.matchesTerm term] $ state ^.to leafFocus) state
 
 focusFirstSelectedElement :: String -> AppState -> AppState
 focusFirstSelectedElement term state =
-  focusFirst (JA.selectedElements term $ state ^.to leafFocus) state
+  focusFirst (JA.selectedElements [JA.matchesTerm term] $ state ^.to leafFocus) state
 
 focusFirstElement :: AppState -> AppState
 focusFirstElement state =
@@ -50,7 +50,7 @@ focusFirstElement state =
 
 focusFirstElementOfType :: ElementType -> AppState -> AppState
 focusFirstElementOfType elementType state =
-  focusFirst (JA.elementsOfType elementType $ state ^.to leafFocus) state
+  focusFirst (JA.selectedElements [JA.matchesType elementType] $ state ^.to leafFocus) state
 
 focusUp :: AppState -> AppState
 focusUp state = state & focus %~ F.focusUp
