@@ -30,34 +30,27 @@ listSelectedElementsOfType :: ElementType -> String -> AppState -> AppState
 listSelectedElementsOfType elementType term state =
   state & output .~ (ResultList $ JA.selectedElementsOfType elementType term $ state ^.to leafFocus)
 
-focusFirst :: (J.Element -> [a]) -> (a -> J.Element) -> AppState -> AppState
-focusFirst subElements toElement state =
-  case subElements (state ^.to leafFocus) of
+focusFirst :: [J.Element] -> AppState -> AppState
+focusFirst elements state =
+  case elements of
     [] -> state & output .~ (Error $ putStrLn "No focusable element in scope")
-    elements -> state & focus %~ changeFocus
-      where
-        changeFocus oldFocus = F.focusDown element oldFocus
-        element = toElement $ head elements
+    (e:_) -> state & focus %~ (F.focusDown e)
 
 focusFirstSelectedElementOfType :: ElementType -> String -> AppState -> AppState
-focusFirstSelectedElementOfType elementType term =
-  focusFirst (JA.selectedElementsOfType elementType term) id
+focusFirstSelectedElementOfType elementType term state =
+  focusFirst (JA.selectedElementsOfType elementType term $ state ^.to leafFocus) state
 
 focusFirstSelectedElement :: String -> AppState -> AppState
-focusFirstSelectedElement term =
-  focusFirst (JA.selectedElements term) id
-    
-focusAny :: AppState -> AppState
-focusAny = focusFirst JA.elements id
+focusFirstSelectedElement term state =
+  focusFirst (JA.selectedElements term $ state ^.to leafFocus) state
 
-focusClass :: AppState -> AppState
-focusClass = focusFirst JA.classes J.EClass
+focusFirstElement :: AppState -> AppState
+focusFirstElement state =
+  focusFirst (JA.elements $ state ^.to leafFocus) state
 
-focusMethod :: AppState -> AppState
-focusMethod = focusFirst JA.methods J.EMethod
-
-focusVariable :: AppState -> AppState
-focusVariable = focusFirst JA.variables J.EField
+focusFirstElementOfType :: ElementType -> AppState -> AppState
+focusFirstElementOfType elementType state =
+  focusFirst (JA.elementsOfType elementType $ state ^.to leafFocus) state
 
 focusUp :: AppState -> AppState
 focusUp state = state & focus %~ F.focusUp
