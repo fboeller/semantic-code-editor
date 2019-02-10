@@ -32,6 +32,7 @@ dependencies:
 - directory
 - directory-tree
 - unix
+- containers
 
 library:
   source-dirs: src

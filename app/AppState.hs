@@ -7,9 +7,11 @@ import Focus
 import PromptShow
 import Control.Lens
 import System.Console.ANSI
+import Data.Tree
 
 data Output =
   ResultList [J.Element] |
+  ResultTree (Tree J.Element) |
   Other (IO ()) |
   Error (IO ())
   
@@ -42,6 +44,7 @@ printOutput :: AppState -> IO ()
 printOutput state =
   case state ^. output of
     ResultList elements -> putStr $ unlines $ withIndex $ printSignature <$> elements
+    ResultTree elements -> putStr $ drawTree $ printSignature <$> elements
     Other io -> io
     Error io -> do
       setSGR [SetColor Foreground Vivid Red]

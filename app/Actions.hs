@@ -16,7 +16,7 @@ list :: (J.Element -> [a]) -> AppState -> [a]
 list subElements state = subElements (state ^.to leafFocus)
 
 listAll :: AppState -> AppState
-listAll state = set output (ResultList $ JA.elements $ leafFocus state) state
+listAll state = set output (ResultTree $ JA.elementsRecursivelyLimited 1 $ leafFocus state) state
 
 listElementsOfType :: ElementType -> AppState -> AppState
 listElementsOfType Class = listElementsWithYielder J.EClass JA.classes

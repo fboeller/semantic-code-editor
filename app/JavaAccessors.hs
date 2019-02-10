@@ -5,6 +5,7 @@ import Control.Lens hiding (elements)
 import qualified Java as J
 import CommandParser (ElementType(..))
 import Data.List (isPrefixOf)
+import Data.Tree
 import Data.Char (toLower)
 import Data.Maybe (maybeToList)
 
@@ -73,6 +74,16 @@ elements e = concat
   , J.EParameter <$> parameters e
   , J.EClass <$> extensions e
   ]
+
+treeprune :: Int -> Tree a -> Tree a
+treeprune 0 t = Node (rootLabel t) []
+treeprune d t = Node (rootLabel t) $ (treeprune $ d-1) <$> subForest t
+
+elementsRecursivelyLimited :: Int -> J.Element -> Tree J.Element
+elementsRecursivelyLimited limit = treeprune limit . elementsRecursively
+
+elementsRecursively :: J.Element -> Tree J.Element
+elementsRecursively = unfoldTree (\b -> (b, elements b))
 
 elementsOfType :: ElementType -> J.Element -> [J.Element]
 elementsOfType Class = fmap J.EClass . classes
