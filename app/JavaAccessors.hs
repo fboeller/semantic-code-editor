@@ -6,6 +6,7 @@ import qualified Java as J
 import CommandParser (ElementType(..))
 import Data.List (isPrefixOf)
 import Data.Char (toLower)
+import Data.Maybe (maybeToList)
 
 selectedElements :: String -> J.Element -> [J.Element]
 selectedElements term element =
@@ -60,12 +61,17 @@ methods :: J.Element -> [J.Method]
 methods (J.EClass c) = c ^. J.classMethods
 methods _ = []
 
+extensions :: J.Element -> [J.Class]
+extensions (J.EClass c) = maybeToList $ emptyClass <$> (c ^. J.classExtends)
+extensions _ = []
+
 elements :: J.Element -> [J.Element]
 elements e = concat
   [ J.EClass <$> classes e
   , J.EField <$> variables e
   , J.EMethod <$> methods e
   , J.EParameter <$> parameters e
+  , J.EClass <$> extensions e
   ]
 
 elementsOfType :: ElementType -> J.Element -> [J.Element]
@@ -73,4 +79,16 @@ elementsOfType Class = fmap J.EClass . classes
 elementsOfType Variable = fmap J.EField . variables
 elementsOfType Method = fmap J.EMethod . methods
 elementsOfType Parameter = fmap J.EParameter . parameters
+elementsOfType Extension = fmap J.EClass . extensions
 elementsOfType Function = \_ -> []
+
+emptyClass :: J.Identifier -> J.Class
+emptyClass identifier =
+  J.Class { J._className = identifier
+          , J._classFields = []
+          , J._classMethods = []
+          , J._classVisibility = J.Public
+          , J._classExtends = Nothing
+          , J._classImplements = []
+          , J._classFinal = False
+          }
