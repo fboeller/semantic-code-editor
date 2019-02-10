@@ -1,6 +1,7 @@
 module Actions where
 
 import Control.Lens
+import Data.Tree
 
 import qualified Java as J
 import qualified JavaAccessors as JA
@@ -20,21 +21,21 @@ listAll state =
 
 listElementsOfType :: ElementType -> AppState -> AppState
 listElementsOfType elementType state =
-  state & output .~ (ResultList $ JA.selectedElements [JA.matchesType elementType] $ state ^.to leafFocus)
+  state & output .~ (ResultTree $ JA.selectedElements [JA.matchesType elementType] $ state ^.to leafFocus)
 
 listSelectedElements :: String -> AppState -> AppState
 listSelectedElements term state =
-  state & output .~ (ResultList $ JA.selectedElements [JA.matchesTerm term] $ state ^.to leafFocus)
+  state & output .~ (ResultTree $ JA.selectedElements [JA.matchesTerm term] $ state ^.to leafFocus)
 
 listSelectedElementsOfType :: ElementType -> String -> AppState -> AppState
 listSelectedElementsOfType elementType term state =
-  state & output .~ (ResultList $ JA.selectedElements [JA.matchesType elementType, JA.matchesTerm term] $ state ^.to leafFocus)
+  state & output .~ (ResultTree $ JA.selectedElements [JA.matchesType elementType, JA.matchesTerm term] $ state ^.to leafFocus)
 
-focusFirst :: [J.Element] -> AppState -> AppState
-focusFirst elements state =
+focusFirst :: Tree J.Element -> AppState -> AppState
+focusFirst (Node _ elements) state =
   case elements of
     [] -> state & output .~ (Error $ putStrLn "No focusable element in scope")
-    (e:_) -> state & focus %~ (F.focusDown e)
+    ((Node e _):_) -> state & focus %~ (F.focusDown e)
 
 focusFirstSelectedElementOfType :: ElementType -> String -> AppState -> AppState
 focusFirstSelectedElementOfType elementType term state =
@@ -46,7 +47,7 @@ focusFirstSelectedElement term state =
 
 focusFirstElement :: AppState -> AppState
 focusFirstElement state =
-  focusFirst (JA.elements $ state ^.to leafFocus) state
+  focusFirst (JA.selectedElements [] $ state ^.to leafFocus) state
 
 focusFirstElementOfType :: ElementType -> AppState -> AppState
 focusFirstElementOfType elementType state =

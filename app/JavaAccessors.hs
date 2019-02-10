@@ -12,9 +12,9 @@ import Control.Applicative (liftA2)
 
 type SearchTerm = String
 
-selectedElements :: [J.Element -> Bool] -> J.Element -> [J.Element]
+selectedElements :: [J.Element -> Bool] -> J.Element -> Tree J.Element
 selectedElements predicates element =
-  filter allPredicates $ elements element
+  treefilter allPredicates $ elementsRecursively element
   where
     allPredicates :: J.Element -> Bool
     allPredicates = foldr (liftA2 (&&)) (pure True) predicates
@@ -86,10 +86,20 @@ extensions :: J.Element -> [J.Class]
 extensions (J.EClass c) = maybeToList $ emptyClass <$> (c ^. J.classExtends)
 extensions _ = []
 
+-- Taken from Hledger.Utils.Tree
 
 treeprune :: Int -> Tree a -> Tree a
 treeprune 0 t = Node (rootLabel t) []
 treeprune d t = Node (rootLabel t) $ (treeprune $ d-1) <$> subForest t
+
+treefilter :: (a -> Bool) -> Tree a -> Tree a
+treefilter f t = Node
+                 (rootLabel t)
+                 (map (treefilter f) $ filter (treeany f) $ subForest t)
+
+treeany :: (a -> Bool) -> Tree a -> Bool
+treeany f t = f (rootLabel t) || any (treeany f) (subForest t)
+
 
 elementsRecursivelyLimited :: Int -> J.Element -> Tree J.Element
 elementsRecursivelyLimited limit = treeprune limit . elementsRecursively
