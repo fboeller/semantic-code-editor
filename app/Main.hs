@@ -1,9 +1,10 @@
 module Main where
 
 import PromptShow (printPrompt)
-import AppState (AppState, initialState, leafFocus, clearOutput, printOutput)
+import AppState (AppState, initialState, leafFocus, clearOutput, output)
+import Output (printOutput)
 import Evaluation (processCommand, processJavaInput)
-import System.IO ( hFlush, stdout )
+import System.IO (hFlush, stdout)
 import System.Console.ANSI
 
 import Control.Lens
@@ -24,12 +25,12 @@ step state = do
   prompt cleanState
   input <- readInput 
   newState <- processCommand input cleanState
-  printOutput newState
+  printOutput $ newState ^. output
   step newState
 
 main :: IO ()
 main = do
   loadedState <- processJavaInput "./data" initialState
-  printOutput loadedState
+  printOutput $ loadedState ^. output
   step loadedState
   return ()

@@ -5,16 +5,10 @@ module AppState where
 import qualified Java as J
 import Focus
 import PromptShow
-import Control.Lens
-import System.Console.ANSI
-import Data.Tree
+import Output
 
-data Output =
-  ResultList [J.Element] |
-  ResultTree (Tree J.Element) |
-  Other (IO ()) |
-  Error (IO ())
-  
+import Control.Lens
+
 data AppState =
   AppState { _program :: J.Project
            , _focus :: Focus
@@ -39,20 +33,6 @@ clearOutput state = state
   where
     newLastOutput (Error io) = state ^. lastOutput
     newLastOutput newOutput = newOutput
-
-printOutput :: AppState -> IO ()
-printOutput state =
-  case state ^. output of
-    ResultList elements -> putStr $ unlines $ withIndex $ printSignature <$> elements
-    ResultTree elements -> putStr $ drawTree $ printSignature <$> elements
-    Other io -> io
-    Error io -> do
-      setSGR [SetColor Foreground Vivid Red]
-      io
-      setSGR [Reset]
-  where
-    withIndex :: [String] -> [String]
-    withIndex = zipWith (\i e -> show i ++ ": " ++ e) [1..]
               
 initialState :: AppState
 initialState =

@@ -4,7 +4,8 @@ import Control.Lens
 
 import qualified Java as J
 import qualified JavaAccessors as JA
-import AppState (AppState, program, focus, output, lastOutput, leafFocus, Output(..))
+import AppState (AppState, program, focus, output, lastOutput, leafFocus)
+import Output
 import qualified Focus as F
 import CommandParser (ElementType(..))
 import PromptShow

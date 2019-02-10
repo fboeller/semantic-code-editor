@@ -3,7 +3,8 @@ module Evaluation where
 import qualified Actions as A
 import JavaParser (runParserOnPath, FileParseError(..))
 import qualified CommandParser as P
-import AppState (AppState, program, focus, output, Output(..))
+import AppState (AppState, program, focus, output)
+import Output
 
 import Data.List (intercalate)
 import Control.Lens
