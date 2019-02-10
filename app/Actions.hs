@@ -13,22 +13,12 @@ import PromptShow
 read :: AppState -> AppState
 read state = set output (Other $ putStrLn $ printCommon $ state ^. to leafFocus) state
 
-list :: (J.Element -> [a]) -> AppState -> [a]
-list subElements state = subElements (state ^.to leafFocus)
-
 listAll :: AppState -> AppState
 listAll state = set output (ResultTree $ JA.elementsRecursively $ leafFocus state) state
 
 listElementsOfType :: ElementType -> AppState -> AppState
-listElementsOfType Class = listElementsWithYielder J.EClass JA.classes
-listElementsOfType Variable = listElementsWithYielder J.EField JA.variables
-listElementsOfType Method = listElementsWithYielder J.EMethod JA.methods
-listElementsOfType Parameter = listElementsWithYielder J.EParameter JA.parameters
-listElementsOfType Extension = listElementsWithYielder J.EClass JA.extensions
-listElementsOfType Function = id
-
-listElementsWithYielder :: (a -> J.Element) -> (J.Element -> [a]) -> AppState -> AppState
-listElementsWithYielder f g state = set output (ResultList $ f <$> list g state) state
+listElementsOfType t state =
+  state & output .~ (ResultList $ JA.elementsOfType t (state ^.to leafFocus))
 
 listSelectedElements :: String -> AppState -> AppState
 listSelectedElements term state =
