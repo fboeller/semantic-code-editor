@@ -23,8 +23,7 @@ data Command =
   Exit |
   Meta MetaCommand |
   Index Integer |
-  Single FirstCommand |
-  Double FirstCommand ElementType |
+  Double FirstCommand [ElementType] |
   IndexSingle FirstCommand Integer |
   TermSingle FirstCommand String |
   TermDouble FirstCommand ElementType String |
@@ -62,19 +61,16 @@ path = (string ".." *> pure Upper)
 p <||> q = try p <|> q
 
 command :: Parser Command
-command = (char 'q' *> pure Exit <?> "a 'q' to quit the program")
-  <||> (Index <$> integer <?> "a number to focus a result")
-  <||> (Meta <$> LoadFile <$> (\className -> "data/" ++ className ++ ".java") <$> (metaChar *> string "l" *> space *> identifier))
-  <||> (Meta <$> LoadFile <$> (metaChar *> string "l" *> space *> stringLiteral))
-  <||> (TermDouble <$> firstCommand <*> secondCommand <* space <*> identifier)
-  <||> (Double <$> firstCommand <*> secondCommand)
-  <||> (TermSingle <$> firstCommand <* space <*> identifier)
-  <||> (PathSingle <$> firstCommand <* space <*> path)
-  <||> (IndexSingle <$> firstCommand <* space <*> integer)
-  <||> (Single <$> firstCommand)
-  <||> ((mempty :: Parser String) *> pure Empty)
-  <* whiteSpace
-  <* semi
+command = (char 'q' *> pure Exit <* closer <?> "a 'q' to quit the program")
+  <||> (Index <$> integer <* closer <?> "a number to focus a result")
+  <||> (Meta <$> LoadFile <$> (\className -> "data/" ++ className ++ ".java") <$> (metaChar *> string "l" *> space *> identifier) <* closer)
+  <||> (Meta <$> LoadFile <$> (metaChar *> string "l" *> space *> stringLiteral) <* closer)
+  <||> (TermDouble <$> firstCommand <*> secondCommand <* space <*> identifier <* closer)
+  <||> (Double <$> firstCommand <*> many secondCommand <* closer)
+  <||> (TermSingle <$> firstCommand <* space <*> identifier <* closer)
+  <||> (PathSingle <$> firstCommand <* space <*> path <* closer)
+  <||> (IndexSingle <$> firstCommand <* space <*> integer <* closer)
+  <||> ((mempty :: Parser String) *> pure Empty <* closer)
 
 -- Lexer
 
@@ -88,3 +84,4 @@ semi = P.semi lexer
 whiteSpace = P.whiteSpace lexer
 space = char ' ' :: Parser Char
 metaChar = char ':' <?> "the meta symbol ':' to start a meta command" :: Parser Char
+closer = whiteSpace <* semi
