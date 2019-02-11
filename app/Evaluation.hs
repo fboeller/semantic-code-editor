@@ -8,6 +8,7 @@ import AppState (AppState, program, focus, output)
 import Output
 
 import Data.List (intercalate)
+import Data.Maybe (maybe)
 import Control.Lens
 
 processCommand :: String -> AppState -> IO AppState
@@ -23,12 +24,8 @@ eval (P.Meta _) = id
 eval (P.Double P.Read []) = A.read
 eval (P.Double P.List []) = A.listSelectedElements [pure True]
 eval (P.Double P.Focus []) = A.focusFirstElement
-eval (P.Double P.List elementTypes) = A.listSelectedElements $ JA.matchesType <$> elementTypes
-eval (P.TermDouble P.List elementType term) = A.listSelectedElements [JA.allSatisfied [JA.matchesType elementType, JA.matchesTerm term]]
-eval (P.TermSingle P.List term) = A.listSelectedElements [JA.matchesTerm term]
-eval (P.TermDouble P.Focus elementType term) = A.focusFirstSelectedElementOfType elementType term
-eval (P.TermSingle P.Focus term) = A.focusFirstSelectedElement term
-eval (P.Double P.Focus [elementType]) = A.focusFirstElementOfType elementType
+eval (P.Double P.Focus [(Just elementType,_)]) = A.focusFirstElementOfType elementType
+eval (P.Double P.List criteria) = A.listSelectedElements $ JA.allSatisfied <$> (\(maybeType, maybeTerm) -> [maybe (pure True) JA.matchesType maybeType, maybe (pure True) JA.matchesTerm maybeTerm]) <$> criteria
 eval (P.PathSingle P.Focus P.Upper) = A.focusUp
 eval (P.PathSingle P.Focus P.Root) = A.focusRoot
 eval (P.Index number) = A.focusLastOutputByIndex (fromInteger number)

@@ -1,6 +1,6 @@
 module CommandParser where
 
-import Text.ParserCombinators.Parsec (Parser, choice, char, string, parse, try, (<|>), (<?>), newline)
+import Text.ParserCombinators.Parsec (Parser, choice, between, char, string, parse, try, (<|>), (<?>), newline)
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language (emptyDef)
 import Control.Applicative hiding ((<|>))
@@ -23,10 +23,8 @@ data Command =
   Exit |
   Meta MetaCommand |
   Index Integer |
-  Double FirstCommand [ElementType] |
+  Double FirstCommand [(Maybe ElementType, Maybe String)] |
   IndexSingle FirstCommand Integer |
-  TermSingle FirstCommand String |
-  TermDouble FirstCommand ElementType String |
   PathSingle FirstCommand Path
   deriving Show
 
@@ -52,6 +50,15 @@ secondCommand = choice
   , char 'e' *> pure Extension
   ] <?> "a second command symbol 'c', 'm', 'f', 'v', 'p' or 'e'"
 
+selectionExpression :: Parser [(Maybe ElementType, Maybe String)]
+selectionExpression = many (lexeme single)
+  where
+    single :: Parser (Maybe ElementType, Maybe String)
+    single = (between (char '(') (char ')') single)
+      <||> ((,) <$> (pure <$> lexeme secondCommand <* lexeme (char '|')) <*> (pure <$> lexeme stringLiteral))
+      <||> ((,) <$> (pure <$> lexeme secondCommand) <*> pure Nothing)
+      <||> ((,) <$> pure Nothing <*> (pure <$> lexeme stringLiteral))
+
 path :: Parser Path
 path = (string ".." *> pure Upper)
   <||> (char '/' *> pure Root)
@@ -65,9 +72,7 @@ command = (char 'q' *> pure Exit <* closer <?> "a 'q' to quit the program")
   <||> (Index <$> integer <* closer <?> "a number to focus a result")
   <||> (Meta <$> LoadFile <$> (\className -> "data/" ++ className ++ ".java") <$> (metaChar *> string "l" *> space *> identifier) <* closer)
   <||> (Meta <$> LoadFile <$> (metaChar *> string "l" *> space *> stringLiteral) <* closer)
-  <||> (TermDouble <$> firstCommand <*> secondCommand <* space <*> identifier <* closer)
-  <||> (Double <$> firstCommand <*> many secondCommand <* closer)
-  <||> (TermSingle <$> firstCommand <* space <*> identifier <* closer)
+  <||> (Double <$> lexeme firstCommand <*> selectionExpression <* closer)
   <||> (PathSingle <$> firstCommand <* space <*> path <* closer)
   <||> (IndexSingle <$> firstCommand <* space <*> integer <* closer)
   <||> ((mempty :: Parser String) *> pure Empty <* closer)
