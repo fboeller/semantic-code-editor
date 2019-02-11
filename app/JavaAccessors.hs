@@ -17,10 +17,23 @@ selectedElements predicates element =
   elementsRecursively element
   & levelFilteredTree predicates
   & treeprune (length predicates) 
+  & cutEarlyLeafs (length predicates)
 
 -- Creates a function that returns True iff all given functions return True.
 allSatisfied :: [a -> Bool] -> a -> Bool
 allSatisfied = foldr (liftA2 (&&)) (pure True)
+
+cutEarlyLeafs :: Int -> Tree a -> Tree a
+cutEarlyLeafs 1 tree = tree
+cutEarlyLeafs level (Node label subForest) =
+  subForest
+  & map (cutEarlyLeafs (level - 1))
+  & filter (not.isLeaf)
+  & Node label
+
+isLeaf :: Tree a -> Bool
+isLeaf (Node _ []) = True
+isLeaf _ = False
 
 levelFilteredTree :: [a -> Bool] -> Tree a -> Tree a
 levelFilteredTree [] node = node
