@@ -59,6 +59,7 @@ selectionExpression = many (lexeme single)
       <||> ((,) <$> (pure <$> lexeme secondCommand <* lexeme (char '|')) <*> (pure <$> lexeme stringLiteral))
       <||> ((,) <$> (pure <$> lexeme secondCommand) <*> pure Nothing)
       <||> ((,) <$> pure Nothing <*> (pure <$> lexeme stringLiteral))
+      <||> (char '*' *> pure (Nothing, Nothing))
 
 path :: Parser Path
 path = (string ".." *> pure Upper)
