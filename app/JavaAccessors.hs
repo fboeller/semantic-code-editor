@@ -4,8 +4,9 @@ import Control.Lens hiding (elements)
 
 import qualified Java as J
 import CommandParser (ElementType(..))
+import qualified Trees as T
 import Data.List (isPrefixOf)
-import Data.Tree
+import Data.Tree (Tree, unfoldTree)
 import Data.Char (toLower)
 import Data.Maybe (maybeToList)
 import Control.Applicative (liftA2)
@@ -15,34 +16,13 @@ type SearchTerm = String
 selectedElements :: [J.Element -> Bool] -> J.Element -> Tree J.Element
 selectedElements predicates element =
   elementsRecursively element
-  & levelFilteredTree predicates
-  & treeprune (length predicates) 
-  & cutEarlyLeafs (length predicates)
+  & T.levelFilteredTree predicates
+  & T.treeprune (length predicates) 
+  & T.cutEarlyLeafs (length predicates)
 
 -- Creates a function that returns True iff all given functions return True.
 allSatisfied :: [a -> Bool] -> a -> Bool
 allSatisfied = foldr (liftA2 (&&)) (pure True)
-
-cutEarlyLeafs :: Int -> Tree a -> Tree a
-cutEarlyLeafs 1 tree = tree
-cutEarlyLeafs level (Node label subForest) =
-  subForest
-  & map (cutEarlyLeafs (level - 1))
-  & filter (not.isLeaf)
-  & Node label
-
-isLeaf :: Tree a -> Bool
-isLeaf (Node _ []) = True
-isLeaf _ = False
-
-levelFilteredTree :: [a -> Bool] -> Tree a -> Tree a
-levelFilteredTree [] node = node
-levelFilteredTree (p:ps) (Node label subForest) =
-  subForest
-  & filter (\(Node l _) -> p l)
-  & map (levelFilteredTree ps)
-  & Node label
-    
 
 matchesTerm :: SearchTerm -> J.Element -> Bool
 matchesTerm term element = isPrefixOf (toLower <$> term) $ fmap toLower $
@@ -111,23 +91,8 @@ extensions :: J.Element -> [J.Class]
 extensions (J.EClass c) = maybeToList $ emptyClass <$> (c ^. J.classExtends)
 extensions _ = []
 
--- Taken from Hledger.Utils.Tree
-
-treeprune :: Int -> Tree a -> Tree a
-treeprune 0 t = Node (rootLabel t) []
-treeprune d t = Node (rootLabel t) $ (treeprune $ d-1) <$> subForest t
-
-treefilter :: (a -> Bool) -> Tree a -> Tree a
-treefilter f t = Node
-                 (rootLabel t)
-                 (map (treefilter f) $ filter (treeany f) $ subForest t)
-
-treeany :: (a -> Bool) -> Tree a -> Bool
-treeany f t = f (rootLabel t) || any (treeany f) (subForest t)
-
-
 elementsRecursivelyLimited :: Int -> J.Element -> Tree J.Element
-elementsRecursivelyLimited limit = treeprune limit . elementsRecursively
+elementsRecursivelyLimited limit = T.treeprune limit . elementsRecursively
 
 elementsRecursively :: J.Element -> Tree J.Element
 elementsRecursively = unfoldTree (\b -> (b, elements b))
