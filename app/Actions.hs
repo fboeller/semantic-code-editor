@@ -62,11 +62,6 @@ focusRoot state = state & focus %~ F.focusRoot
 focusLastOutputByIndex :: Int -> AppState -> AppState
 focusLastOutputByIndex index state =
   case state ^. lastOutput of
-    ResultList elements ->
-      if index > 0 && index <= length elements then
-        state & focus %~ (F.focusDown $ elements !! (index - 1))
-      else
-        state & output .~ (Error $ putStrLn $ "The index " ++ show index ++ " does not exist in the last result list")
     ResultTree (Node _ elements) ->
       if index > 0 && index <= length elements then
         state & focus %~ (F.focusDown $ (\(Node label _) -> label) $ elements !! (index - 1))

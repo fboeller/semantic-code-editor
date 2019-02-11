@@ -8,13 +8,11 @@ import Data.Tree
 import System.Console.ANSI
 
 data Output =
-  ResultList [J.Element] |
   ResultTree (Tree J.Element) |
   Other (IO ()) |
   Error (IO ())
   
 printOutput :: Output -> IO ()
-printOutput (ResultList elements) = putStr $ unlines $ withIndex $ printSignature <$> elements
 printOutput (ResultTree elements) = putStr $ printResultTree 0 1 $ printSignature <$> elements
 printOutput (Other io) = io
 printOutput (Error io) = withSGR (SetColor Foreground Vivid Red) io
