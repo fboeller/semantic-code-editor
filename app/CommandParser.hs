@@ -8,7 +8,7 @@ import Control.Applicative hiding ((<|>))
 data FirstCommand = Read | Focus | List
   deriving Show
 
-data ElementType = Class | Method | Function | Variable | Parameter | Extension | Name
+data ElementType = Class | Method | Function | Variable | Parameter | Extension | Name | Type
   deriving Show
 
 data Path = Upper | Root
@@ -49,6 +49,7 @@ secondCommand = choice
   , char 'p' *> pure Parameter
   , char 'e' *> pure Extension
   , char 'n' *> pure Name
+  , char 't' *> pure Type
   ] <?> "a second command symbol 'c', 'm', 'f', 'v', 'p', 'e' or 'n'"
 
 selectionExpression :: Parser [(Maybe ElementType, Maybe String)]

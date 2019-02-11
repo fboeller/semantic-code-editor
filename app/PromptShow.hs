@@ -65,6 +65,7 @@ printSignature (EMethod m) = printMethodSignature m
 printSignature (EParameter p) = printParameterSignature p
 printSignature (EField f) = printFieldSignature f
 printSignature (EName n) = n ^. idName
+printSignature (EType t) = t ^. datatypeName
 
 printVisibilityCommon :: Visibility -> String
 printVisibilityCommon Private = "private"
@@ -106,5 +107,6 @@ printCommon (EMethod m) = printMethodCommon m
 printCommon (EParameter p) = printParameterCommon p
 printCommon (EField f) = printFieldCommon f
 printCommon (EName n) = n ^. idName
+printCommon (EType t) = t ^. datatypeName
 
 

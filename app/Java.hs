@@ -80,3 +80,4 @@ data Element = EField Field
              | EJavaFile JavaFile
              | EProject Project
              | EName Identifier
+             | EType Datatype
