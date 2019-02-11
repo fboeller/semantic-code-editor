@@ -14,10 +14,20 @@ type SearchTerm = String
 
 selectedElements :: [J.Element -> Bool] -> J.Element -> Tree J.Element
 selectedElements predicates element =
-  treefilter allPredicates $ elementsRecursively element
-  where
-    allPredicates :: J.Element -> Bool
-    allPredicates = foldr (liftA2 (&&)) (pure True) predicates
+  levelFilteredTree predicates $ elementsRecursively element
+
+-- Creates a function that returns True iff all given functions return True.
+allSatisfied :: [a -> Bool] -> a -> Bool
+allSatisfied = foldr (liftA2 (&&)) (pure True)
+
+levelFilteredTree :: [a -> Bool] -> Tree a -> Tree a
+levelFilteredTree [] node = node
+levelFilteredTree (p:ps) (Node label subForest) =
+  subForest
+  & filter (\(Node l _) -> p l)
+  & map (levelFilteredTree ps)
+  & Node label
+    
 
 matchesTerm :: SearchTerm -> J.Element -> Bool
 matchesTerm term element = isPrefixOf (toLower <$> term) $ fmap toLower $

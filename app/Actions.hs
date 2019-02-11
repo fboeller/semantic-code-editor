@@ -17,7 +17,7 @@ read state =
 
 listAll :: AppState -> AppState
 listAll state =
-  state & output .~ (ResultTree $ JA.elementsRecursively $ state ^.to leafFocus)
+  state & output .~ (ResultTree $ JA.selectedElements [] $ state ^.to leafFocus)
 
 listElementsOfType :: ElementType -> AppState -> AppState
 listElementsOfType elementType state =
@@ -29,7 +29,7 @@ listSelectedElements term state =
 
 listSelectedElementsOfType :: ElementType -> String -> AppState -> AppState
 listSelectedElementsOfType elementType term state =
-  state & output .~ (ResultTree $ JA.selectedElements [JA.matchesType elementType, JA.matchesTerm term] $ state ^.to leafFocus)
+  state & output .~ (ResultTree $ JA.selectedElements [JA.allSatisfied [JA.matchesType elementType, JA.matchesTerm term]] $ state ^.to leafFocus)
 
 focusFirst :: Tree J.Element -> AppState -> AppState
 focusFirst (Node _ elements) state =
@@ -39,7 +39,7 @@ focusFirst (Node _ elements) state =
 
 focusFirstSelectedElementOfType :: ElementType -> String -> AppState -> AppState
 focusFirstSelectedElementOfType elementType term state =
-  focusFirst (JA.selectedElements [JA.matchesType elementType, JA.matchesTerm term] $ state ^.to leafFocus) state
+  focusFirst (JA.selectedElements [JA.allSatisfied [JA.matchesType elementType, JA.matchesTerm term]] $ state ^.to leafFocus) state
 
 focusFirstSelectedElement :: String -> AppState -> AppState
 focusFirstSelectedElement term state =
