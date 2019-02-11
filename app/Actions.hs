@@ -15,21 +15,9 @@ read :: AppState -> AppState
 read state =
   state & output .~ (Other $ putStrLn $ printCommon $ state ^.to leafFocus)
 
-listAll :: AppState -> AppState
-listAll state =
-  state & output .~ (ResultTree $ JA.selectedElements [] $ state ^.to leafFocus)
-
-listElementsOfType :: ElementType -> AppState -> AppState
-listElementsOfType elementType state =
-  state & output .~ (ResultTree $ JA.selectedElements [JA.matchesType elementType] $ state ^.to leafFocus)
-
-listSelectedElements :: String -> AppState -> AppState
-listSelectedElements term state =
-  state & output .~ (ResultTree $ JA.selectedElements [JA.matchesTerm term] $ state ^.to leafFocus)
-
-listSelectedElementsOfType :: ElementType -> String -> AppState -> AppState
-listSelectedElementsOfType elementType term state =
-  state & output .~ (ResultTree $ JA.selectedElements [JA.allSatisfied [JA.matchesType elementType, JA.matchesTerm term]] $ state ^.to leafFocus)
+listSelectedElements :: [J.Element -> Bool] -> AppState -> AppState
+listSelectedElements predicates state =
+  state & output .~ (ResultTree $ JA.selectedElements predicates $ state ^.to leafFocus)
 
 focusFirst :: Tree J.Element -> AppState -> AppState
 focusFirst (Node _ elements) state =

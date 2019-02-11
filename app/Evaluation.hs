@@ -3,6 +3,7 @@ module Evaluation where
 import qualified Actions as A
 import JavaParser (runParserOnPath, FileParseError(..))
 import qualified CommandParser as P
+import qualified JavaAccessors as JA
 import AppState (AppState, program, focus, output)
 import Output
 
@@ -20,11 +21,11 @@ eval P.Exit = set output $ Other $ putStr "Done!"
 eval P.Empty = id
 eval (P.Meta _) = id
 eval (P.Single P.Read) = A.read
-eval (P.Single P.List) = A.listAll
+eval (P.Single P.List) = A.listSelectedElements []
 eval (P.Single P.Focus) = A.focusFirstElement
-eval (P.Double P.List elementType) = A.listElementsOfType elementType
-eval (P.TermDouble P.List elementType term) = A.listSelectedElementsOfType elementType term
-eval (P.TermSingle P.List term) = A.listSelectedElements term
+eval (P.Double P.List elementType) = A.listSelectedElements [JA.matchesType elementType]
+eval (P.TermDouble P.List elementType term) = A.listSelectedElements [JA.allSatisfied [JA.matchesType elementType, JA.matchesTerm term]]
+eval (P.TermSingle P.List term) = A.listSelectedElements [JA.matchesTerm term]
 eval (P.TermDouble P.Focus elementType term) = A.focusFirstSelectedElementOfType elementType term
 eval (P.TermSingle P.Focus term) = A.focusFirstSelectedElement term
 eval (P.Double P.Focus elementType) = A.focusFirstElementOfType elementType
