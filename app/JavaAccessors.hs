@@ -14,7 +14,9 @@ type SearchTerm = String
 
 selectedElements :: [J.Element -> Bool] -> J.Element -> Tree J.Element
 selectedElements predicates element =
-  levelFilteredTree predicates $ elementsRecursively element
+  elementsRecursively element
+  & levelFilteredTree predicates
+  & treeprune (length predicates) 
 
 -- Creates a function that returns True iff all given functions return True.
 allSatisfied :: [a -> Bool] -> a -> Bool
