@@ -33,6 +33,7 @@ matchesTerm term element = isPrefixOf (toLower <$> term) $ fmap toLower $
     (J.EField f) -> searchPropertiesOfField f
     (J.EMethod m) -> searchPropertiesOfMethod m
     (J.EParameter p) -> searchPropertiesOfParameter p
+    (J.EName n) -> n ^. J.idName
 
 searchPropertiesOfProject :: J.Project -> String
 searchPropertiesOfProject p = ""
@@ -58,6 +59,7 @@ matchesType Variable (J.EField _) = True
 matchesType Method (J.EMethod _) = True
 matchesType Parameter (J.EParameter _) = True
 matchesType Extension (J.EClass _) = True
+matchesType Name (J.EName _) = True
 matchesType _ _ = False
 
 
@@ -68,6 +70,7 @@ elements e = concat
   , J.EMethod <$> methods e
   , J.EParameter <$> parameters e
   , J.EClass <$> extensions e
+  , J.EName <$> names e
   ]
 
 classes :: J.Element -> [J.Class]
@@ -90,6 +93,13 @@ methods _ = []
 extensions :: J.Element -> [J.Class]
 extensions (J.EClass c) = maybeToList $ emptyClass <$> (c ^. J.classExtends)
 extensions _ = []
+
+names :: J.Element -> [J.Identifier]
+names (J.EClass c) = [c ^. J.className]
+names (J.EField f) = [f ^. J.fieldName]
+names (J.EMethod m) = [m ^. J.methodName]
+names (J.EParameter p) = [p ^. J.parameterName]
+names _ = []
 
 elementsRecursivelyLimited :: Int -> J.Element -> Tree J.Element
 elementsRecursivelyLimited limit = T.treeprune limit . elementsRecursively

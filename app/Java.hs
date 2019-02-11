@@ -79,3 +79,4 @@ data Element = EField Field
              | EClass Class
              | EJavaFile JavaFile
              | EProject Project
+             | EName Identifier
