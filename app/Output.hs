@@ -13,7 +13,7 @@ data Output =
   Error (IO ())
   
 printOutput :: Output -> IO ()
-printOutput (ResultTree elements) = putStr $ printResultTree 0 1 $ printSignature <$> elements
+printOutput (ResultTree elements) = putStr $ printResultTree 0 1 $ printMinimal <$> elements
 printOutput (Other io) = io
 printOutput (Error io) = withSGR (SetColor Foreground Vivid Red) io
 

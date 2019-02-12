@@ -109,4 +109,20 @@ printCommon (EField f) = printFieldCommon f
 printCommon (EName n) = n ^. idName
 printCommon (EType t) = t ^. datatypeName
 
+printMinimal :: Element -> String
+printMinimal (EProject p) = "/"
+printMinimal (EJavaFile p) = "package " ++ p ^. packageName ^. idName
+printMinimal (EClass c) = "class " ++ c ^. className ^. idName
+printMinimal (EMethod m) = concat
+  [ m ^. methodName ^. idName
+  , "("
+  , intercalate "," $ m ^. methodParameters ^.. traverse.parameterType ^.. traverse.datatypeName
+  , "): "
+  , m ^. methodReturnType ^. datatypeName
+  ]
+printMinimal (EParameter p) = "parameter " ++ p ^. parameterName ^. idName
+printMinimal (EField f) = f ^. fieldName ^. idName ++ ": " ++ f ^. fieldType ^. datatypeName
+printMinimal (EName n) = "name " ++ n ^. idName
+printMinimal (EType t) = "type " ++ t ^. datatypeName
+
 
