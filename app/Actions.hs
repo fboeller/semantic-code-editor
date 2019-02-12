@@ -74,7 +74,7 @@ readEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
 readEndOfPath [] _ state = readFocus state
 readEndOfPath [index] (Node _ elements) state =
   findOrElse index elements
-    (\(Node label _) -> state & output .~ (Other $ putStr $ printCommon label))
+    (\(Node label _) -> state & output .~ (Other $ putStrLn $ printCommon label))
     (withIndexError state)
 readEndOfPath (index:restPath) (Node _ elements) state =
   findOrElse index elements
