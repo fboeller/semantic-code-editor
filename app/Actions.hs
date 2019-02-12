@@ -47,12 +47,30 @@ focusUp state = state & focus %~ F.focusUp
 focusRoot :: AppState -> AppState
 focusRoot state = state & focus %~ F.focusRoot
 
-focusLastOutputByIndex :: Int -> AppState -> AppState
-focusLastOutputByIndex index state =
+focusLastOutputByIndex :: [Int] -> AppState -> AppState
+focusLastOutputByIndex indexPath state =
   case state ^. lastOutput of
-    ResultTree (Node _ elements) ->
-      if index > 0 && index <= length elements then
-        state & focus %~ (F.focusDown $ (\(Node label _) -> label) $ elements !! (index - 1))
-      else
-        state & output .~ (Error $ putStrLn $ "The index " ++ show index ++ " does not exist in the last result tree")
-    _ -> state & output .~ (Error $ putStrLn $ "The last output was not a result list")
+    ResultTree tree -> focusEndOfPath indexPath tree state
+    _ -> state & output .~ (Error $ putStrLn $ "The last output was not a result tree")
+   
+focusEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
+focusEndOfPath [] _ state = focusRoot state
+focusEndOfPath [index] (Node _ elements) state =
+  findOrElse index elements
+    (\(Node label _) -> state & focus %~ F.focusDown label)
+    (withIndexError state)
+focusEndOfPath (index:restPath) (Node _ elements) state =
+  findOrElse index elements
+    (\e -> focusEndOfPath restPath e state)
+    (withIndexError state)
+
+withIndexError :: AppState -> AppState
+withIndexError state = state & output .~ (Error $ putStrLn $ "The index does not exist in the last result tree")
+
+-- Finds the element at the given index in the list and returns the transformation according to the given function or returns the default if the index is out of bounds
+findOrElse :: Int -> [a] -> (a -> b) -> b -> b
+findOrElse index list f d =
+  if index > 0 && index <= length list then
+    f $ list !! (index - 1)
+  else
+    d

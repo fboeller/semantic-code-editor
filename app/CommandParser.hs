@@ -1,6 +1,6 @@
 module CommandParser where
 
-import Text.ParserCombinators.Parsec (Parser, choice, between, char, string, parse, try, (<|>), (<?>), newline)
+import Text.ParserCombinators.Parsec (Parser, choice, between, char, string, parse, try, (<|>), (<?>), newline, sepBy)
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language (emptyDef)
 import Control.Applicative hiding ((<|>))
@@ -22,9 +22,8 @@ data Command =
   Empty |
   Exit |
   Meta MetaCommand |
-  Index Integer |
   Double FirstCommand [(Maybe ElementType, Maybe String)] |
-  IndexSingle FirstCommand Integer |
+  IndexSingle FirstCommand [Integer] |
   PathSingle FirstCommand Path
   deriving Show
 
@@ -72,12 +71,12 @@ p <||> q = try p <|> q
 
 command :: Parser Command
 command = (char 'q' *> pure Exit <* closer <?> "a 'q' to quit the program")
-  <||> (Index <$> integer <* closer <?> "a number to focus a result")
+  <||> (IndexSingle Focus <$> (integer `sepBy` char '.') <* closer <?> "a number to focus a result")
   <||> (Meta <$> LoadFile <$> (\className -> "data/" ++ className ++ ".java") <$> (metaChar *> string "l" *> space *> identifier) <* closer)
   <||> (Meta <$> LoadFile <$> (metaChar *> string "l" *> space *> stringLiteral) <* closer)
   <||> (Double <$> lexeme firstCommand <*> selectionExpression <* closer)
   <||> (PathSingle <$> firstCommand <* space <*> path <* closer)
-  <||> (IndexSingle <$> firstCommand <* space <*> integer <* closer)
+  <||> (IndexSingle <$> firstCommand <* space <*> (integer `sepBy` char '.') <* closer)
   <||> ((mempty :: Parser String) *> pure Empty <* closer)
 
 -- Lexer

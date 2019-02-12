@@ -28,8 +28,7 @@ eval (P.Double P.Focus [(Just elementType,_)]) = A.focusFirstElementOfType eleme
 eval (P.Double P.List criteria) = A.listSelectedElements $ JA.allSatisfied <$> (\(maybeType, maybeTerm) -> [maybe (pure True) JA.matchesType maybeType, maybe (pure True) JA.matchesTerm maybeTerm]) <$> criteria
 eval (P.PathSingle P.Focus P.Upper) = A.focusUp
 eval (P.PathSingle P.Focus P.Root) = A.focusRoot
-eval (P.Index number) = A.focusLastOutputByIndex (fromInteger number)
-eval (P.IndexSingle P.Focus number) = A.focusLastOutputByIndex (fromInteger number)
+eval (P.IndexSingle P.Focus numbers) = A.focusLastOutputByIndex (fromInteger <$> numbers)
 eval input = set output $ Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented"
 
 evalMeta :: P.Command -> AppState -> IO AppState
