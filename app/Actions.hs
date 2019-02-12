@@ -77,5 +77,5 @@ findOrElse index list f d =
 
 exit :: AppState -> AppState
 exit state = state
-  & output .~ (Other $ putStr "Done!")
+  & output .~ (Other $ putStr "Bye!")
   & running .~ False
