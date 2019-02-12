@@ -1,7 +1,7 @@
 module Main where
 
 import PromptShow (printPrompt)
-import AppState (AppState, initialState, leafFocus, clearOutput, output)
+import AppState (AppState, initialState, leafFocus, clearOutput, output, running)
 import Output (printOutput)
 import Evaluation (processCommand, processJavaInput)
 import System.IO (hFlush, stdout)
@@ -26,7 +26,10 @@ step state = do
   input <- readInput 
   newState <- processCommand input cleanState
   printOutput $ newState ^. output
-  step newState
+  if newState ^. running then
+    step newState
+  else
+    return Nothing
 
 main :: IO ()
 main = do

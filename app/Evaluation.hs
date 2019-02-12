@@ -18,7 +18,7 @@ processCommand input state =
     Right command -> eval command <$> evalMeta command state
 
 eval :: P.Command -> AppState -> AppState
-eval P.Exit = set output $ Other $ putStr "Done!"
+eval P.Exit = A.exit
 eval P.Empty = id
 eval (P.Meta _) = id
 eval (P.Double P.Read []) = A.read

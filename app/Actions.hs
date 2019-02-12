@@ -5,7 +5,7 @@ import Data.Tree
 
 import qualified Java as J
 import qualified JavaAccessors as JA
-import AppState (AppState, program, focus, output, lastOutput, leafFocus)
+import AppState (AppState, program, focus, output, running, lastOutput, leafFocus)
 import Output
 import qualified Focus as F
 import CommandParser (ElementType(..))
@@ -74,3 +74,8 @@ findOrElse index list f d =
     f $ list !! (index - 1)
   else
     d
+
+exit :: AppState -> AppState
+exit state = state
+  & output .~ (Other $ putStr "Done!")
+  & running .~ False

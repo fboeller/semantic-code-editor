@@ -14,6 +14,7 @@ data AppState =
            , _focus :: Focus
            , _lastOutput :: Output
            , _output :: Output
+           , _running :: Bool
            }
 
 makeLenses ''AppState
@@ -40,4 +41,5 @@ initialState =
            , _focus = []
            , _lastOutput = Other mempty
            , _output = Other mempty
+           , _running = True
            }
