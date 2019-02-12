@@ -11,8 +11,8 @@ import qualified Focus as F
 import CommandParser (ElementType(..))
 import PromptShow
 
-read :: AppState -> AppState
-read state =
+readFocus :: AppState -> AppState
+readFocus state =
   state & output .~ (Other $ putStrLn $ printCommon $ state ^.to leafFocus)
 
 listSelectedElements :: [J.Element -> Bool] -> AppState -> AppState
@@ -52,7 +52,13 @@ focusLastOutputByIndex indexPath state =
   case state ^. lastOutput of
     ResultTree tree -> focusEndOfPath indexPath tree state
     _ -> state & output .~ (Error $ putStrLn $ "The last output was not a result tree")
-   
+
+readLastOutputByIndex :: [Int] -> AppState -> AppState
+readLastOutputByIndex indexPath state =
+  case state ^. lastOutput of
+    ResultTree tree -> readEndOfPath indexPath tree state
+    _ -> state & output .~ (Error $ putStrLn $ "The last output was not a result tree")
+
 focusEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
 focusEndOfPath [] _ state = focusRoot state
 focusEndOfPath [index] (Node _ elements) state =
@@ -62,6 +68,17 @@ focusEndOfPath [index] (Node _ elements) state =
 focusEndOfPath (index:restPath) (Node _ elements) state =
   findOrElse index elements
     (\e -> focusEndOfPath restPath e state)
+    (withIndexError state)
+
+readEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
+readEndOfPath [] _ state = readFocus state
+readEndOfPath [index] (Node _ elements) state =
+  findOrElse index elements
+    (\(Node label _) -> state & output .~ (Other $ putStr $ printCommon label))
+    (withIndexError state)
+readEndOfPath (index:restPath) (Node _ elements) state =
+  findOrElse index elements
+    (\e -> readEndOfPath restPath e state)
     (withIndexError state)
 
 withIndexError :: AppState -> AppState

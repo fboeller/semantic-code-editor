@@ -21,7 +21,7 @@ eval :: P.Command -> AppState -> AppState
 eval P.Exit = A.exit
 eval P.Empty = id
 eval (P.Meta _) = id
-eval (P.Double P.Read []) = A.read
+eval (P.Double P.Read []) = A.readFocus
 eval (P.Double P.List []) = A.listSelectedElements [pure True]
 eval (P.Double P.Focus []) = A.focusFirstElement
 eval (P.Double P.Focus [(Just elementType,_)]) = A.focusFirstElementOfType elementType
@@ -29,6 +29,7 @@ eval (P.Double P.List criteria) = A.listSelectedElements $ JA.allSatisfied <$> (
 eval (P.PathSingle P.Focus P.Upper) = A.focusUp
 eval (P.PathSingle P.Focus P.Root) = A.focusRoot
 eval (P.IndexSingle P.Focus numbers) = A.focusLastOutputByIndex (fromInteger <$> numbers)
+eval (P.IndexSingle P.Read numbers) = A.readLastOutputByIndex (fromInteger <$> numbers)
 eval input = set output $ Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented"
 
 evalMeta :: P.Command -> AppState -> IO AppState
