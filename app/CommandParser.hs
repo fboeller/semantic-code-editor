@@ -71,13 +71,13 @@ p <||> q = try p <|> q
 
 command :: Parser Command
 command = (char 'q' *> pure Exit <* closer <?> "a 'q' to quit the program")
+  <||> ((mempty :: Parser String) *> pure Empty <* closer)
   <||> (IndexSingle Focus <$> (integer `sepBy` char '.') <* closer <?> "a number to focus a result")
   <||> (Meta <$> LoadFile <$> (\className -> "data/" ++ className ++ ".java") <$> (metaChar *> string "l" *> space *> identifier) <* closer)
   <||> (Meta <$> LoadFile <$> (metaChar *> string "l" *> space *> stringLiteral) <* closer)
   <||> (Double <$> lexeme firstCommand <*> selectionExpression <* closer)
   <||> (PathSingle <$> firstCommand <* space <*> path <* closer)
   <||> (IndexSingle <$> firstCommand <* space <*> (integer `sepBy` char '.') <* closer)
-  <||> ((mempty :: Parser String) *> pure Empty <* closer)
 
 -- Lexer
 
