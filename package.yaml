@@ -33,6 +33,8 @@ dependencies:
 - directory-tree
 - unix
 - containers
+- haskeline
+- transformers
 
 library:
   source-dirs: src
