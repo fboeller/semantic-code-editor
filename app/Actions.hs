@@ -17,7 +17,7 @@ readFocus state =
 
 listSelectedElements :: [J.Element -> Bool] -> AppState -> AppState
 listSelectedElements predicates state =
-  state & output .~ (ResultTree $ JA.selectedElements predicates $ state ^.to leafFocus)
+  state & output .~ (ResultTree $ JA.selectedElements predicates (state ^. program) (state ^.to leafFocus))
 
 focusFirst :: Tree J.Element -> AppState -> AppState
 focusFirst (Node _ elements) state =
@@ -27,19 +27,19 @@ focusFirst (Node _ elements) state =
 
 focusFirstSelectedElementOfType :: ElementType -> String -> AppState -> AppState
 focusFirstSelectedElementOfType elementType term state =
-  focusFirst (JA.selectedElements [JA.allSatisfied [JA.matchesType elementType, JA.matchesTerm term]] $ state ^.to leafFocus) state
+  focusFirst (JA.selectedElements [JA.allSatisfied [JA.matchesType elementType, JA.matchesTerm term]] (state ^. program) (state ^.to leafFocus)) state
 
 focusFirstSelectedElement :: String -> AppState -> AppState
 focusFirstSelectedElement term state =
-  focusFirst (JA.selectedElements [JA.matchesTerm term] $ state ^.to leafFocus) state
+  focusFirst (JA.selectedElements [JA.matchesTerm term] (state ^. program) (state ^.to leafFocus)) state
 
 focusFirstElement :: AppState -> AppState
 focusFirstElement state =
-  focusFirst (JA.selectedElements [] $ state ^.to leafFocus) state
+  focusFirst (JA.selectedElements [] (state ^. program) (state ^.to leafFocus)) state
 
 focusFirstElementOfType :: ElementType -> AppState -> AppState
 focusFirstElementOfType elementType state =
-  focusFirst (JA.selectedElements [JA.matchesType elementType] $ state ^.to leafFocus) state
+  focusFirst (JA.selectedElements [JA.matchesType elementType] (state ^. program) (state ^.to leafFocus)) state
 
 focusUp :: AppState -> AppState
 focusUp state = state & focus %~ F.focusUp

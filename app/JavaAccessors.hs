@@ -6,16 +6,16 @@ import qualified Java as J
 import CommandParser (ElementType(..))
 import qualified Trees as T
 import Data.List (isPrefixOf)
-import Data.Tree (Tree, unfoldTree)
+import Data.Tree (Tree, unfoldTree, flatten)
 import Data.Char (toLower)
-import Data.Maybe (maybeToList)
+import Data.Maybe (maybeToList, maybe)
 import Control.Applicative (liftA2)
 
 type SearchTerm = String
 
-selectedElements :: [J.Element -> Bool] -> J.Element -> Tree J.Element
-selectedElements predicates element =
-  elementsRecursively element
+selectedElements :: [J.Element -> Bool] -> J.Project -> J.Element -> Tree J.Element
+selectedElements predicates project element =
+  elementsRecursively project element
   & T.levelFilteredTree predicates
   & T.treeprune (length predicates) 
   & T.cutEarlyLeafs (length predicates)
@@ -62,6 +62,7 @@ matchesType Parameter (J.EParameter _) = True
 matchesType Extension (J.EClass _) = True
 matchesType Name (J.EName _) = True
 matchesType Type (J.EType _) = True
+matchesType Definition (J.EClass _) = True
 matchesType _ _ = False
 
 
@@ -75,6 +76,10 @@ elements e = concat
   , J.EName <$> names e
   , J.EType <$> types e
   ]
+
+backRefElements :: J.Project -> J.Element -> [J.Element]
+backRefElements project e =
+  definitions project e
 
 classes :: J.Element -> [J.Class]
 classes (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= classes
@@ -110,11 +115,22 @@ types (J.EMethod m) = [m ^. J.methodReturnType]
 types (J.EParameter p) = [p ^. J.parameterType]
 types _ = []
 
-elementsRecursivelyLimited :: Int -> J.Element -> Tree J.Element
-elementsRecursivelyLimited limit = T.treeprune limit . elementsRecursively
+definitions :: J.Project -> J.Element -> [J.Element]
+definitions project (J.EType t) = filter isOfType $ flatten $ elementTree $ J.EProject project
+  where
+    isOfType :: J.Element -> Bool
+    isOfType = maybe False (==(t ^. J.datatypeName)) . getTypeDefName
+definitions _ _ = []
 
-elementsRecursively :: J.Element -> Tree J.Element
-elementsRecursively = unfoldTree (\b -> (b, elements b))
+getTypeDefName :: J.Element -> Maybe String
+getTypeDefName (J.EClass c) = Just $ c ^. J.className ^. J.idName
+getTypeDefName _ = Nothing
+
+elementsRecursively :: J.Project -> J.Element -> Tree J.Element
+elementsRecursively project = unfoldTree (\b -> (b, elements b ++ backRefElements project b))
+
+elementTree :: J.Element -> Tree J.Element
+elementTree = unfoldTree (\b -> (b, elements b))
 
 emptyClass :: J.Identifier -> J.Class
 emptyClass identifier =
