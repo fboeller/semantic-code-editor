@@ -8,11 +8,12 @@ import PromptShow
 import Output
 
 import Control.Lens
+import Data.Tree (Tree)
 
 data AppState =
   AppState { _program :: J.Project
            , _focus :: Focus
-           , _lastOutput :: Output
+           , _lastResultTree :: Maybe (Tree J.Element)
            , _output :: Output
            , _running :: Bool
            }
@@ -29,17 +30,17 @@ leafFocus state =
 -- Sets the last output to the current output if it is not an error and clears the current output
 clearOutput :: AppState -> AppState
 clearOutput state = state
-  & lastOutput .~ newLastOutput (state ^. output)
+  & lastResultTree .~ newLastOutput (state ^. output)
   & output .~ Other mempty
   where
-    newLastOutput (Error io) = state ^. lastOutput
-    newLastOutput newOutput = newOutput
+    newLastOutput (ResultTree tree) = Just tree
+    newLastOutput _ = state ^. lastResultTree
               
 initialState :: AppState
 initialState =
   AppState { _program = J.Project { J._javaFiles = [] }
            , _focus = []
-           , _lastOutput = Other mempty
+           , _lastResultTree = Nothing
            , _output = Other mempty
            , _running = True
            }

@@ -5,7 +5,7 @@ import Data.Tree
 
 import qualified Java as J
 import qualified JavaAccessors as JA
-import AppState (AppState, program, focus, output, running, lastOutput, leafFocus)
+import AppState (AppState, program, focus, output, running, lastResultTree, leafFocus)
 import Output
 import qualified Focus as F
 import CommandParser (ElementType(..))
@@ -49,14 +49,14 @@ focusRoot state = state & focus %~ F.focusRoot
 
 focusLastOutputByIndex :: [Int] -> AppState -> AppState
 focusLastOutputByIndex indexPath state =
-  case state ^. lastOutput of
-    ResultTree tree -> focusEndOfPath indexPath tree state
+  case state ^. lastResultTree of
+    Just tree -> focusEndOfPath indexPath tree state
     _ -> state & output .~ (Error $ putStrLn $ "The last output was not a result tree")
 
 readLastOutputByIndex :: [Int] -> AppState -> AppState
 readLastOutputByIndex indexPath state =
-  case state ^. lastOutput of
-    ResultTree tree -> readEndOfPath indexPath tree state
+  case state ^. lastResultTree of
+    Just tree -> readEndOfPath indexPath tree state
     _ -> state & output .~ (Error $ putStrLn $ "The last output was not a result tree")
 
 focusEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
