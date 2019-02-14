@@ -15,7 +15,7 @@ type SearchTerm = String
 
 selectedElements :: [J.Element -> Bool] -> J.Project -> J.Element -> Tree J.Element
 selectedElements predicates project element =
-  elementsRecursively project element
+  recursively (allElements project) element
   & T.levelFilteredTree predicates
   & T.treeprune (length predicates) 
   & T.cutEarlyLeafs (length predicates)
@@ -65,21 +65,32 @@ matchesType Type (J.EType _) = True
 matchesType Definition (J.EClass _) = True
 matchesType _ _ = False
 
-
-elements :: J.Element -> [J.Element]
-elements e = concat
+-- All elements within an element that are of immediate interest
+-- This elements aren't redundant, they are the essential elements defining the scope of the element 
+standardElements :: J.Element -> [J.Element]
+standardElements e = concat
   [ J.EClass <$> classes e
   , J.EField <$> variables e
   , J.EMethod <$> methods e
   , J.EParameter <$> parameters e
+  ]
+
+-- All elements that describe properties of the element
+-- These properties can be simply accessed and aren't the result of a complex analysis
+extendedElements :: J.Element -> [J.Element]
+extendedElements e = concat
+  [ standardElements e
   , J.EClass <$> extensions e
   , J.EName <$> names e
   , J.EType <$> types e
   ]
 
-backRefElements :: J.Project -> J.Element -> [J.Element]
-backRefElements project e =
-  definitions project e
+-- All elements of an element that are of
+allElements :: J.Project -> J.Element -> [J.Element]
+allElements project e = concat
+  [ standardElements e
+  , definitions project e
+  ]
 
 classes :: J.Element -> [J.Class]
 classes (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= classes
@@ -116,21 +127,24 @@ types (J.EParameter p) = [p ^. J.parameterType]
 types _ = []
 
 definitions :: J.Project -> J.Element -> [J.Element]
-definitions project (J.EType t) = filter isOfType $ flatten $ elementTree $ J.EProject project
+definitions project element = filter isOfType $ flatten $ recursively standardElements $ J.EProject project
   where
     isOfType :: J.Element -> Bool
-    isOfType = maybe False (==(t ^. J.datatypeName)) . getTypeDefName
-definitions _ _ = []
+    isOfType candidate = maybe False id $
+      (==) <$> getTypeDefName candidate <*> getTypeUsageName element
+
+getTypeUsageName :: J.Element -> Maybe String
+getTypeUsageName (J.EField f) = Just $ f ^. J.fieldType ^. J.datatypeName
+getTypeUsageName (J.EMethod m) = Just $ m ^. J.methodReturnType ^. J.datatypeName
+getTypeUsageName (J.EParameter p) = Just $ p ^. J.parameterType ^. J.datatypeName
+getTypeUsageName _ = Nothing
 
 getTypeDefName :: J.Element -> Maybe String
 getTypeDefName (J.EClass c) = Just $ c ^. J.className ^. J.idName
 getTypeDefName _ = Nothing
 
-elementsRecursively :: J.Project -> J.Element -> Tree J.Element
-elementsRecursively project = unfoldTree (\b -> (b, elements b ++ backRefElements project b))
-
-elementTree :: J.Element -> Tree J.Element
-elementTree = unfoldTree (\b -> (b, elements b))
+recursively :: (a -> [a]) -> a -> Tree a
+recursively f = unfoldTree (\b -> (b, f b))
 
 emptyClass :: J.Identifier -> J.Class
 emptyClass identifier =
