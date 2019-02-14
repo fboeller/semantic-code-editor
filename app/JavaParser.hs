@@ -9,7 +9,7 @@ import Control.Exception
 import System.Directory
 import System.FilePath
 import Text.Parsec.Error (ParseError)
-import Data.List (isSuffixOf)
+import Data.List (isSuffixOf, concat)
 import System.Posix.Files
 import qualified Java as J
 import Data.Traversable (traverse)
@@ -57,11 +57,16 @@ convertCompilationUnit path (CompilationUnit maybePackageDecl _ typeDecls) =
              , J._packageName = convertMaybePackageDecl maybePackageDecl
              , J._classes = mapMaybe convertTypeDeclToClass typeDecls
              , J._interfaces = mapMaybe convertTypeDeclToInterface typeDecls
+             , J._enums = mapMaybe convertTypeDeclToEnum typeDecls
              }
 
 convertTypeDeclToClass :: TypeDecl -> Maybe J.Class
 convertTypeDeclToClass (ClassTypeDecl classDecl) = convertClassDeclToClass classDecl
 convertTypeDeclToClass _ = Nothing
+
+convertTypeDeclToEnum :: TypeDecl -> Maybe J.Enum
+convertTypeDeclToEnum (ClassTypeDecl classDecl) = convertClassDeclToEnum classDecl
+convertTypeDeclToEnum _ = Nothing
 
 convertTypeDeclToInterface :: TypeDecl -> Maybe J.Interface
 convertTypeDeclToInterface (InterfaceTypeDecl interfaceDecl) = convertInterfaceDeclToInterface interfaceDecl
@@ -90,6 +95,28 @@ convertClassDeclToClass (ClassDecl modifiers (Ident name) _ maybeExtends impleme
           , J._classFinal = isFinal modifiers
           }
 convertClassDeclToClass (EnumDecl _ _ _ _) = Nothing
+
+convertClassDeclToEnum :: ClassDecl -> Maybe J.Enum
+convertClassDeclToEnum (EnumDecl modifiers (Ident name) _ enumBody) = Just $
+  J.Enum { J._enumName = J.Identifier { J._idName = name }
+         , J._enumConstants = convertEnumBodyToEnumConstants enumBody
+         , J._enumFields = convertEnumBodyToFields enumBody
+         , J._enumMethods = convertEnumBodyToMethods enumBody
+         , J._enumVisibility = convertModifiersToVisibility modifiers
+          }
+convertClassDeclToEnum (ClassDecl _ _ _ _ _ _) = Nothing
+
+convertEnumBodyToEnumConstants :: EnumBody -> [J.Identifier]
+convertEnumBodyToEnumConstants (EnumBody constants _) = convertEnumConstantToEnumConstant <$> constants
+
+convertEnumConstantToEnumConstant :: EnumConstant -> J.Identifier
+convertEnumConstantToEnumConstant (EnumConstant (Ident name) _ _) = J.Identifier { J._idName = name }
+
+convertEnumBodyToMethods :: EnumBody -> [J.Method]
+convertEnumBodyToMethods (EnumBody _ decls) = mapMaybe convertDeclToMethod decls
+
+convertEnumBodyToFields :: EnumBody -> [J.Field]
+convertEnumBodyToFields (EnumBody _ decls) = concatMap convertDeclToFields decls
 
 convertRefTypeToIdentifier :: RefType -> J.Identifier
 convertRefTypeToIdentifier refType = J.Identifier { J._idName = prettyPrint refType }

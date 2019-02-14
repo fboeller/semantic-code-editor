@@ -32,6 +32,7 @@ searchProperty (J.EProject p) = ""
 searchProperty (J.EJavaFile j) = j ^. J.fileName
 searchProperty (J.EClass c) = c ^. J.className ^. J.idName
 searchProperty (J.EInterface i) = i ^. J.interfaceName ^. J.idName
+searchProperty (J.EEnum e) = e ^. J.enumName ^. J.idName
 searchProperty (J.EField f) = f ^. J.fieldName ^. J.idName
 searchProperty (J.EMethod m) = m ^. J.methodName ^. J.idName
 searchProperty (J.EParameter p) = p ^. J.parameterName ^. J.idName
@@ -41,6 +42,7 @@ searchProperty (J.EType t) = t ^. J.datatypeName
 matchesType :: ElementType -> J.Element -> Bool
 matchesType Class (J.EClass _) = True
 matchesType Interface (J.EInterface _) = True
+matchesType Enum (J.EEnum _) = True
 matchesType Variable (J.EField _) = True
 matchesType Method (J.EMethod _) = True
 matchesType Parameter (J.EParameter _) = True
@@ -56,6 +58,7 @@ standardElements :: J.Element -> [J.Element]
 standardElements e = concat
   [ J.EClass <$> classes e
   , J.EInterface <$> interfaces e
+  , J.EEnum <$> enums e
   , J.EField <$> variables e
   , J.EMethod <$> methods e
   , J.EParameter <$> parameters e
@@ -88,8 +91,14 @@ interfaces (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= interfaces
 interfaces (J.EJavaFile p) = p ^. J.interfaces
 interfaces _ = []
 
+enums :: J.Element -> [J.Enum]
+enums (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= enums
+enums (J.EJavaFile p) = p ^. J.enums
+enums _ = []
+
 variables :: J.Element -> [J.Field]
 variables (J.EClass c) = c ^. J.classFields
+variables (J.EEnum e) = e ^. J.enumFields
 variables _ = []
 
 parameters :: J.Element -> [J.Parameter]
@@ -99,6 +108,7 @@ parameters _ = []
 methods :: J.Element -> [J.Method]
 methods (J.EClass c) = c ^. J.classMethods
 methods (J.EInterface i) = i ^. J.interfaceMethods
+methods (J.EEnum e) = e ^. J.enumMethods
 methods _ = []
 
 extensions :: J.Element -> [J.Class]
@@ -108,6 +118,7 @@ extensions _ = []
 names :: J.Element -> [J.Identifier]
 names (J.EClass c) = [c ^. J.className]
 names (J.EInterface i) = [i ^. J.interfaceName]
+names (J.EEnum e) = [e ^. J.enumName]
 names (J.EField f) = [f ^. J.fieldName]
 names (J.EMethod m) = [m ^. J.methodName]
 names (J.EParameter p) = [p ^. J.parameterName]
@@ -135,6 +146,7 @@ getTypeUsageName _ = Nothing
 getTypeDefName :: J.Element -> Maybe String
 getTypeDefName (J.EClass c) = Just $ c ^. J.className ^. J.idName
 getTypeDefName (J.EInterface i) = Just $ i ^. J.interfaceName ^. J.idName
+getTypeDefName (J.EEnum e) = Just $ e ^. J.enumName ^. J.idName
 getTypeDefName _ = Nothing
 
 recursively :: (a -> [a]) -> a -> Tree a

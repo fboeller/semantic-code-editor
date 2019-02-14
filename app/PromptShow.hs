@@ -43,6 +43,13 @@ printInterfaceSignature i = unwords $ catMaybes
   where notEmpty "" = Nothing
         notEmpty str = Just $ str
 
+printEnumSignature :: Java.Enum -> String
+printEnumSignature e = unwords $ catMaybes
+  [ Just $ printVisibilityCommon $ e ^. enumVisibility
+  , Just $ "enum"
+  , Just $ e ^. enumName ^. idName
+  ]
+
 printMethodSignature :: Method -> String
 printMethodSignature m = unwords $ catMaybes
   [ Just $ printVisibilityCommon $ m ^. methodVisibility
@@ -72,6 +79,7 @@ printSignature (EProject p) = printProjectSignature p
 printSignature (EJavaFile p) = printPackageSignature p
 printSignature (EClass c) = printClassSignature c
 printSignature (EInterface i) = printInterfaceSignature i
+printSignature (EEnum e) = printEnumSignature e
 printSignature (EMethod m) = printMethodSignature m
 printSignature (EParameter p) = printParameterSignature p
 printSignature (EField f) = printFieldSignature f
@@ -106,6 +114,16 @@ printInterfaceCommon i = unwords
   , "\n}"
   ]
 
+printEnumCommon :: Java.Enum -> String
+printEnumCommon e = unwords
+  [ printEnumSignature e
+  , "{"
+  , concat $ ("\n  "++) <$> (++";") <$> e ^. enumConstants ^.. traverse.idName
+  , concat $ ("\n  "++) <$> (++";") <$> printFieldSignature <$> e ^. enumFields
+  , concat $ ("\n  "++) <$> printPrompt <$> EMethod <$> e ^. enumMethods
+  , "\n}"
+  ]
+
 printMethodCommon :: Method -> String
 printMethodCommon m = unwords $
   [ printMethodSignature m
@@ -123,6 +141,7 @@ printCommon (EProject p) = printProjectCommon p
 printCommon (EJavaFile p) = printPackageCommon p
 printCommon (EClass c) = printClassCommon c
 printCommon (EInterface i) = printInterfaceCommon i
+printCommon (EEnum e) = printEnumCommon e
 printCommon (EMethod m) = printMethodCommon m
 printCommon (EParameter p) = printParameterCommon p
 printCommon (EField f) = printFieldCommon f
@@ -134,6 +153,7 @@ printMinimal (EProject p) = "/"
 printMinimal (EJavaFile p) = "package " ++ p ^. packageName ^. idName
 printMinimal (EClass c) = "class " ++ c ^. className ^. idName
 printMinimal (EInterface i) = "interface " ++ i ^. interfaceName ^. idName
+printMinimal (EEnum e) = "enum " ++ e ^. enumName ^. idName
 printMinimal (EMethod m) = concat
   [ m ^. methodName ^. idName
   , "("

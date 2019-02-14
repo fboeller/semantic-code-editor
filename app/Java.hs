@@ -68,11 +68,22 @@ data Interface =
   deriving (Show)
 makeLenses ''Interface
 
+data Enum =
+  Enum { _enumName :: Identifier
+       , _enumConstants :: [Identifier]
+       , _enumFields :: [Field]
+       , _enumMethods :: [Method]
+       , _enumVisibility :: Visibility
+       }
+  deriving (Show)
+makeLenses ''Java.Enum
+
 data JavaFile =
   JavaFile { _fileName :: FilePath
            , _packageName :: Identifier
            , _classes :: [Class]
            , _interfaces :: [Interface]
+           , _enums :: [Java.Enum]
            }
   deriving (Show)
 makeLenses ''JavaFile
@@ -88,6 +99,7 @@ data Element = EField Field
              | EMethod Method
              | EClass Class
              | EInterface Interface
+             | EEnum Java.Enum
              | EJavaFile JavaFile
              | EProject Project
              | EName Identifier

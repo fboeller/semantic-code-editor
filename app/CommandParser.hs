@@ -8,7 +8,7 @@ import Control.Applicative hiding ((<|>))
 data FirstCommand = Read | Focus | List
   deriving Show
 
-data ElementType = Class | Interface | Method | Function | Variable | Parameter | Extension | Name | Type | Definition
+data ElementType = Class | Interface | Enum | Method | Function | Variable | Parameter | Extension | Name | Type | Definition
   deriving Show
 
 data Path = Upper | Root
@@ -43,15 +43,16 @@ secondCommand :: Parser ElementType
 secondCommand = choice
   [ char 'c' *> pure Class
   , char 'i' *> pure Interface
+  , char 'e' *> pure Enum
   , char 'm' *> pure Method
   , char 'f' *> pure Function
   , char 'v' *> pure Variable
   , char 'p' *> pure Parameter
-  , char 'e' *> pure Extension
+  , char 'x' *> pure Extension
   , char 'n' *> pure Name
   , char 't' *> pure Type
   , char 'd' *> pure Definition
-  ] <?> "a second command symbol 'c', 'i', 'm', 'f', 'v', 'p', 'e', 'n', 't' or 'd'"
+  ] <?> "a second command symbol 'c', 'i', 'e', 'm', 'f', 'v', 'p', 'x', 'n', 't' or 'd'"
 
 selectionExpression :: Parser [(Maybe ElementType, Maybe String)]
 selectionExpression = many (lexeme single)
