@@ -25,34 +25,17 @@ allSatisfied :: [a -> Bool] -> a -> Bool
 allSatisfied = foldr (liftA2 (&&)) (pure True)
 
 matchesTerm :: SearchTerm -> J.Element -> Bool
-matchesTerm term element = isPrefixOf (toLower <$> term) $ fmap toLower $
-  case element of
-    (J.EProject p) -> searchPropertiesOfProject p
-    (J.EJavaFile j) -> searchPropertiesOfJavaFile j
-    (J.EClass c) -> searchPropertiesOfClass c
-    (J.EField f) -> searchPropertiesOfField f
-    (J.EMethod m) -> searchPropertiesOfMethod m
-    (J.EParameter p) -> searchPropertiesOfParameter p
-    (J.EName n) -> n ^. J.idName
-    (J.EType t) -> t ^. J.datatypeName
+matchesTerm term element = isPrefixOf (toLower <$> term) $ toLower <$> searchProperty element
 
-searchPropertiesOfProject :: J.Project -> String
-searchPropertiesOfProject p = ""
-
-searchPropertiesOfJavaFile :: J.JavaFile -> String
-searchPropertiesOfJavaFile j = j ^. J.fileName
-
-searchPropertiesOfClass :: J.Class -> String
-searchPropertiesOfClass c = c ^. J.className ^. J.idName
-
-searchPropertiesOfField :: J.Field -> String
-searchPropertiesOfField f = f ^. J.fieldName ^. J.idName
-
-searchPropertiesOfMethod :: J.Method -> String
-searchPropertiesOfMethod m = m ^. J.methodName ^. J.idName
-
-searchPropertiesOfParameter :: J.Parameter -> String
-searchPropertiesOfParameter p = p ^. J.parameterName ^. J.idName
+searchProperty :: J.Element -> String
+searchProperty (J.EProject p) = ""
+searchProperty (J.EJavaFile j) = j ^. J.fileName
+searchProperty (J.EClass c) = c ^. J.className ^. J.idName
+searchProperty (J.EField f) = f ^. J.fieldName ^. J.idName
+searchProperty (J.EMethod m) = m ^. J.methodName ^. J.idName
+searchProperty (J.EParameter p) = p ^. J.parameterName ^. J.idName
+searchProperty (J.EName n) = n ^. J.idName
+searchProperty (J.EType t) = t ^. J.datatypeName
 
 matchesType :: ElementType -> J.Element -> Bool
 matchesType Class (J.EClass _) = True
