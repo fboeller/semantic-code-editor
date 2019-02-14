@@ -41,7 +41,7 @@ runParser programStr = convertParseResult "" $ parser compilationUnit programStr
 
 runParserOnFile :: FilePath -> IO (Either FileParseError J.JavaFile)
 runParserOnFile file =
-  (convertParseResult file <$> parser compilationUnit <$> readFile file)
+  (convertParseResult file <$> parser compilationUnit <$> readFile file >>= evaluate)
   `catch` (\e -> return $ Left $ FileParseError file $ show (e :: IOException))
 
 convertParseResult :: FilePath -> Either ParseError CompilationUnit -> Either FileParseError J.JavaFile
