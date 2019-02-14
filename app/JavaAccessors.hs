@@ -31,6 +31,7 @@ searchProperty :: J.Element -> String
 searchProperty (J.EProject p) = ""
 searchProperty (J.EJavaFile j) = j ^. J.fileName
 searchProperty (J.EClass c) = c ^. J.className ^. J.idName
+searchProperty (J.EInterface i) = i ^. J.interfaceName ^. J.idName
 searchProperty (J.EField f) = f ^. J.fieldName ^. J.idName
 searchProperty (J.EMethod m) = m ^. J.methodName ^. J.idName
 searchProperty (J.EParameter p) = p ^. J.parameterName ^. J.idName
@@ -39,6 +40,7 @@ searchProperty (J.EType t) = t ^. J.datatypeName
 
 matchesType :: ElementType -> J.Element -> Bool
 matchesType Class (J.EClass _) = True
+matchesType Interface (J.EInterface _) = True
 matchesType Variable (J.EField _) = True
 matchesType Method (J.EMethod _) = True
 matchesType Parameter (J.EParameter _) = True
@@ -53,6 +55,7 @@ matchesType _ _ = False
 standardElements :: J.Element -> [J.Element]
 standardElements e = concat
   [ J.EClass <$> classes e
+  , J.EInterface <$> interfaces e
   , J.EField <$> variables e
   , J.EMethod <$> methods e
   , J.EParameter <$> parameters e
@@ -80,6 +83,11 @@ classes (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= classes
 classes (J.EJavaFile p) = p ^. J.classes
 classes _ = []
 
+interfaces :: J.Element -> [J.Interface]
+interfaces (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= interfaces
+interfaces (J.EJavaFile p) = p ^. J.interfaces
+interfaces _ = []
+
 variables :: J.Element -> [J.Field]
 variables (J.EClass c) = c ^. J.classFields
 variables _ = []
@@ -90,6 +98,7 @@ parameters _ = []
 
 methods :: J.Element -> [J.Method]
 methods (J.EClass c) = c ^. J.classMethods
+methods (J.EInterface i) = i ^. J.interfaceMethods
 methods _ = []
 
 extensions :: J.Element -> [J.Class]
@@ -98,6 +107,7 @@ extensions _ = []
 
 names :: J.Element -> [J.Identifier]
 names (J.EClass c) = [c ^. J.className]
+names (J.EInterface i) = [i ^. J.interfaceName]
 names (J.EField f) = [f ^. J.fieldName]
 names (J.EMethod m) = [m ^. J.methodName]
 names (J.EParameter p) = [p ^. J.parameterName]
@@ -124,6 +134,7 @@ getTypeUsageName _ = Nothing
 
 getTypeDefName :: J.Element -> Maybe String
 getTypeDefName (J.EClass c) = Just $ c ^. J.className ^. J.idName
+getTypeDefName (J.EInterface i) = Just $ i ^. J.interfaceName ^. J.idName
 getTypeDefName _ = Nothing
 
 recursively :: (a -> [a]) -> a -> Tree a

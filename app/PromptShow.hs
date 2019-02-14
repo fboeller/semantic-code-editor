@@ -33,6 +33,16 @@ printClassSignature c = unwords $ catMaybes
   where notEmpty "" = Nothing
         notEmpty str = Just $ str
 
+printInterfaceSignature :: Interface -> String
+printInterfaceSignature i = unwords $ catMaybes
+  [ Just $ printVisibilityCommon $ i ^. interfaceVisibility
+  , Just $ "interface"
+  , Just $ i ^. interfaceName ^. idName
+  , fmap ("extends "++) $ notEmpty $ intercalate ", " $ fmap (view idName) $ i ^. interfaceExtends
+  ]
+  where notEmpty "" = Nothing
+        notEmpty str = Just $ str
+
 printMethodSignature :: Method -> String
 printMethodSignature m = unwords $ catMaybes
   [ Just $ printVisibilityCommon $ m ^. methodVisibility
@@ -61,6 +71,7 @@ printSignature :: Element -> String
 printSignature (EProject p) = printProjectSignature p
 printSignature (EJavaFile p) = printPackageSignature p
 printSignature (EClass c) = printClassSignature c
+printSignature (EInterface i) = printInterfaceSignature i
 printSignature (EMethod m) = printMethodSignature m
 printSignature (EParameter p) = printParameterSignature p
 printSignature (EField f) = printFieldSignature f
@@ -87,6 +98,14 @@ printClassCommon c = unwords
   , "\n}"
   ]
 
+printInterfaceCommon :: Interface -> String
+printInterfaceCommon i = unwords
+  [ printInterfaceSignature i
+  , "{"
+  , concat $ ("\n  "++) <$> printPrompt <$> EMethod <$> i ^. interfaceMethods
+  , "\n}"
+  ]
+
 printMethodCommon :: Method -> String
 printMethodCommon m = unwords $
   [ printMethodSignature m
@@ -103,6 +122,7 @@ printCommon :: Element -> String
 printCommon (EProject p) = printProjectCommon p
 printCommon (EJavaFile p) = printPackageCommon p
 printCommon (EClass c) = printClassCommon c
+printCommon (EInterface i) = printInterfaceCommon i
 printCommon (EMethod m) = printMethodCommon m
 printCommon (EParameter p) = printParameterCommon p
 printCommon (EField f) = printFieldCommon f
@@ -113,6 +133,7 @@ printMinimal :: Element -> String
 printMinimal (EProject p) = "/"
 printMinimal (EJavaFile p) = "package " ++ p ^. packageName ^. idName
 printMinimal (EClass c) = "class " ++ c ^. className ^. idName
+printMinimal (EInterface i) = "interface " ++ i ^. interfaceName ^. idName
 printMinimal (EMethod m) = concat
   [ m ^. methodName ^. idName
   , "("
@@ -124,5 +145,3 @@ printMinimal (EParameter p) = "parameter " ++ p ^. parameterName ^. idName
 printMinimal (EField f) = f ^. fieldName ^. idName ++ ": " ++ f ^. fieldType ^. datatypeName
 printMinimal (EName n) = "name " ++ n ^. idName
 printMinimal (EType t) = "type " ++ t ^. datatypeName
-
-

@@ -59,10 +59,20 @@ data Class =
   deriving (Show)
 makeLenses ''Class
 
+data Interface =
+  Interface { _interfaceName :: Identifier
+            , _interfaceMethods :: [Method]
+            , _interfaceVisibility :: Visibility
+            , _interfaceExtends :: [Identifier]
+        }
+  deriving (Show)
+makeLenses ''Interface
+
 data JavaFile =
   JavaFile { _fileName :: FilePath
            , _packageName :: Identifier
            , _classes :: [Class]
+           , _interfaces :: [Interface]
            }
   deriving (Show)
 makeLenses ''JavaFile
@@ -77,6 +87,7 @@ data Element = EField Field
              | EParameter Parameter
              | EMethod Method
              | EClass Class
+             | EInterface Interface
              | EJavaFile JavaFile
              | EProject Project
              | EName Identifier

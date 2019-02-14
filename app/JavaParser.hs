@@ -55,15 +55,29 @@ convertCompilationUnit :: FilePath -> CompilationUnit -> J.JavaFile
 convertCompilationUnit path (CompilationUnit maybePackageDecl _ typeDecls) =
   J.JavaFile { J._fileName = path
              , J._packageName = convertMaybePackageDecl maybePackageDecl
-             , J._classes = convertTypeDeclsToClasses typeDecls
+             , J._classes = mapMaybe convertTypeDeclToClass typeDecls
+             , J._interfaces = mapMaybe convertTypeDeclToInterface typeDecls
              }
-
-convertTypeDeclsToClasses :: [TypeDecl] -> [J.Class]
-convertTypeDeclsToClasses = mapMaybe convertTypeDeclToClass
 
 convertTypeDeclToClass :: TypeDecl -> Maybe J.Class
 convertTypeDeclToClass (ClassTypeDecl classDecl) = convertClassDeclToClass classDecl
-convertTypeDeclToClass (InterfaceTypeDecl interfaceDecl) = Nothing
+convertTypeDeclToClass _ = Nothing
+
+convertTypeDeclToInterface :: TypeDecl -> Maybe J.Interface
+convertTypeDeclToInterface (InterfaceTypeDecl interfaceDecl) = convertInterfaceDeclToInterface interfaceDecl
+convertTypeDeclToInterface _ = Nothing
+
+convertInterfaceDeclToInterface :: InterfaceDecl -> Maybe J.Interface
+convertInterfaceDeclToInterface (InterfaceDecl InterfaceNormal modifiers (Ident name) _ maybeExtends interfaceBody) = Just $
+  J.Interface { J._interfaceName = J.Identifier { J._idName = name }
+              , J._interfaceMethods = convertInterfaceBodyToMethods interfaceBody
+              , J._interfaceVisibility = convertModifiersToVisibility modifiers
+              , J._interfaceExtends = convertRefTypeToIdentifier <$> maybeExtends
+              }
+convertInterfaceDeclToInterface _ = Nothing
+
+convertInterfaceBodyToMethods :: InterfaceBody -> [J.Method]
+convertInterfaceBodyToMethods (InterfaceBody decls) = mapMaybe convertMemberDeclToMethod decls
 
 convertClassDeclToClass :: ClassDecl -> Maybe J.Class
 convertClassDeclToClass (ClassDecl modifiers (Ident name) _ maybeExtends implements classBody) = Just $
