@@ -2,7 +2,7 @@ module Evaluation where
 
 import qualified Actions as A
 import Java.Parser (runParserOnPath, FileParseError(..))
-import qualified Commands.ShortParser as P
+import qualified Commands.Parser as P
 import qualified Commands.Types as P
 import qualified Java.Accessors as JA
 import AppState (AppState, program, focus, output)
@@ -14,7 +14,7 @@ import Control.Lens
 
 processCommand :: String -> AppState -> IO AppState
 processCommand input state =
-  case P.runParser input of
+  case P.runParser P.Short input of
     Left err -> return $ state & output .~ Error (putStrLn err)
     Right command -> eval command <$> evalMeta command state
 
