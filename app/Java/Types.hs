@@ -1,7 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Java where
+module Java.Types where
 
+import Prelude hiding (Enum)
 import Control.Lens
 
 data Identifier =
@@ -76,14 +77,14 @@ data Enum =
        , _enumVisibility :: Visibility
        }
   deriving (Show)
-makeLenses ''Java.Enum
+makeLenses ''Enum
 
 data JavaFile =
   JavaFile { _fileName :: FilePath
            , _packageName :: Identifier
            , _classes :: [Class]
            , _interfaces :: [Interface]
-           , _enums :: [Java.Enum]
+           , _enums :: [Enum]
            }
   deriving (Show)
 makeLenses ''JavaFile
@@ -99,7 +100,7 @@ data Element = EField Field
              | EMethod Method
              | EClass Class
              | EInterface Interface
-             | EEnum Java.Enum
+             | EEnum Enum
              | EJavaFile JavaFile
              | EProject Project
              | EName Identifier

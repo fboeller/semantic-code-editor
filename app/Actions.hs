@@ -3,7 +3,7 @@ module Actions where
 import Control.Lens
 import Data.Tree
 
-import qualified Java as J
+import qualified Java.Types as J
 import qualified Java.Accessors as JA
 import Java.Printer (printCommon)
 import AppState (AppState, program, focus, output, running, lastResultTree, leafFocus)

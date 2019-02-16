@@ -1,6 +1,6 @@
 module Focus where
 
-import Java (Element)
+import Java.Types (Element)
 
 -- The first element represents the most detailled focus
 -- Consecutive elements are higher up in the hierarchy

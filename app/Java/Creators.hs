@@ -1,6 +1,6 @@
 module Java.Creators where
 
-import Java
+import Java.Types
 
 identifier :: String -> Identifier
 identifier name = Identifier { _idName = name }

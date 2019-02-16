@@ -1,6 +1,6 @@
 module Output where
 
-import Java (Element)
+import Java.Types (Element)
 import Java.Printer (printMinimal)
 
 import Control.Lens ((^.))

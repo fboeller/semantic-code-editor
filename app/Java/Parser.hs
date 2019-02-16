@@ -1,24 +1,21 @@
 module Java.Parser where
 
+import qualified Java.Types as J
+import qualified Java.Creators as JC
+
 import Language.Java.Parser
 import Language.Java.Syntax
 import Language.Java.Pretty
 import Data.Maybe (maybe, mapMaybe)
-import Data.List (find)
+import Data.List (find, isSuffixOf, concat)
+import Data.Traversable (traverse)
 import Control.Exception
+import Text.Parsec.Error (ParseError)
 import System.Directory
 import System.FilePath
-import Text.Parsec.Error (ParseError)
-import Data.List (isSuffixOf, concat)
 import System.Posix.Files
-import qualified Java as J
-import qualified Java.Creators as JC
-import Data.Traversable (traverse)
-import System.Directory.Tree (
-    AnchoredDirTree(..), DirTree(..),
-    filterDir, readDirectoryWith
-    )
 import System.FilePath (takeExtension)
+import System.Directory.Tree (AnchoredDirTree((:/)), DirTree(..), filterDir, readDirectoryWith)
 
 data FileParseError = FileParseError FilePath String
 

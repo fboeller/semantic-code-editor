@@ -2,7 +2,7 @@ module Java.Accessors where
 
 import Control.Lens hiding (elements)
 
-import qualified Java as J
+import qualified Java.Types as J
 import qualified Java.Creators as JC
 import CommandParser (ElementType(..))
 import qualified Trees as T

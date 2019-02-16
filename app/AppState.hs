@@ -2,7 +2,7 @@
 
 module AppState where
 
-import qualified Java as J
+import qualified Java.Types as J
 import Focus
 import Output
 

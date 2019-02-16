@@ -5,7 +5,9 @@ module Java.Printer
   , printMinimal
   ) where
 
-import Java
+import Java.Types
+
+import Prelude hiding (Enum)
 import Control.Lens
 import Data.List (intercalate)
 import Data.Maybe (catMaybes)
@@ -48,7 +50,7 @@ printInterfaceSignature i = unwords $ catMaybes
   where notEmpty "" = Nothing
         notEmpty str = Just $ str
 
-printEnumSignature :: Java.Enum -> String
+printEnumSignature :: Enum -> String
 printEnumSignature e = unwords $ catMaybes
   [ Just $ printVisibilityCommon $ e ^. enumVisibility
   , Just $ "enum"
@@ -119,7 +121,7 @@ printInterfaceCommon i = unwords
   , "\n}"
   ]
 
-printEnumCommon :: Java.Enum -> String
+printEnumCommon :: Enum -> String
 printEnumCommon e = unwords
   [ printEnumSignature e
   , "{"
