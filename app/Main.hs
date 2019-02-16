@@ -8,7 +8,8 @@ import Evaluation (processCommand, processJavaInput)
 import Control.Lens
 import System.Console.Haskeline
 import Control.Monad.Trans.Class (lift)
-          
+import Data.List (isPrefixOf)
+       
 loop :: AppState -> InputT IO ()
 loop state = do
   minput <- getInputLine $ (printPrompt $ state ^.to leafFocus) ++ " > "
@@ -23,8 +24,23 @@ loop state = do
       else
         return ()
 
+settings :: Settings IO
+settings = setComplete commandCompletion defaultSettings
+
+commandCompletion :: CompletionFunc IO
+commandCompletion = completeWordWithPrev Nothing [' '] possibilities
+
+firstCommands :: [String]
+firstCommands = ["read", "focus", "list"]
+
+possibilities :: String -> String -> IO [Completion]
+possibilities _ "" = return []
+possibilities "" enteredText =
+  return $ simpleCompletion <$> filter (enteredText `isPrefixOf`) firstCommands
+possibilities _ _ = return []
+
 main :: IO ()
 main = do
   loadedState <- processJavaInput "./data" initialState
   printOutput $ loadedState ^. output
-  runInputT defaultSettings $ loop loadedState
+  runInputT settings $ loop loadedState
