@@ -8,8 +8,6 @@ import qualified Commands.LongParser as LP
 import Text.ParserCombinators.Parsec (Parser, choice, between, char, string, parse, try, (<|>), (<?>), newline, sepBy)
 import Control.Applicative hiding ((<|>))
 
-data ParserType = Long | Short
-
 firstCommand :: ParserType -> Parser FirstCommand
 firstCommand Long = LP.firstCommand
 firstCommand Short = SP.firstCommand
@@ -58,9 +56,14 @@ indexPath = integer `sepBy` char '.'
 dataDirPath :: String -> FilePath
 dataDirPath className = "data/" ++ className ++ ".java"
 
+parserType :: Parser ParserType
+parserType = (string "long" *> pure Long)
+  <||> (string "short" *> pure Short)
+
 metaCommand :: Parser MetaCommand
-metaCommand = (LoadFile <$> dataDirPath <$> (metaChar *> char 'l' *> space *> identifier) <* closer)
-  <||> (LoadFile <$> (metaChar *> char 'l' *> space *> stringLiteral) <* closer)
+metaCommand = (LoadFile <$> dataDirPath <$> (metaChar *> (lexeme $ string "load") *> identifier) <* closer)
+  <||> (LoadFile <$> (metaChar *> (lexeme $ string "load") *> stringLiteral) <* closer)
+  <||> (SwitchCommandParser <$> (metaChar *> (lexeme $ string "switch") *> parserType) <* closer)
 
 command :: Parser FirstCommand -> Parser ElementType -> Parser Command
 command firstCommand elementType = quit

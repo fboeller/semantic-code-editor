@@ -5,8 +5,9 @@ import Java.Parser (runParserOnPath, FileParseError(..))
 import qualified Commands.Parser as P
 import qualified Commands.Types as P
 import qualified Java.Accessors as JA
-import AppState (AppState, program, focus, output)
+import AppState (AppState, program, focus, output, config)
 import Output
+import Configuration (commandParserType)
 
 import Data.List (intercalate)
 import Data.Maybe (maybe)
@@ -14,7 +15,7 @@ import Control.Lens
 
 processCommand :: String -> AppState -> IO AppState
 processCommand input state =
-  case P.runParser P.Short input of
+  case P.runParser (state ^. config ^. commandParserType) input of
     Left err -> return $ state & output .~ Error (putStrLn err)
     Right command -> eval command <$> evalMeta command state
 
@@ -36,14 +37,20 @@ eval input = set output $ Error $ putStrLn $ "The command '" ++ show input ++ "'
 
 evalMeta :: P.Command -> AppState -> IO AppState
 evalMeta (P.Meta (P.LoadFile path)) state = processJavaInput path state
+evalMeta (P.Meta (P.SwitchCommandParser parserType)) state = switchCommandParser parserType state
 evalMeta _ state = return state
+
+switchCommandParser :: P.ParserType -> AppState -> IO AppState
+switchCommandParser parserType state =
+  return $ state & config.commandParserType .~ parserType
 
 processJavaInput :: String -> AppState -> IO AppState
 processJavaInput path state = do
   (errors, javaProgram) <- runParserOnPath path
   return $ state
     & output .~ Error (putStr $ printErrors errors)
-    & program .~ javaProgram & focus .~ []
+    & program .~ javaProgram
+    & focus .~ []
 
 printErrors :: [FileParseError] -> String
 printErrors =

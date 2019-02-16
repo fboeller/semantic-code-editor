@@ -1,5 +1,9 @@
 module Commands.Types where
 
+data ParserType = Long
+                | Short
+  deriving Show
+
 data FirstCommand = Read
                   | Focus
                   | List
@@ -23,6 +27,7 @@ data Path = Upper
   deriving Show
 
 data MetaCommand = LoadFile String
+                 | SwitchCommandParser ParserType
   deriving Show
 
 data Command = Empty

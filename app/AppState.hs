@@ -5,6 +5,7 @@ module AppState where
 import qualified Java.Types as J
 import Focus
 import Output
+import Configuration
 
 import Control.Lens
 import Data.Tree (Tree)
@@ -15,6 +16,7 @@ data AppState =
            , _lastResultTree :: Maybe (Tree J.Element)
            , _output :: Output
            , _running :: Bool
+           , _config :: Configuration
            }
 
 makeLenses ''AppState
@@ -42,4 +44,5 @@ initialState =
            , _lastResultTree = Nothing
            , _output = Other mempty
            , _running = True
+           , _config = initialConfig
            }
