@@ -28,17 +28,17 @@ firstCommand = choice (keywordP <$> firstCommands)
 
 elementTypes :: [Keyword ElementType]
 elementTypes = keywordFromTuple <$>
-  [ ("class", Class, "")
-  , ("interface", Interface, "")
-  , ("enum", Enum, "")
-  , ("method", Method, "")
-  , ("function", Function, "")
-  , ("variable", Variable, "")
-  , ("parameter", Parameter, "")
-  , ("extension", Extension, "")
-  , ("name", Name, "")
-  , ("type", Type, "")
-  , ("definition", Definition, "")
+  [ ("class", Class, "class")
+  , ("interface", Interface, "interface")
+  , ("enum", Enum, "enum")
+  , ("method", Method, "method")
+  , ("function", Function, "function")
+  , ("variable", Variable, "variable")
+  , ("parameter", Parameter, "parameter")
+  , ("extension", Extension, "extension")
+  , ("name", Name, "name")
+  , ("type", Type, "type")
+  , ("definition", Definition, "definition")
   ]
 
 elementType :: Parser ElementType

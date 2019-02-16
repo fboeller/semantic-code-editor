@@ -37,5 +37,7 @@ allDocumentedCompletions = concat $
 possibilities :: String -> String -> IO [Completion]
 possibilities "" "" = return allDocumentedCompletions
 possibilities "" enteredText = return $ filter (enteredText `completesTo`) allDocumentedCompletions
+possibilities preCursorText enteredText
+  | "list" `isPrefixOf` reverse preCursorText = return $ filter (enteredText `completesTo`) (documentedCompletion <$> elementTypes)
 possibilities _ _ = return []
 
