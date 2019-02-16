@@ -34,7 +34,7 @@ firstCommands :: [String]
 firstCommands = ["read", "focus", "list"]
 
 possibilities :: String -> String -> IO [Completion]
-possibilities _ "" = return []
+possibilities "" "" = return $ simpleCompletion <$> firstCommands
 possibilities "" enteredText =
   return $ simpleCompletion <$> filter (enteredText `isPrefixOf`) firstCommands
 possibilities _ _ = return []
