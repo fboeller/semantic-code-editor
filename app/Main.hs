@@ -33,10 +33,13 @@ commandCompletion = completeWordWithPrev Nothing [' '] possibilities
 firstCommands :: [String]
 firstCommands = ["read", "focus", "list"]
 
+metaCommands :: [String]
+metaCommands = [":load", ":switch"]
+
 possibilities :: String -> String -> IO [Completion]
-possibilities "" "" = return $ simpleCompletion <$> firstCommands
+possibilities "" "" = return $ simpleCompletion <$> firstCommands ++ metaCommands
 possibilities "" enteredText =
-  return $ simpleCompletion <$> filter (enteredText `isPrefixOf`) firstCommands
+  return $ simpleCompletion <$> filter (enteredText `isPrefixOf`) (firstCommands ++ metaCommands)
 possibilities _ _ = return []
 
 main :: IO ()
