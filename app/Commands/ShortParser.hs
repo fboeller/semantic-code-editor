@@ -19,8 +19,8 @@ firstCommand = choice
   , char 'l' *> pure List
   ] <?> "a first command symbol 'r', 'f' or 'l'"
 
-secondCommand :: Parser ElementType
-secondCommand = choice
+elementType :: Parser ElementType
+elementType = choice
   [ char 'c' *> pure Class
   , char 'i' *> pure Interface
   , char 'e' *> pure Enum
@@ -32,17 +32,19 @@ secondCommand = choice
   , char 'n' *> pure Name
   , char 't' *> pure Type
   , char 'd' *> pure Definition
-  ] <?> "a second command symbol 'c', 'i', 'e', 'm', 'f', 'v', 'p', 'x', 'n', 't' or 'd'"
+  ] <?> "an element type 'c', 'i', 'e', 'm', 'f', 'v', 'p', 'x', 'n', 't' or 'd'"
 
-selectionExpression :: Parser [(Maybe ElementType, Maybe String)]
-selectionExpression = many (lexeme single)
-  where
-    single :: Parser (Maybe ElementType, Maybe String)
-    single = (between (char '(') (char ')') single)
-      <||> ((,) <$> (pure <$> lexeme secondCommand <* lexeme (char '|')) <*> (pure <$> lexeme stringLiteral))
-      <||> ((,) <$> (pure <$> lexeme secondCommand) <*> pure Nothing)
-      <||> ((,) <$> pure Nothing <*> (pure <$> lexeme stringLiteral))
-      <||> (char '*' *> pure (Nothing, Nothing))
+-- Parser for a sequence of filters by element type or/and a search term
+-- Each of this filters is meant to filter on a subsequent element in the element tree
+selections :: Parser [(Maybe ElementType, Maybe String)]
+selections = many $ lexeme selection
+
+selection :: Parser (Maybe ElementType, Maybe String)
+selection = (between (char '(') (char ')') selection)
+  <||> ((,) <$> (pure <$> lexeme elementType <* lexeme (char '|')) <*> (pure <$> lexeme stringLiteral))
+  <||> ((,) <$> (pure <$> lexeme elementType) <*> pure Nothing)
+  <||> ((,) <$> pure Nothing <*> (pure <$> lexeme stringLiteral))
+  <||> (char '*' *> pure (Nothing, Nothing))
 
 path :: Parser Path
 path = (string ".." *> pure Upper)
@@ -52,13 +54,26 @@ path = (string ".." *> pure Upper)
 (<||>) :: Parser a -> Parser a -> Parser a
 p <||> q = try p <|> q
 
+quit :: Parser Command
+quit = char 'q' *> pure Exit <* closer
+  <?> "a 'q' to quit the program"
+
+emptyCommand :: Parser Command
+emptyCommand = (mempty :: Parser String) *> pure Empty <* closer
+
+indexPath :: Parser [Integer]
+indexPath = integer `sepBy` char '.'
+
+dataDirPath :: String -> FilePath
+dataDirPath className = "data/" ++ className ++ ".java"
+
 command :: Parser Command
-command = (char 'q' *> pure Exit <* closer <?> "a 'q' to quit the program")
-  <||> ((mempty :: Parser String) *> pure Empty <* closer)
-  <||> (IndexSingle Focus <$> (integer `sepBy` char '.') <* closer <?> "a number to focus a result")
-  <||> (Meta <$> LoadFile <$> (\className -> "data/" ++ className ++ ".java") <$> (metaChar *> string "l" *> space *> identifier) <* closer)
-  <||> (Meta <$> LoadFile <$> (metaChar *> string "l" *> space *> stringLiteral) <* closer)
-  <||> (Double <$> lexeme firstCommand <*> selectionExpression <* closer)
+command = quit
+  <||> emptyCommand
+  <||> (IndexSingle Focus <$> indexPath <* closer <?> "a number to focus a result")
+  <||> (Meta <$> LoadFile <$> dataDirPath <$> (metaChar *> char 'l' *> space *> identifier) <* closer)
+  <||> (Meta <$> LoadFile <$> (metaChar *> char 'l' *> space *> stringLiteral) <* closer)
+  <||> (Double <$> lexeme firstCommand <*> selections <* closer)
   <||> (PathSingle <$> firstCommand <* space <*> path <* closer)
   <||> (IndexSingle <$> firstCommand <* space <*> (integer `sepBy` char '.') <* closer)
 
