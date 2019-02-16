@@ -1,4 +1,15 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Commands.Types where
+
+import Control.Lens
+
+data Keyword a =
+  Keyword { _word :: String
+          , _model :: a
+          , _description :: String
+          }
+makeLenses ''Keyword
 
 data ParserType = Long
                 | Short
