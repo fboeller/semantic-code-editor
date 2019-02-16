@@ -1,10 +1,9 @@
 module Commands.ShortParser where
 
 import Commands.Types
+import Commands.Lexer
 
 import Text.ParserCombinators.Parsec (Parser, choice, between, char, string, parse, try, (<|>), (<?>), newline, sepBy)
-import qualified Text.ParserCombinators.Parsec.Token as P
-import Text.ParserCombinators.Parsec.Language (emptyDef)
 import Control.Applicative hiding ((<|>))
 
 runParser :: String -> Either String Command
@@ -76,17 +75,3 @@ command = quit
   <||> (Double <$> lexeme firstCommand <*> selections <* closer)
   <||> (PathSingle <$> firstCommand <* space <*> path <* closer)
   <||> (IndexSingle <$> firstCommand <* space <*> (integer `sepBy` char '.') <* closer)
-
--- Lexer
-
-lexer = P.makeTokenParser emptyDef
-
-integer = P.integer lexer 
-stringLiteral = P.stringLiteral lexer
-identifier = P.identifier lexer
-lexeme = P.lexeme lexer
-semi = P.semi lexer
-whiteSpace = P.whiteSpace lexer
-space = char ' ' :: Parser Char
-metaChar = char ':' <?> "the meta symbol ':' to start a meta command" :: Parser Char
-closer = whiteSpace <* semi
