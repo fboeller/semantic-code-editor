@@ -1,9 +1,9 @@
 module Evaluation where
 
 import qualified Actions as A
-import JavaParser (runParserOnPath, FileParseError(..))
+import Java.Parser (runParserOnPath, FileParseError(..))
 import qualified CommandParser as P
-import qualified JavaAccessors as JA
+import qualified Java.Accessors as JA
 import AppState (AppState, program, focus, output)
 import Output
 

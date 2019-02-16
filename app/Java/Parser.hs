@@ -1,4 +1,4 @@
-module JavaParser where
+module Java.Parser where
 
 import Language.Java.Parser
 import Language.Java.Syntax
@@ -12,7 +12,7 @@ import Text.Parsec.Error (ParseError)
 import Data.List (isSuffixOf, concat)
 import System.Posix.Files
 import qualified Java as J
-import qualified JavaCreators as JC
+import qualified Java.Creators as JC
 import Data.Traversable (traverse)
 import System.Directory.Tree (
     AnchoredDirTree(..), DirTree(..),

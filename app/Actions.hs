@@ -4,7 +4,7 @@ import Control.Lens
 import Data.Tree
 
 import qualified Java as J
-import qualified JavaAccessors as JA
+import qualified Java.Accessors as JA
 import AppState (AppState, program, focus, output, running, lastResultTree, leafFocus)
 import Output
 import qualified Focus as F

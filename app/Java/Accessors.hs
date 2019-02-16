@@ -1,9 +1,9 @@
-module JavaAccessors where
+module Java.Accessors where
 
 import Control.Lens hiding (elements)
 
 import qualified Java as J
-import qualified JavaCreators as JC
+import qualified Java.Creators as JC
 import CommandParser (ElementType(..))
 import qualified Trees as T
 import Data.List (isPrefixOf)

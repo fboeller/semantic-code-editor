@@ -1,4 +1,4 @@
-module JavaCreators where
+module Java.Creators where
 
 import Java
 
