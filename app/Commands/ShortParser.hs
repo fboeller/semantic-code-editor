@@ -66,12 +66,15 @@ indexPath = integer `sepBy` char '.'
 dataDirPath :: String -> FilePath
 dataDirPath className = "data/" ++ className ++ ".java"
 
+metaCommand :: Parser MetaCommand
+metaCommand = (LoadFile <$> dataDirPath <$> (metaChar *> char 'l' *> space *> identifier) <* closer)
+  <||> (LoadFile <$> (metaChar *> char 'l' *> space *> stringLiteral) <* closer)
+
 command :: Parser Command
 command = quit
   <||> emptyCommand
   <||> (IndexSingle Focus <$> indexPath <* closer <?> "a number to focus a result")
-  <||> (Meta <$> LoadFile <$> dataDirPath <$> (metaChar *> char 'l' *> space *> identifier) <* closer)
-  <||> (Meta <$> LoadFile <$> (metaChar *> char 'l' *> space *> stringLiteral) <* closer)
+  <||> (Meta <$> metaCommand)
   <||> (Double <$> lexeme firstCommand <*> selections <* closer)
   <||> (PathSingle <$> firstCommand <* space <*> path <* closer)
   <||> (IndexSingle <$> firstCommand <* space <*> (integer `sepBy` char '.') <* closer)
