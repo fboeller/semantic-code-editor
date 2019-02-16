@@ -1,31 +1,11 @@
-module CommandParser where
+module Commands.ShortParser where
+
+import Commands.Types
 
 import Text.ParserCombinators.Parsec (Parser, choice, between, char, string, parse, try, (<|>), (<?>), newline, sepBy)
 import qualified Text.ParserCombinators.Parsec.Token as P
 import Text.ParserCombinators.Parsec.Language (emptyDef)
 import Control.Applicative hiding ((<|>))
-
-data FirstCommand = Read | Focus | List
-  deriving Show
-
-data ElementType = Class | Interface | Enum | Method | Function | Variable | Parameter | Extension | Name | Type | Definition
-  deriving Show
-
-data Path = Upper | Root
-  deriving Show
-
-data MetaCommand =
-  LoadFile String
-  deriving Show
-
-data Command =
-  Empty |
-  Exit |
-  Meta MetaCommand |
-  Double FirstCommand [(Maybe ElementType, Maybe String)] |
-  IndexSingle FirstCommand [Integer] |
-  PathSingle FirstCommand Path
-  deriving Show
 
 runParser :: String -> Either String Command
 runParser str = case parse command "Parser for commands" (str ++ ";") of

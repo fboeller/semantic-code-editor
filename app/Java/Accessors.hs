@@ -4,7 +4,7 @@ import Control.Lens hiding (elements)
 
 import qualified Java.Types as J
 import qualified Java.Creators as JC
-import CommandParser (ElementType(..))
+import Commands.Types (ElementType(..))
 import qualified Trees as T
 import Data.List (isPrefixOf)
 import Data.Tree (Tree, unfoldTree, flatten)
