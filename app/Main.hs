@@ -1,6 +1,6 @@
 module Main where
 
-import PromptShow (printPrompt)
+import Java.Printer (printPrompt)
 import AppState (AppState, initialState, leafFocus, clearOutput, output, running)
 import Output (printOutput)
 import Evaluation (processCommand, processJavaInput)

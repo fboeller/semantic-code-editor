@@ -1,4 +1,9 @@
-module PromptShow where
+module Java.Printer
+  ( printCommon
+  , printSignature
+  , printPrompt
+  , printMinimal
+  ) where
 
 import Java
 import Control.Lens

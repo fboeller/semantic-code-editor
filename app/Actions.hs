@@ -5,11 +5,11 @@ import Data.Tree
 
 import qualified Java as J
 import qualified Java.Accessors as JA
+import Java.Printer (printCommon)
 import AppState (AppState, program, focus, output, running, lastResultTree, leafFocus)
 import Output
 import qualified Focus as F
 import CommandParser (ElementType(..))
-import PromptShow
 
 readFocus :: AppState -> AppState
 readFocus state =

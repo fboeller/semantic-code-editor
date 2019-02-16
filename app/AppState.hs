@@ -4,7 +4,6 @@ module AppState where
 
 import qualified Java as J
 import Focus
-import PromptShow
 import Output
 
 import Control.Lens

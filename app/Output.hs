@@ -1,14 +1,14 @@
 module Output where
 
-import qualified Java as J
-import PromptShow
+import Java (Element)
+import Java.Printer (printMinimal)
 
 import Control.Lens ((^.))
 import Data.Tree
 import System.Console.ANSI
 
 data Output =
-  ResultTree (Tree J.Element) |
+  ResultTree (Tree Element) |
   Other (IO ()) |
   Error (IO ())
   
