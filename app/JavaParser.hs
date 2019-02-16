@@ -12,6 +12,7 @@ import Text.Parsec.Error (ParseError)
 import Data.List (isSuffixOf, concat)
 import System.Posix.Files
 import qualified Java as J
+import qualified JavaCreators as JC
 import Data.Traversable (traverse)
 import System.Directory.Tree (
     AnchoredDirTree(..), DirTree(..),
@@ -74,7 +75,7 @@ convertTypeDeclToInterface _ = Nothing
 
 convertInterfaceDeclToInterface :: InterfaceDecl -> Maybe J.Interface
 convertInterfaceDeclToInterface (InterfaceDecl InterfaceNormal modifiers (Ident name) _ maybeExtends interfaceBody) = Just $
-  J.Interface { J._interfaceName = J.Identifier { J._idName = name }
+  J.Interface { J._interfaceName = JC.identifier name
               , J._interfaceMethods = convertInterfaceBodyToMethods interfaceBody
               , J._interfaceVisibility = convertModifiersToVisibility modifiers
               , J._interfaceExtends = convertRefTypeToIdentifier <$> maybeExtends
@@ -86,7 +87,7 @@ convertInterfaceBodyToMethods (InterfaceBody decls) = mapMaybe convertMemberDecl
 
 convertClassDeclToClass :: ClassDecl -> Maybe J.Class
 convertClassDeclToClass (ClassDecl modifiers (Ident name) _ maybeExtends implements classBody) = Just $
-  J.Class { J._className = J.Identifier { J._idName = name }
+  J.Class { J._className = JC.identifier name
           , J._classFields = convertClassBodyToFields classBody
           , J._classMethods = convertClassBodyToMethods classBody
           , J._classVisibility = convertModifiersToVisibility modifiers
@@ -98,7 +99,7 @@ convertClassDeclToClass (EnumDecl _ _ _ _) = Nothing
 
 convertClassDeclToEnum :: ClassDecl -> Maybe J.Enum
 convertClassDeclToEnum (EnumDecl modifiers (Ident name) _ enumBody) = Just $
-  J.Enum { J._enumName = J.Identifier { J._idName = name }
+  J.Enum { J._enumName = JC.identifier name
          , J._enumConstants = convertEnumBodyToEnumConstants enumBody
          , J._enumFields = convertEnumBodyToFields enumBody
          , J._enumMethods = convertEnumBodyToMethods enumBody
@@ -110,7 +111,7 @@ convertEnumBodyToEnumConstants :: EnumBody -> [J.Identifier]
 convertEnumBodyToEnumConstants (EnumBody constants _) = convertEnumConstantToEnumConstant <$> constants
 
 convertEnumConstantToEnumConstant :: EnumConstant -> J.Identifier
-convertEnumConstantToEnumConstant (EnumConstant (Ident name) _ _) = J.Identifier { J._idName = name }
+convertEnumConstantToEnumConstant (EnumConstant (Ident name) _ _) = JC.identifier name
 
 convertEnumBodyToMethods :: EnumBody -> [J.Method]
 convertEnumBodyToMethods (EnumBody _ decls) = mapMaybe convertDeclToMethod decls
@@ -119,7 +120,7 @@ convertEnumBodyToFields :: EnumBody -> [J.Field]
 convertEnumBodyToFields (EnumBody _ decls) = concatMap convertDeclToFields decls
 
 convertRefTypeToIdentifier :: RefType -> J.Identifier
-convertRefTypeToIdentifier refType = J.Identifier { J._idName = prettyPrint refType }
+convertRefTypeToIdentifier refType = JC.identifier $ prettyPrint refType
 
 convertClassBodyToMethods :: ClassBody -> [J.Method]
 convertClassBodyToMethods (ClassBody decls) = mapMaybe convertDeclToMethod decls
@@ -130,7 +131,7 @@ convertDeclToMethod (InitDecl _ _) = Nothing
 
 convertMemberDeclToMethod :: MemberDecl -> Maybe J.Method
 convertMemberDeclToMethod (MethodDecl modifiers _ maybeT ident formalParams _ _ body) = Just $
-  J.Method { J._methodName = J.Identifier { J._idName = prettyPrint ident }
+  J.Method { J._methodName = JC.identifier $ prettyPrint ident
            , J._methodParameters = convertFormalParam <$> formalParams
            , J._methodReturnType = maybe (J.Datatype { J._datatypeName = "void" }) convertVarDeclToType maybeT
            , J._methodVisibility = convertModifiersToVisibility modifiers
@@ -141,7 +142,7 @@ convertMemberDeclToMethod _ = Nothing
 
 convertFormalParam :: FormalParam -> J.Parameter
 convertFormalParam (FormalParam modifiers t _ varDeclId) =
-  J.Parameter { J._parameterName = J.Identifier { J._idName = convertVarDeclIdToFieldName varDeclId }
+  J.Parameter { J._parameterName = JC.identifier $ convertVarDeclIdToFieldName varDeclId
               , J._parameterType = convertVarDeclToType t
               }
 
@@ -161,7 +162,7 @@ convertMemberDeclToFields _ = []
 
 convertMemberDeclToField :: [Modifier] -> Type -> VarDecl -> J.Field
 convertMemberDeclToField modifiers t varDecl =
-  J.Field { J._fieldName = J.Identifier { J._idName = convertVarDeclToFieldName varDecl }
+  J.Field { J._fieldName = JC.identifier $ convertVarDeclToFieldName varDecl
           , J._fieldType = convertVarDeclToType t
           , J._fieldVisibility = convertModifiersToVisibility modifiers
           , J._fieldStatic = isStatic modifiers
@@ -196,8 +197,8 @@ isFinal = any (==Final)
 
 convertMaybePackageDecl :: Maybe PackageDecl -> J.Identifier
 convertMaybePackageDecl maybePackageDecl =
-  maybe (J.Identifier { J._idName = "" }) convertPackageDecl maybePackageDecl
+  maybe (JC.identifier "") convertPackageDecl maybePackageDecl
 
 convertPackageDecl :: PackageDecl -> J.Identifier
 convertPackageDecl (PackageDecl packageName) =
-  J.Identifier { J._idName = prettyPrint packageName }
+  JC.identifier $ prettyPrint packageName

@@ -3,6 +3,7 @@ module JavaAccessors where
 import Control.Lens hiding (elements)
 
 import qualified Java as J
+import qualified JavaCreators as JC
 import CommandParser (ElementType(..))
 import qualified Trees as T
 import Data.List (isPrefixOf)
@@ -112,7 +113,7 @@ methods (J.EEnum e) = e ^. J.enumMethods
 methods _ = []
 
 extensions :: J.Element -> [J.Class]
-extensions (J.EClass c) = maybeToList $ emptyClass <$> (c ^. J.classExtends)
+extensions (J.EClass c) = maybeToList $ JC.emptyClass <$> (c ^. J.classExtends)
 extensions _ = []
 
 names :: J.Element -> [J.Identifier]
@@ -148,14 +149,3 @@ getTypeDefName (J.EClass c) = Just $ c ^. J.className ^. J.idName
 getTypeDefName (J.EInterface i) = Just $ i ^. J.interfaceName ^. J.idName
 getTypeDefName (J.EEnum e) = Just $ e ^. J.enumName ^. J.idName
 getTypeDefName _ = Nothing
-
-emptyClass :: J.Identifier -> J.Class
-emptyClass identifier =
-  J.Class { J._className = identifier
-          , J._classFields = []
-          , J._classMethods = []
-          , J._classVisibility = J.Public
-          , J._classExtends = Nothing
-          , J._classImplements = []
-          , J._classFinal = False
-          }
