@@ -24,6 +24,9 @@ levelFilteredTree (p:ps) (Node label subForest) =
   & map (levelFilteredTree ps)
   & Node label
     
+recursively :: (a -> [a]) -> a -> Tree a
+recursively f = unfoldTree (\b -> (b, f b))
+
 -- Taken from Hledger.Utils.Tree
 
 treeprune :: Int -> Tree a -> Tree a
@@ -37,5 +40,3 @@ treefilter f t = Node
 
 treeany :: (a -> Bool) -> Tree a -> Bool
 treeany f t = f (rootLabel t) || any (treeany f) (subForest t)
-
-

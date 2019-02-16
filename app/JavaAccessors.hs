@@ -15,7 +15,7 @@ type SearchTerm = String
 
 selectedElements :: [J.Element -> Bool] -> J.Project -> J.Element -> Tree J.Element
 selectedElements predicates project element =
-  recursively (allElements project) element
+  T.recursively (allElements project) element
   & T.levelFilteredTree predicates
   & T.treeprune (length predicates) 
   & T.cutEarlyLeafs (length predicates)
@@ -131,7 +131,7 @@ types (J.EParameter p) = [p ^. J.parameterType]
 types _ = []
 
 definitions :: J.Project -> J.Element -> [J.Element]
-definitions project element = filter isOfType $ flatten $ recursively standardElements $ J.EProject project
+definitions project element = filter isOfType $ flatten $ T.recursively standardElements $ J.EProject project
   where
     isOfType :: J.Element -> Bool
     isOfType candidate = maybe False id $
@@ -148,9 +148,6 @@ getTypeDefName (J.EClass c) = Just $ c ^. J.className ^. J.idName
 getTypeDefName (J.EInterface i) = Just $ i ^. J.interfaceName ^. J.idName
 getTypeDefName (J.EEnum e) = Just $ e ^. J.enumName ^. J.idName
 getTypeDefName _ = Nothing
-
-recursively :: (a -> [a]) -> a -> Tree a
-recursively f = unfoldTree (\b -> (b, f b))
 
 emptyClass :: J.Identifier -> J.Class
 emptyClass identifier =
