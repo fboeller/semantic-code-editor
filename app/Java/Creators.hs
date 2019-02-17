@@ -10,6 +10,7 @@ emptyClass identifier =
   Class { _className = identifier
         , _classFields = []
         , _classMethods = []
+        , _classConstructors = []
         , _classVisibility = Public
         , _classExtends = Nothing
         , _classImplements = []

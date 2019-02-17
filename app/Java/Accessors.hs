@@ -36,6 +36,7 @@ searchProperty (J.EInterface i) = i ^. J.interfaceName ^. J.idName
 searchProperty (J.EEnum e) = e ^. J.enumName ^. J.idName
 searchProperty (J.EField f) = f ^. J.fieldName ^. J.idName
 searchProperty (J.EMethod m) = m ^. J.methodName ^. J.idName
+searchProperty (J.EConstructor c) = c ^. J.constructorName ^. J.idName
 searchProperty (J.EParameter p) = p ^. J.parameterName ^. J.idName
 searchProperty (J.EName n) = n ^. J.idName
 searchProperty (J.EType t) = t ^. J.datatypeName
@@ -46,11 +47,14 @@ matchesType Interface (J.EInterface _) = True
 matchesType Enum (J.EEnum _) = True
 matchesType Variable (J.EField _) = True
 matchesType Method (J.EMethod _) = True
+matchesType Method (J.EConstructor _) = True
 matchesType Parameter (J.EParameter _) = True
 matchesType Extension (J.EClass _) = True
 matchesType Name (J.EName _) = True
 matchesType Type (J.EType _) = True
 matchesType Definition (J.EClass _) = True
+matchesType Definition (J.EInterface _) = True
+matchesType Definition (J.EEnum _) = True
 matchesType _ _ = False
 
 -- All elements within an element that are of immediate interest
@@ -60,6 +64,7 @@ standardElements e = concat
   [ J.EClass <$> classes e
   , J.EInterface <$> interfaces e
   , J.EEnum <$> enums e
+  , J.EConstructor <$> constructors e
   , J.EField <$> variables e
   , J.EMethod <$> methods e
   , J.EParameter <$> parameters e
@@ -104,6 +109,7 @@ variables _ = []
 
 parameters :: J.Element -> [J.Parameter]
 parameters (J.EMethod p) = p ^. J.methodParameters
+parameters (J.EConstructor p) = p ^. J.constructorParameters
 parameters _ = []
 
 methods :: J.Element -> [J.Method]
@@ -111,6 +117,10 @@ methods (J.EClass c) = c ^. J.classMethods
 methods (J.EInterface i) = i ^. J.interfaceMethods
 methods (J.EEnum e) = e ^. J.enumMethods
 methods _ = []
+
+constructors :: J.Element -> [J.Constructor]
+constructors (J.EClass c) = c ^. J.classConstructors
+constructors _ = []
 
 extensions :: J.Element -> [J.Class]
 extensions (J.EClass c) = maybeToList $ JC.emptyClass <$> (c ^. J.classExtends)
@@ -122,6 +132,7 @@ names (J.EInterface i) = [i ^. J.interfaceName]
 names (J.EEnum e) = [e ^. J.enumName]
 names (J.EField f) = [f ^. J.fieldName]
 names (J.EMethod m) = [m ^. J.methodName]
+names (J.EConstructor c) = [c ^. J.constructorName]
 names (J.EParameter p) = [p ^. J.parameterName]
 names _ = []
 

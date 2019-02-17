@@ -48,10 +48,20 @@ data Method =
   deriving (Show)
 makeLenses ''Method
 
+data Constructor =
+  Constructor { _constructorName :: Identifier
+              , _constructorParameters :: [Parameter]
+              , _constructorVisibility :: Visibility
+              , _constructorBody :: String -- TODO Include syntactic information
+              }
+  deriving (Show)
+makeLenses ''Constructor
+
 data Class =
   Class { _className :: Identifier
         , _classFields :: [Field]
         , _classMethods :: [Method]
+        , _classConstructors :: [Constructor]
         , _classVisibility :: Visibility
         , _classExtends :: Maybe Identifier
         , _classImplements :: [Identifier]
@@ -98,6 +108,7 @@ makeLenses ''Project
 data Element = EField Field
              | EParameter Parameter
              | EMethod Method
+             | EConstructor Constructor
              | EClass Class
              | EInterface Interface
              | EEnum Enum

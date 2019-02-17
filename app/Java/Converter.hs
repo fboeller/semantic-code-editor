@@ -37,6 +37,7 @@ classDeclToClass (ClassDecl modifiers (Ident name) _ maybeExtends implements (Cl
   J.Class { J._className = JC.identifier name
           , J._classFields = concatMap declToFields decls
           , J._classMethods = mapMaybe declToMethod decls
+          , J._classConstructors = mapMaybe declToConstructor decls
           , J._classVisibility = toVisibility modifiers
           , J._classExtends = refTypeToIdentifier <$> maybeExtends
           , J._classImplements = refTypeToIdentifier <$> implements
@@ -80,13 +81,26 @@ memberDeclToMethod (MethodDecl modifiers _ maybeT ident formalParams _ _ body) =
            , J._methodBody = prettyPrint body
            , J._methodStatic = isStatic modifiers
            }
-  where
-    toParameter :: FormalParam -> J.Parameter
-    toParameter (FormalParam modifiers t _ varDeclId) =
-      J.Parameter { J._parameterName = JC.identifier $ varDeclIdToFieldName varDeclId
-                  , J._parameterType = varDeclToType t
-                  }
 memberDeclToMethod _ = Nothing
+
+memberDeclToConstructor :: MemberDecl -> Maybe J.Constructor
+memberDeclToConstructor (ConstructorDecl modifiers _ ident formalParams _ body) = Just $
+  J.Constructor { J._constructorName = JC.identifier $ prettyPrint ident
+                , J._constructorParameters = toParameter <$> formalParams
+                , J._constructorVisibility = toVisibility modifiers
+                , J._constructorBody = prettyPrint body
+                }
+memberDeclToConstructor _ = Nothing
+
+toParameter :: FormalParam -> J.Parameter
+toParameter (FormalParam modifiers t _ varDeclId) =
+  J.Parameter { J._parameterName = JC.identifier $ varDeclIdToFieldName varDeclId
+              , J._parameterType = varDeclToType t
+              }
+
+declToConstructor :: Decl -> Maybe J.Constructor
+declToConstructor (MemberDecl memberDecl) = memberDeclToConstructor memberDecl
+declToConstructor (InitDecl _ _) = Nothing
 
 declToFields :: Decl -> [J.Field]
 declToFields (InitDecl _ _) = []

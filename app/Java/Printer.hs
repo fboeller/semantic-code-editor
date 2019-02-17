@@ -66,6 +66,13 @@ printMethodSignature m = unwords $ catMaybes
   , Just $ "(" ++ (intercalate ", " $ printParameterSignature <$> m ^. methodParameters) ++ ")"
   ]
 
+printConstructorSignature :: Constructor -> String
+printConstructorSignature c = unwords $ catMaybes
+  [ Just $ printVisibilityCommon $ c ^. constructorVisibility
+  , Just $ c ^. constructorName ^. idName
+  , Just $ "(" ++ (intercalate ", " $ printParameterSignature <$> c ^. constructorParameters) ++ ")"
+  ]
+
 printParameterSignature :: Parameter -> String
 printParameterSignature p = unwords
   [ p ^. parameterType ^. datatypeName
@@ -88,6 +95,7 @@ printSignature (EClass c) = printClassSignature c
 printSignature (EInterface i) = printInterfaceSignature i
 printSignature (EEnum e) = printEnumSignature e
 printSignature (EMethod m) = printMethodSignature m
+printSignature (EConstructor c) = printConstructorSignature c
 printSignature (EParameter p) = printParameterSignature p
 printSignature (EField f) = printFieldSignature f
 printSignature (EName n) = n ^. idName
@@ -137,6 +145,12 @@ printMethodCommon m = unwords $
   , m ^. methodBody
   ]
 
+printConstructorCommon :: Constructor -> String
+printConstructorCommon c = unwords $
+  [ printConstructorSignature c
+  , c ^. constructorBody
+  ]
+
 printParameterCommon :: Parameter -> String
 printParameterCommon p = p ^. parameterName ^. idName
 
@@ -150,6 +164,7 @@ printCommon (EClass c) = printClassCommon c
 printCommon (EInterface i) = printInterfaceCommon i
 printCommon (EEnum e) = printEnumCommon e
 printCommon (EMethod m) = printMethodCommon m
+printCommon (EConstructor c) = printConstructorCommon c
 printCommon (EParameter p) = printParameterCommon p
 printCommon (EField f) = printFieldCommon f
 printCommon (EName n) = n ^. idName
@@ -167,6 +182,12 @@ printMinimal (EMethod m) = concat
   , intercalate "," $ m ^. methodParameters ^.. traverse.parameterType ^.. traverse.datatypeName
   , "): "
   , m ^. methodReturnType ^. datatypeName
+  ]
+printMinimal (EConstructor c) = concat
+  [ c ^. constructorName ^. idName
+  , "("
+  , intercalate "," $ c ^. constructorParameters ^.. traverse.parameterType ^.. traverse.datatypeName
+  , ")"
   ]
 printMinimal (EParameter p) = "parameter " ++ p ^. parameterName ^. idName
 printMinimal (EField f) = f ^. fieldName ^. idName ++ ": " ++ f ^. fieldType ^. datatypeName
