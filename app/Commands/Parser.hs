@@ -33,22 +33,22 @@ selection elementType = (between (char '(') (char ')') (selection elementType))
   <||> ((,) <$> (pure <$> lexeme elementType <* lexeme (char '|')) <*> (pure <$> lexeme stringLiteral))
   <||> ((,) <$> (pure <$> lexeme elementType) <*> pure Nothing)
   <||> ((,) <$> pure Nothing <*> (pure <$> lexeme stringLiteral))
-  <||> (char '*' *> pure (Nothing, Nothing))
+  <||> ((Nothing, Nothing) <$ char '*')
 
 path :: Parser Path
-path = (string ".." *> pure Upper)
-  <||> (char '/' *> pure Root)
+path = (Upper <$ string "..")
+  <||> (Root <$ char '/')
   <?> "path"
 
 (<||>) :: Parser a -> Parser a -> Parser a
 p <||> q = try p <|> q
 
 quit :: Parser Command
-quit = char 'q' *> pure Exit <* closer
+quit = Exit <$ char 'q' <* closer
   <?> "a 'q' to quit the program"
 
 emptyCommand :: Parser Command
-emptyCommand = (mempty :: Parser String) *> pure Empty <* closer
+emptyCommand = Empty <$ (mempty :: Parser String) <* closer
 
 indexPath :: Parser [Integer]
 indexPath = integer `sepBy` char '.'
@@ -57,8 +57,8 @@ dataDirPath :: String -> FilePath
 dataDirPath className = "data/" ++ className ++ ".java"
 
 parserType :: Parser ParserType
-parserType = (string "long" *> pure Long)
-  <||> (string "short" *> pure Short)
+parserType = (Long <$ string "long")
+  <||> (Short <$ string "short")
 
 metaCommand :: Parser MetaCommand
 metaCommand = (LoadFile <$> dataDirPath <$> (metaChar *> (lexeme $ string "load") *> identifier) <* closer)
