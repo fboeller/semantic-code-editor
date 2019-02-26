@@ -21,19 +21,22 @@ description:         Please see the README on GitHub at <https://github.com/fboe
 
 dependencies:
 - base >= 4.7 && < 5
-- language-java >= 0.2.9
 - parsec >= 3.1.13.0
-- microlens
-- microlens-th
 - lens
-- vty
+# Parser for Java
+- language-java >= 0.2.9
+# Colors for the terminal
 - ansi-terminal
+# Path manipulation
 - filepath
+# Reading whole recursive directories from file system
 - directory
 - directory-tree
-- unix
+# Data structures like trees
 - containers
+# CLI support like command history, auto completion
 - haskeline
+# Monad transformers
 - transformers
 
 library:

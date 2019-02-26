@@ -9,8 +9,7 @@ import Data.Traversable (traverse)
 import Control.Exception
 import Text.Parsec.Error (ParseError)
 import System.Directory
-import System.FilePath
-import System.Posix.Files
+import System.FilePath (takeExtension)
 import System.Directory.Tree (AnchoredDirTree((:/)), DirTree(..), filterDir, readDirectoryWith)
 
 data FileParseError = FileParseError FilePath String
