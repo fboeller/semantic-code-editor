@@ -37,5 +37,9 @@ While the second way does not require `stack` to be installed on the host, it is
   Refer to <https://docs.docker.com/install/> for more details.
 * Clone this repository `git clone git@github.com:fboeller/semantic-code-editor.git`.
 * Change the working directory to the cloned repository `semantic-code-editor`.
-* Run `docker run .`.
-  This will take an aweful amount of time since it is using a huge docker container (~4GB) with a whole haskell build environment.
+* Run `./build.sh`.
+  This will build a docker container `sce:latest`.
+  It takes an aweful amount of time since it is requiring a huge docker container (~4GB) with a whole haskell build environment.
+* Start the program with `docker run -i sce:latest`.
+  This will start a session with no project data loaded.
+  TODO: Describe here how a volume can be mounted inside to be loaded in the session.
