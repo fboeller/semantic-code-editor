@@ -23,7 +23,7 @@ focusFirst :: Tree J.Element -> AppState -> AppState
 focusFirst (Node _ elements) state =
   case elements of
     [] -> state & output .~ (Error $ putStrLn "No focusable element in scope")
-    ((Node e _):_) -> state & focus %~ (F.focusDown e)
+    (Node e _:_) -> state & focus %~ F.focusDown e
 
 focusFirstSelectedElementOfType :: ElementType -> String -> AppState -> AppState
 focusFirstSelectedElementOfType elementType term state =
@@ -51,13 +51,13 @@ focusLastOutputByIndex :: [Int] -> AppState -> AppState
 focusLastOutputByIndex indexPath state =
   case state ^. lastResultTree of
     Just tree -> focusEndOfPath indexPath tree state
-    _ -> state & output .~ (Error $ putStrLn $ "The last output was not a result tree")
+    _ -> state & output .~ Error (putStrLn "The last output was not a result tree")
 
 readLastOutputByIndex :: [Int] -> AppState -> AppState
 readLastOutputByIndex indexPath state =
   case state ^. lastResultTree of
     Just tree -> readEndOfPath indexPath tree state
-    _ -> state & output .~ (Error $ putStrLn $ "The last output was not a result tree")
+    _ -> state & output .~ Error (putStrLn "The last output was not a result tree")
 
 focusEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
 focusEndOfPath [] _ state = focusRoot state
@@ -82,7 +82,7 @@ readEndOfPath (index:restPath) (Node _ elements) state =
     (withIndexError state)
 
 withIndexError :: AppState -> AppState
-withIndexError state = state & output .~ (Error $ putStrLn $ "The index does not exist in the last result tree")
+withIndexError state = state & output .~ Error (putStrLn "The index does not exist in the last result tree")
 
 -- Finds the element at the given index in the list and returns the transformation according to the given function or returns the default if the index is out of bounds
 findOrElse :: Int -> [a] -> (a -> b) -> b -> b

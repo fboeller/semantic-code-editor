@@ -11,7 +11,6 @@ import Text.Parsec.Error (ParseError)
 import System.Directory
 import System.FilePath
 import System.Posix.Files
-import System.FilePath (takeExtension)
 import System.Directory.Tree (AnchoredDirTree((:/)), DirTree(..), filterDir, readDirectoryWith)
 
 data FileParseError = FileParseError FilePath String
@@ -36,7 +35,7 @@ runParser programStr = convertParseResult "" $ parser compilationUnit programStr
 
 runParserOnFile :: FilePath -> IO (Either FileParseError J.JavaFile)
 runParserOnFile file =
-  (convertParseResult file <$> parser compilationUnit <$> readFile file >>= evaluate)
+  (convertParseResult file . parser compilationUnit <$> readFile file >>= evaluate)
   `catch` (\e -> return $ Left $ FileParseError file $ show (e :: IOException))
 
 convertParseResult :: FilePath -> Either ParseError CompilationUnit -> Either FileParseError J.JavaFile

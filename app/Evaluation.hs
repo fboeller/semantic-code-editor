@@ -15,7 +15,7 @@ import Control.Lens
 
 processCommand :: String -> AppState -> IO AppState
 processCommand input state =
-  case P.runParser (state ^. config ^. commandParserType) input of
+  case P.runParser (state ^. config . commandParserType) input of
     Left err -> return $ state & output .~ Error (putStrLn err)
     Right command -> eval command <$> evalMeta command state
 
@@ -28,7 +28,8 @@ eval (P.Double P.List []) = A.listSelectedElements [pure True]
 eval (P.Double P.Focus []) = A.focusFirstElement
 eval (P.Double P.Focus [(Just elementType, Nothing)]) = A.focusFirstElementOfType elementType
 eval (P.Double P.Focus [(Nothing, Just term)]) = A.focusFirstSelectedElement term
-eval (P.Double P.List criteria) = A.listSelectedElements $ JA.allSatisfied <$> (\(maybeType, maybeTerm) -> [maybe (pure True) JA.matchesType maybeType, maybe (pure True) JA.matchesTerm maybeTerm]) <$> criteria
+eval (P.Double P.List criteria) = A.listSelectedElements $
+  JA.allSatisfied . (\(maybeType, maybeTerm) -> [maybe (pure True) JA.matchesType maybeType, maybe (pure True) JA.matchesTerm maybeTerm]) <$> criteria
 eval (P.PathSingle P.Focus P.Upper) = A.focusUp
 eval (P.PathSingle P.Focus P.Root) = A.focusRoot
 eval (P.IndexSingle P.Focus numbers) = A.focusLastOutputByIndex (fromInteger <$> numbers)

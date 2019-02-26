@@ -29,7 +29,7 @@ selections :: Parser ElementType -> Parser [(Maybe ElementType, Maybe String)]
 selections elementType = many $ lexeme (selection elementType)
 
 selection :: Parser ElementType -> Parser (Maybe ElementType, Maybe String)
-selection elementType = (between (char '(') (char ')') (selection elementType))
+selection elementType = between (char '(') (char ')') (selection elementType)
   <||> ((,) <$> (pure <$> lexeme elementType <* lexeme (char '|')) <*> (pure <$> lexeme stringLiteral))
   <||> ((,) <$> (pure <$> lexeme elementType) <*> pure Nothing)
   <||> ((,) <$> pure Nothing <*> (pure <$> lexeme stringLiteral))
@@ -61,15 +61,15 @@ parserType = (Long <$ string "long")
   <||> (Short <$ string "short")
 
 metaCommand :: Parser MetaCommand
-metaCommand = (LoadFile <$> dataDirPath <$> (metaChar *> (lexeme $ string "load") *> identifier) <* closer)
-  <||> (LoadFile <$> (metaChar *> (lexeme $ string "load") *> stringLiteral) <* closer)
-  <||> (SwitchCommandParser <$> (metaChar *> (lexeme $ string "switch") *> parserType) <* closer)
+metaCommand = (LoadFile . dataDirPath <$> (metaChar *> lexeme (string "load") *> identifier) <* closer)
+  <||> (LoadFile <$> (metaChar *> lexeme (string "load") *> stringLiteral) <* closer)
+  <||> (SwitchCommandParser <$> (metaChar *> lexeme (string "switch") *> parserType) <* closer)
 
 command :: Parser FirstCommand -> Parser ElementType -> Parser Command
 command firstCommand elementType = quit
   <||> emptyCommand
   <||> (IndexSingle Focus <$> indexPath <* closer <?> "a number to focus a result")
   <||> (Meta <$> metaCommand)
-  <||> (Double <$> lexeme firstCommand <*> (selections elementType) <* closer)
+  <||> (Double <$> lexeme firstCommand <*> selections elementType <* closer)
   <||> (PathSingle <$> firstCommand <* space <*> path <* closer)
   <||> (IndexSingle <$> firstCommand <* space <*> (integer `sepBy` char '.') <* closer)

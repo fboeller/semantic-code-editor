@@ -26,10 +26,10 @@ metaCommands = keywordFromTuple <$>
   ]
 
 completesTo :: String -> Completion -> Bool
-completesTo text completion = text `isPrefixOf` (replacement completion)
+completesTo text completion = text `isPrefixOf` replacement completion
 
 allDocumentedCompletions :: [Completion]
-allDocumentedCompletions = concat $
+allDocumentedCompletions = concat
   [ documentedCompletion <$> firstCommands
   , documentedCompletion <$> metaCommands
   ]

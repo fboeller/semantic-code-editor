@@ -9,20 +9,18 @@ import Commands.AutoComplete
 import Control.Lens
 import System.Console.Haskeline
 import Control.Monad.Trans.Class (lift)
+import Control.Monad (when)
        
 loop :: AppState -> InputT IO ()
 loop state = do
-  minput <- getInputLine $ (printPrompt $ state ^.to leafFocus) ++ " > "
+  minput <- getInputLine $ printPrompt (state ^.to leafFocus) ++ " > "
   case minput of
     Nothing -> return ()
     Just input -> do
       let cleanState = clearOutput state
       newState <- lift $ processCommand input cleanState
       lift $ printOutput $ newState ^. output
-      if newState ^. running then
-        loop newState
-      else
-        return ()
+      when (newState ^. running) $ loop newState
 
 settings :: Settings IO
 settings = setComplete commandCompletion defaultSettings

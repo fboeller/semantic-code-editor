@@ -25,58 +25,58 @@ printProjectSignature p = "/"
 printPackageSignature :: JavaFile -> String
 printPackageSignature p = unwords
   [ "package"
-  , p ^. packageName ^. idName -- TODO Fix this
+  , p ^. packageName . idName -- TODO Fix this
   ]
 
 printClassSignature :: Class -> String
 printClassSignature c = unwords $ catMaybes
   [ Just $ printVisibilityCommon $ c ^. classVisibility
   , if c ^. classFinal then Just "final" else Nothing
-  , Just $ "class"
-  , Just $ c ^. className ^. idName
-  , fmap ("extends "++) $ fmap (view idName) $ c ^. classExtends
-  , fmap ("implements "++) $ notEmpty $ intercalate ", " $ fmap (view idName) $ c ^. classImplements
+  , Just "class"
+  , Just $ c ^. className . idName
+  , ("extends "++) . view idName <$> c ^. classExtends
+  , fmap ("implements "++) . notEmpty . intercalate ", " . fmap (view idName) $ c ^. classImplements
   ]
   where notEmpty "" = Nothing
-        notEmpty str = Just $ str
+        notEmpty str = Just str
 
 printInterfaceSignature :: Interface -> String
 printInterfaceSignature i = unwords $ catMaybes
   [ Just $ printVisibilityCommon $ i ^. interfaceVisibility
-  , Just $ "interface"
-  , Just $ i ^. interfaceName ^. idName
-  , fmap ("extends "++) $ notEmpty $ intercalate ", " $ fmap (view idName) $ i ^. interfaceExtends
+  , Just "interface"
+  , Just $ i ^. interfaceName . idName
+  , fmap ("extends "++) $ notEmpty $ intercalate ", " $ view idName <$> i ^. interfaceExtends
   ]
   where notEmpty "" = Nothing
-        notEmpty str = Just $ str
+        notEmpty str = Just str
 
 printEnumSignature :: Enum -> String
 printEnumSignature e = unwords $ catMaybes
   [ Just $ printVisibilityCommon $ e ^. enumVisibility
-  , Just $ "enum"
-  , Just $ e ^. enumName ^. idName
+  , Just "enum"
+  , Just $ e ^. enumName . idName
   ]
 
 printMethodSignature :: Method -> String
 printMethodSignature m = unwords $ catMaybes
   [ Just $ printVisibilityCommon $ m ^. methodVisibility
   , if m ^. methodStatic then Just "static" else Nothing
-  , Just $ m ^. methodReturnType ^. datatypeName
-  , Just $ m ^. methodName ^. idName
-  , Just $ "(" ++ (intercalate ", " $ printParameterSignature <$> m ^. methodParameters) ++ ")"
+  , Just $ m ^. methodReturnType . datatypeName
+  , Just $ m ^. methodName . idName
+  , Just $ "(" ++ intercalate ", " (printParameterSignature <$> m ^. methodParameters) ++ ")"
   ]
 
 printConstructorSignature :: Constructor -> String
 printConstructorSignature c = unwords $ catMaybes
   [ Just $ printVisibilityCommon $ c ^. constructorVisibility
-  , Just $ c ^. constructorName ^. idName
-  , Just $ "(" ++ (intercalate ", " $ printParameterSignature <$> c ^. constructorParameters) ++ ")"
+  , Just $ c ^. constructorName . idName
+  , Just $ "(" ++ intercalate ", " (printParameterSignature <$> c ^. constructorParameters) ++ ")"
   ]
 
 printParameterSignature :: Parameter -> String
 printParameterSignature p = unwords
-  [ p ^. parameterType ^. datatypeName
-  , p ^. parameterName ^. idName
+  [ p ^. parameterType . datatypeName
+  , p ^. parameterName . idName
   ]
 
 printFieldSignature :: Field -> String
@@ -84,8 +84,8 @@ printFieldSignature f = unwords $ catMaybes
   [ Just $ printVisibilityCommon $ f ^. fieldVisibility
   , if f ^. fieldStatic then Just "static" else Nothing
   , if f ^. fieldFinal then Just "final" else Nothing
-  , Just $ f ^. fieldType ^. datatypeName
-  , Just $ f ^. fieldName ^. idName
+  , Just $ f ^. fieldType . datatypeName
+  , Just $ f ^. fieldName . idName
   ]
 
 printSignature :: Element -> String
@@ -110,14 +110,14 @@ printProjectCommon :: Project -> String
 printProjectCommon p = "/"
 
 printPackageCommon :: JavaFile -> String
-printPackageCommon p = p ^. packageName ^. idName
+printPackageCommon p = p ^. packageName . idName
 
 printClassCommon :: Class -> String
 printClassCommon c = unwords
   [ printClassSignature c
   , "{"
-  , concat $ ("\n  "++) <$> (++";") <$> printFieldSignature <$> c ^. classFields
-  , concat $ ("\n  "++) <$> printPrompt <$> EMethod <$> c ^. classMethods
+  , concat $ ("\n  "++) . (++";") . printFieldSignature <$> c ^. classFields
+  , concat $ ("\n  "++) . printPrompt . EMethod <$> c ^. classMethods
   , "\n}"
   ]
 
@@ -125,7 +125,7 @@ printInterfaceCommon :: Interface -> String
 printInterfaceCommon i = unwords
   [ printInterfaceSignature i
   , "{"
-  , concat $ ("\n  "++) <$> printPrompt <$> EMethod <$> i ^. interfaceMethods
+  , concat $ ("\n  "++) . printPrompt . EMethod <$> i ^. interfaceMethods
   , "\n}"
   ]
 
@@ -133,29 +133,29 @@ printEnumCommon :: Enum -> String
 printEnumCommon e = unwords
   [ printEnumSignature e
   , "{"
-  , concat $ ("\n  "++) <$> (++";") <$> e ^. enumConstants ^.. traverse.idName
-  , concat $ ("\n  "++) <$> (++";") <$> printFieldSignature <$> e ^. enumFields
-  , concat $ ("\n  "++) <$> printPrompt <$> EMethod <$> e ^. enumMethods
+  , concat $ ("\n  "++) . (++";") <$> e ^. enumConstants ^.. traverse.idName
+  , concat $ ("\n  "++) . (++";") . printFieldSignature <$> e ^. enumFields
+  , concat $ ("\n  "++) . printPrompt . EMethod <$> e ^. enumMethods
   , "\n}"
   ]
 
 printMethodCommon :: Method -> String
-printMethodCommon m = unwords $
+printMethodCommon m = unwords
   [ printMethodSignature m
   , m ^. methodBody
   ]
 
 printConstructorCommon :: Constructor -> String
-printConstructorCommon c = unwords $
+printConstructorCommon c = unwords
   [ printConstructorSignature c
   , c ^. constructorBody
   ]
 
 printParameterCommon :: Parameter -> String
-printParameterCommon p = p ^. parameterName ^. idName
+printParameterCommon p = p ^. parameterName . idName
 
 printFieldCommon :: Field -> String
-printFieldCommon f = f ^. fieldName ^. idName
+printFieldCommon f = f ^. fieldName . idName
 
 printCommon :: Element -> String
 printCommon (EProject p) = printProjectCommon p
@@ -172,24 +172,24 @@ printCommon (EType t) = t ^. datatypeName
 
 printMinimal :: Element -> String
 printMinimal (EProject p) = "/"
-printMinimal (EJavaFile p) = "package " ++ p ^. packageName ^. idName
-printMinimal (EClass c) = "class " ++ c ^. className ^. idName
-printMinimal (EInterface i) = "interface " ++ i ^. interfaceName ^. idName
-printMinimal (EEnum e) = "enum " ++ e ^. enumName ^. idName
+printMinimal (EJavaFile p) = "package " ++ p ^. packageName . idName
+printMinimal (EClass c) = "class " ++ c ^. className . idName
+printMinimal (EInterface i) = "interface " ++ i ^. interfaceName . idName
+printMinimal (EEnum e) = "enum " ++ e ^. enumName . idName
 printMinimal (EMethod m) = concat
-  [ m ^. methodName ^. idName
+  [ m ^. methodName . idName
   , "("
   , intercalate "," $ m ^. methodParameters ^.. traverse.parameterType ^.. traverse.datatypeName
   , "): "
-  , m ^. methodReturnType ^. datatypeName
+  , m ^. methodReturnType . datatypeName
   ]
 printMinimal (EConstructor c) = concat
-  [ c ^. constructorName ^. idName
+  [ c ^. constructorName . idName
   , "("
   , intercalate "," $ c ^. constructorParameters ^.. traverse.parameterType ^.. traverse.datatypeName
   , ")"
   ]
-printMinimal (EParameter p) = "parameter " ++ p ^. parameterName ^. idName
-printMinimal (EField f) = f ^. fieldName ^. idName ++ ": " ++ f ^. fieldType ^. datatypeName
+printMinimal (EParameter p) = "parameter " ++ p ^. parameterName . idName
+printMinimal (EField f) = f ^. fieldName . idName ++ ": " ++ f ^. fieldType . datatypeName
 printMinimal (EName n) = "name " ++ n ^. idName
 printMinimal (EType t) = "type " ++ t ^. datatypeName

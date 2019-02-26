@@ -26,13 +26,13 @@ convertCompilationUnit path (CompilationUnit maybePackageDecl _ typeDecls) =
 
 
 maybePackageDeclToIdentifier :: Maybe PackageDecl -> J.Identifier
-maybePackageDeclToIdentifier maybePackageDecl =
-  maybe (JC.identifier "") packageDecl maybePackageDecl
+maybePackageDeclToIdentifier =
+  maybe (JC.identifier "") packageDecl
   where
     packageDecl (PackageDecl packageName) = JC.identifier $ prettyPrint packageName
 
 classDeclToClass :: ClassDecl -> Maybe J.Class
-classDeclToClass (EnumDecl _ _ _ _) = Nothing
+classDeclToClass EnumDecl{} = Nothing
 classDeclToClass (ClassDecl modifiers (Ident name) _ maybeExtends implements (ClassBody decls)) = Just $
   J.Class { J._className = JC.identifier name
           , J._classFields = concatMap declToFields decls
@@ -45,7 +45,7 @@ classDeclToClass (ClassDecl modifiers (Ident name) _ maybeExtends implements (Cl
           }
 
 classDeclToEnum :: ClassDecl -> Maybe J.Enum
-classDeclToEnum (ClassDecl _ _ _ _ _ _) = Nothing
+classDeclToEnum ClassDecl{} = Nothing
 classDeclToEnum (EnumDecl modifiers (Ident name) _ (EnumBody constants decls)) = Just $
   J.Enum { J._enumName = JC.identifier name
          , J._enumConstants = toEnumConstant <$> constants
@@ -134,7 +134,7 @@ toVisibility modifiers =
     Just _ -> error "Non visibility modifier although filtered out"    
 
 isStatic :: [Modifier] -> Bool
-isStatic = any (==Static)
+isStatic = elem Static
 
 isFinal :: [Modifier] -> Bool
-isFinal = any (==Final)
+isFinal = elem Final

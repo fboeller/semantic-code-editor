@@ -38,8 +38,7 @@ packages:
 # using the same syntax as the packages field.
 # (e.g., acme-missiles-0.3)
 extra-deps:
-- haskell-src-exts-1.21.0@sha256:02421cacaa48c055551b8e5796efc543301b7ea9527a38e1385403d2b85512fb
-- brick-0.46@sha256:78629a4da6b759c78ec264bedc9e794edeb55a302d17015d0278620eef4ebe29
+- haskell-src-exts-1.20.3@sha256:eb9a0a02e422f64e793fe077e445e930bc365b7f7ce92ce6983475c72f8b3785
 - config-ini-0.2.4.0@sha256:38a6d484d471c6fac81445de2eac8c4e8c82760962fca5491ae1c3bfca9c4047
 - data-clist-0.1.2.2@sha256:4d70add0a200a178853cd37c6469101bac3c36aebb3aa9c503ff225211b1a8c9
 - text-zipper-0.10.1@sha256:8b73a97a3717a17df9b0a722b178950c476ff2268ca5c583e99d010c94af849e

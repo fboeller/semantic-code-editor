@@ -9,7 +9,7 @@ import qualified Trees as T
 import Data.List (isPrefixOf)
 import Data.Tree (Tree, unfoldTree, flatten)
 import Data.Char (toLower)
-import Data.Maybe (maybeToList, maybe)
+import Data.Maybe (maybeToList, maybe, fromMaybe)
 import Control.Applicative (liftA2)
 
 type SearchTerm = String
@@ -31,13 +31,13 @@ matchesTerm term element = isPrefixOf (toLower <$> term) $ toLower <$> searchPro
 searchProperty :: J.Element -> String
 searchProperty (J.EProject p) = ""
 searchProperty (J.EJavaFile j) = j ^. J.fileName
-searchProperty (J.EClass c) = c ^. J.className ^. J.idName
-searchProperty (J.EInterface i) = i ^. J.interfaceName ^. J.idName
-searchProperty (J.EEnum e) = e ^. J.enumName ^. J.idName
-searchProperty (J.EField f) = f ^. J.fieldName ^. J.idName
-searchProperty (J.EMethod m) = m ^. J.methodName ^. J.idName
-searchProperty (J.EConstructor c) = c ^. J.constructorName ^. J.idName
-searchProperty (J.EParameter p) = p ^. J.parameterName ^. J.idName
+searchProperty (J.EClass c) = c ^. J.className . J.idName
+searchProperty (J.EInterface i) = i ^. J.interfaceName . J.idName
+searchProperty (J.EEnum e) = e ^. J.enumName . J.idName
+searchProperty (J.EField f) = f ^. J.fieldName . J.idName
+searchProperty (J.EMethod m) = m ^. J.methodName . J.idName
+searchProperty (J.EConstructor c) = c ^. J.constructorName . J.idName
+searchProperty (J.EParameter p) = p ^. J.parameterName . J.idName
 searchProperty (J.EName n) = n ^. J.idName
 searchProperty (J.EType t) = t ^. J.datatypeName
 
@@ -82,10 +82,9 @@ extendedElements e = concat
 
 -- All elements of an element that are of
 allElements :: J.Project -> J.Element -> [J.Element]
-allElements project e = concat
-  [ standardElements e
-  , definitions project e
-  ]
+allElements project e =
+  standardElements e
+  ++ definitions project e
 
 classes :: J.Element -> [J.Class]
 classes (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= classes
@@ -146,17 +145,17 @@ definitions :: J.Project -> J.Element -> [J.Element]
 definitions project element = filter isOfType $ flatten $ T.recursively standardElements $ J.EProject project
   where
     isOfType :: J.Element -> Bool
-    isOfType candidate = maybe False id $
+    isOfType candidate = fromMaybe False $
       (==) <$> getTypeDefName candidate <*> getTypeUsageName element
 
 getTypeUsageName :: J.Element -> Maybe String
-getTypeUsageName (J.EField f) = Just $ f ^. J.fieldType ^. J.datatypeName
-getTypeUsageName (J.EMethod m) = Just $ m ^. J.methodReturnType ^. J.datatypeName
-getTypeUsageName (J.EParameter p) = Just $ p ^. J.parameterType ^. J.datatypeName
+getTypeUsageName (J.EField f) = Just $ f ^. J.fieldType . J.datatypeName
+getTypeUsageName (J.EMethod m) = Just $ m ^. J.methodReturnType . J.datatypeName
+getTypeUsageName (J.EParameter p) = Just $ p ^. J.parameterType . J.datatypeName
 getTypeUsageName _ = Nothing
 
 getTypeDefName :: J.Element -> Maybe String
-getTypeDefName (J.EClass c) = Just $ c ^. J.className ^. J.idName
-getTypeDefName (J.EInterface i) = Just $ i ^. J.interfaceName ^. J.idName
-getTypeDefName (J.EEnum e) = Just $ e ^. J.enumName ^. J.idName
+getTypeDefName (J.EClass c) = Just $ c ^. J.className . J.idName
+getTypeDefName (J.EInterface i) = Just $ i ^. J.interfaceName . J.idName
+getTypeDefName (J.EEnum e) = Just $ e ^. J.enumName . J.idName
 getTypeDefName _ = Nothing

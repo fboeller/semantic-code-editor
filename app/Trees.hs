@@ -31,7 +31,7 @@ recursively f = unfoldTree (\b -> (b, f b))
 
 treeprune :: Int -> Tree a -> Tree a
 treeprune 0 t = Node (rootLabel t) []
-treeprune d t = Node (rootLabel t) $ (treeprune $ d-1) <$> subForest t
+treeprune d t = Node (rootLabel t) $ treeprune (d-1) <$> subForest t
 
 treefilter :: (a -> Bool) -> Tree a -> Tree a
 treefilter f t = Node

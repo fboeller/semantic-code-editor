@@ -19,15 +19,13 @@ printOutput (Error io) = withSGR (SetColor Foreground Vivid Red) io
 
 printResultTree :: Int -> Int -> Tree String -> String
 printResultTree 0 _ (Node _ subs) = printResultForest 0 subs
-printResultTree level index (Node label subs) = concat
-  [ indent ++ show index ++ ": " ++ label ++ "\n"
-  , printResultForest level subs
-  ]
+printResultTree level index (Node label subs) =
+  indent ++ show index ++ ": " ++ label ++ "\n" ++ printResultForest level subs
   where indent = replicate ((level-1)*2) ' '
 
 printResultForest :: Int -> Forest String -> String
 printResultForest level subs =
-  concat $ (uncurry $ printResultTree $ level+1) <$> zip [1..] subs
+  concat $ uncurry (printResultTree $ level+1) <$> zip [1..] subs
 
 withIndex :: [String] -> [String]
 withIndex = zipWith (\i e -> show i ++ ": " ++ e) [1..]

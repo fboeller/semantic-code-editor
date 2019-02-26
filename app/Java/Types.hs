@@ -5,13 +5,13 @@ module Java.Types where
 import Prelude hiding (Enum)
 import Control.Lens
 
-data Identifier =
+newtype Identifier =
   Identifier { _idName :: String
              }
   deriving (Show)
 makeLenses ''Identifier
 
-data Datatype =
+newtype Datatype =
   Datatype { _datatypeName :: String
            }
   deriving (Show)
@@ -99,7 +99,7 @@ data JavaFile =
   deriving (Show)
 makeLenses ''JavaFile
 
-data Project =
+newtype Project =
   Project { _javaFiles :: [JavaFile]
           }
   deriving (Show)

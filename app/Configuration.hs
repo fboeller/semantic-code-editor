@@ -6,7 +6,7 @@ import Commands.Types (ParserType(..))
 
 import Control.Lens
 
-data Configuration =
+newtype Configuration =
   Configuration { _commandParserType :: ParserType
                 }
 
