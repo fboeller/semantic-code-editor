@@ -51,6 +51,9 @@ extra-deps:
 # Extra package databases containing global packages
 # extra-package-dbs: []
 
+docker:
+  enable: true
+
 ghc-options:
   # All packages
   "$locals": -fwarn-incomplete-patterns
