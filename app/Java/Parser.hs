@@ -6,6 +6,9 @@ import Java.Converter
 import Language.Java.Parser
 import Language.Java.Syntax (CompilationUnit)
 import Data.Traversable (traverse)
+import qualified Data.ByteString as BS
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 import Control.Exception
 import Text.Parsec.Error (ParseError)
 import System.Directory
@@ -27,14 +30,12 @@ runParserOnPath path = do
         convertEither (Left l) = ([l], [])
         convertEither (Right r) = ([], [r])
 
-testProgram = "public class Dog { String breed; int age; String color; public void barking() { } private int hungry() { return 42; } protected void sleeping() { } }"
-
 runParser :: String -> Either FileParseError J.JavaFile
 runParser programStr = convertParseResult "" $ parser compilationUnit programStr
 
 runParserOnFile :: FilePath -> IO (Either FileParseError J.JavaFile)
 runParserOnFile file =
-  (convertParseResult file . parser compilationUnit <$> readFile file >>= evaluate)
+  (convertParseResult file . parser compilationUnit . T.unpack . TE.decodeUtf8 <$> BS.readFile file >>= evaluate)
   `catch` (\e -> return $ Left $ FileParseError file $ show (e :: IOException))
 
 convertParseResult :: FilePath -> Either ParseError CompilationUnit -> Either FileParseError J.JavaFile

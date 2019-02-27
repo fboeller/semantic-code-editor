@@ -29,6 +29,10 @@ dependencies:
 - ansi-terminal
 # Path manipulation
 - filepath
+# Reading files
+- bytestring
+# File encodings
+- text
 # Reading whole recursive directories from file system
 - directory
 - directory-tree
