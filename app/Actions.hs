@@ -41,9 +41,11 @@ focusFirstElementOfType :: ElementType -> AppState -> AppState
 focusFirstElementOfType elementType state =
   focusFirst (JA.selectedElements [JA.matchesType elementType] (state ^. program) (state ^.to leafFocus)) state
 
+-- Focuses the previously focused element
 focusUp :: AppState -> AppState
 focusUp state = state & focus %~ F.focusUp
 
+-- Focuses the top most element in the project
 focusRoot :: AppState -> AppState
 focusRoot state = state & focus %~ F.focusRoot
 
@@ -84,7 +86,8 @@ readEndOfPath (index:restPath) (Node _ elements) state =
 withIndexError :: AppState -> AppState
 withIndexError state = state & output .~ Error (putStrLn "The index does not exist in the last result tree")
 
--- Finds the element at the given index in the list and returns the transformation according to the given function or returns the default if the index is out of bounds
+-- Finds the element at the given index in the list and returns the transformation according to the given function
+-- or returns the default if the index is out of bounds
 findOrElse :: Int -> [a] -> (a -> b) -> b -> b
 findOrElse index list f d =
   if index > 0 && index <= length list then
@@ -92,6 +95,7 @@ findOrElse index list f d =
   else
     d
 
+-- Causes the program to exit gracefully
 exit :: AppState -> AppState
 exit state = state
   & output .~ (Other $ putStr "Bye!")
