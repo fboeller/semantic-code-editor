@@ -40,6 +40,4 @@ While the second way does not require `stack` to be installed on the host, it is
 * Run `./build.sh`.
   This will build a docker container `sce:latest`.
   It takes an aweful amount of time since it is requiring a huge docker container (~4GB) with a whole haskell build environment.
-* Start the program with `docker run -i sce:latest`.
-  This will start a session with no project data loaded.
-  TODO: Describe here how a volume can be mounted inside to be loaded in the session.
+* Start the program with `docker run -ti -v <srcdir>:/data sce:latest` where `<srcdir>` is an absolute path to a directory on your host containing Java source code.
