@@ -14,17 +14,9 @@ import Control.Applicative (liftA2)
 
 type SearchTerm = String
 
--- A tree of all elements beneath this element to which the given predicates apply.
--- Elements are only included in the resulting tree iff...
--- ... they satisfy the predicate of their level.
--- ... all their parents satisfy the predicate of their level.
--- ... there is a predicate for their level.
 selectedElements :: [J.Element -> Bool] -> J.Project -> J.Element -> Tree J.Element
-selectedElements predicates project element =
-  T.recursively (allElements project) element
-  & T.levelFilteredTree predicates
-  & T.treeprune (length predicates) 
-  & T.cutEarlyLeafs (length predicates)
+selectedElements predicates project =
+  T.selectedBranches predicates . T.recursively (allElements project)
 
 -- Returns if the elements matches the element type and search term
 matchesAllGiven :: (Maybe ElementType, Maybe String) -> J.Element -> Bool
