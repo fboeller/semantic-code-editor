@@ -31,4 +31,16 @@ spec = describe "Trees" $ do
       \x -> levelFilteredTree (repeat $ pure True) x == x
 
     it "has maximum height 3 for a false third predicate" $ treeProperty $
-      \x -> (length $ levels $ levelFilteredTree [pure True, pure True, pure False] x) <= 3
+      \x -> (height $ levelFilteredTree [pure True, pure True, pure False] x) <= 3
+
+  describe "cutLateAndEarlyLeafs" $ do
+    
+    it "results in an empty tree for a desired height of 0" $ treeProperty $
+      \x -> (subForest $ cutLateAndEarlyLeafs 0 x) == []
+
+    it "results in an empty tree for a desired height greater than the height of the tree" $ treeProperty $
+      \x -> (subForest $ cutLateAndEarlyLeafs (1 + height x) x) == []
+
+    it "only contains branches of maximum the desired height if the height is within the tree height" $ property $
+      \x -> forAll (elements [1..height x]) $
+            \h -> (height $ cutLateAndEarlyLeafs h (x::Tree ())) <= h + 1
