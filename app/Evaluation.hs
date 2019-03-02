@@ -11,6 +11,7 @@ import Configuration (commandParserType)
 
 import Data.List (intercalate)
 import Data.Maybe (maybe)
+import Control.Applicative (liftA2)
 import Control.Lens
 
 processCommand :: String -> AppState -> IO AppState
@@ -29,12 +30,16 @@ eval (P.Double P.Focus []) = A.focusFirstElement
 eval (P.Double P.Focus [(Just elementType, Nothing)]) = A.focusFirstElementOfType elementType
 eval (P.Double P.Focus [(Nothing, Just term)]) = A.focusFirstSelectedElement term
 eval (P.Double P.List criteria) = A.listSelectedElements $
-  JA.allSatisfied . (\(maybeType, maybeTerm) -> [maybe (pure True) JA.matchesType maybeType, maybe (pure True) JA.matchesTerm maybeTerm]) <$> criteria
+  allSatisfied . (\(maybeType, maybeTerm) -> [maybe (pure True) JA.matchesType maybeType, maybe (pure True) JA.matchesTerm maybeTerm]) <$> criteria
 eval (P.PathSingle P.Focus P.Upper) = A.focusUp
 eval (P.PathSingle P.Focus P.Root) = A.focusRoot
 eval (P.IndexSingle P.Focus numbers) = A.focusLastOutputByIndex (fromInteger <$> numbers)
 eval (P.IndexSingle P.Read numbers) = A.readLastOutputByIndex (fromInteger <$> numbers)
 eval input = set output $ Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented"
+
+-- Creates a function that returns True iff all given functions return True.
+allSatisfied :: [a -> Bool] -> a -> Bool
+allSatisfied = foldr (liftA2 (&&)) (pure True)
 
 evalMeta :: P.Command -> AppState -> IO AppState
 evalMeta (P.Meta (P.LoadFile path)) state = processJavaInput path state

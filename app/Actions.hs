@@ -19,27 +19,22 @@ listSelectedElements :: [J.Element -> Bool] -> AppState -> AppState
 listSelectedElements predicates state =
   state & output .~ (ResultTree $ JA.selectedElements predicates (state ^. program) (state ^.to leafFocus))
 
-focusFirst :: Tree J.Element -> AppState -> AppState
-focusFirst (Node _ elements) state =
-  case elements of
-    [] -> state & output .~ (Error $ putStrLn "No focusable element in scope")
-    (Node e _:_) -> state & focus %~ F.focusDown e
-
-focusFirstSelectedElementOfType :: ElementType -> String -> AppState -> AppState
-focusFirstSelectedElementOfType elementType term state =
-  focusFirst (JA.selectedElements [JA.allSatisfied [JA.matchesType elementType, JA.matchesTerm term]] (state ^. program) (state ^.to leafFocus)) state
+-- Focuses the first direct subelement of the current focus that satisfies the predicate
+focusFirstOfSelectedElements :: (J.Element -> Bool) -> AppState -> AppState
+focusFirstOfSelectedElements predicate state =
+  let (Node _ elements) = JA.selectedElements [predicate] (state ^. program) (state ^.to leafFocus) in
+    case elements of
+      [] -> state & output .~ (Error $ putStrLn "No focusable element in scope")
+      ((Node e _):_) -> state & focus %~ F.focusDown e
 
 focusFirstSelectedElement :: String -> AppState -> AppState
-focusFirstSelectedElement term state =
-  focusFirst (JA.selectedElements [JA.matchesTerm term] (state ^. program) (state ^.to leafFocus)) state
+focusFirstSelectedElement = focusFirstOfSelectedElements . JA.matchesTerm
 
 focusFirstElement :: AppState -> AppState
-focusFirstElement state =
-  focusFirst (JA.selectedElements [] (state ^. program) (state ^.to leafFocus)) state
+focusFirstElement = focusFirstOfSelectedElements (pure True)
 
 focusFirstElementOfType :: ElementType -> AppState -> AppState
-focusFirstElementOfType elementType state =
-  focusFirst (JA.selectedElements [JA.matchesType elementType] (state ^. program) (state ^.to leafFocus)) state
+focusFirstElementOfType = focusFirstOfSelectedElements . JA.matchesType
 
 -- Focuses the previously focused element
 focusUp :: AppState -> AppState

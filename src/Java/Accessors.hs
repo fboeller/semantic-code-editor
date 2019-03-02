@@ -10,7 +10,6 @@ import Data.List (isPrefixOf)
 import Data.Tree (Tree, unfoldTree, flatten)
 import Data.Char (toLower)
 import Data.Maybe (maybeToList, maybe, fromMaybe)
-import Control.Applicative (liftA2)
 
 type SearchTerm = String
 
@@ -25,10 +24,6 @@ selectedElements predicates project element =
   & T.levelFilteredTree predicates
   & T.treeprune (length predicates) 
   & T.cutEarlyLeafs (length predicates)
-
--- Creates a function that returns True iff all given functions return True.
-allSatisfied :: [a -> Bool] -> a -> Bool
-allSatisfied = foldr (liftA2 (&&)) (pure True)
 
 matchesTerm :: SearchTerm -> J.Element -> Bool
 matchesTerm term element = isPrefixOf (toLower <$> term) $ toLower <$> searchProperty element
