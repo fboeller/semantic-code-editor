@@ -44,3 +44,22 @@ spec = describe "Trees" $ do
     it "only contains branches of maximum the desired height if the height is within the tree height" $ property $
       \x -> forAll (elements [1..height x]) $
             \h -> (height $ cutLateAndEarlyLeafs h (x::Tree ())) <= h + 1
+
+  describe "selectedBranches" $ do
+    
+    it "results in an empty tree for no predicates" $ treeProperty $
+      \x -> subForest (selectedBranches [] x) == []
+
+    it "results in an empty tree for a single false predicate" $ treeProperty $
+      \x -> subForest (selectedBranches [pure False] x) == []
+
+    it "results in an empty tree for more true predicates than the height is" $ treeProperty $
+      \x -> subForest (selectedBranches (take (height x) $ repeat $ pure True) x) == []
+
+    it "results in a tree with the same height for as many true predicates as the height minus the root is" $ treeProperty $
+      \x -> height (selectedBranches (take (height x - 1) $ repeat $ pure True) x) == height x
+
+    it "results in a tree with height n+1 for n true predicates if n is smaller than the height of the tree" $ property $
+      \x -> forAll (elements [0..height x - 1]) $
+            \n -> height (selectedBranches (take n $ repeat $ pure True) (x::Tree ())) == n + 1
+
