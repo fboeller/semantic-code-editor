@@ -68,8 +68,7 @@ metaCommand = (LoadFile . dataDirPath <$> (metaChar *> lexeme (string "load") *>
 command :: Parser FirstCommand -> Parser ElementType -> Parser Command
 command firstCommand elementType = quit
   <||> emptyCommand
-  <||> (IndexSingle Focus <$> indexPath <* closer <?> "a number to focus a result")
+  <||> (IndexSingle <$> firstCommand <* space <*> indexPath <* closer)
   <||> (Meta <$> metaCommand)
   <||> (Double <$> lexeme firstCommand <*> selections elementType <* closer)
   <||> (PathSingle <$> firstCommand <* space <*> path <* closer)
-  <||> (IndexSingle <$> firstCommand <* space <*> (integer `sepBy` char '.') <* closer)

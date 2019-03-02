@@ -9,16 +9,17 @@ data Keyword a =
           , _model :: a
           , _description :: String
           }
+  deriving (Eq, Show)
 makeLenses ''Keyword
 
 data ParserType = Long
                 | Short
-  deriving Show
+  deriving (Eq, Show)
 
 data FirstCommand = Read
                   | Focus
                   | List
-  deriving Show
+  deriving (Eq, Show)
 
 data ElementType = Class
                  | Interface
@@ -31,15 +32,15 @@ data ElementType = Class
                  | Name
                  | Type
                  | Definition
-  deriving Show
+  deriving (Eq, Show)
 
 data Path = Upper
           | Root
-  deriving Show
+  deriving (Eq, Show)
 
 data MetaCommand = LoadFile String
                  | SwitchCommandParser ParserType
-  deriving Show
+  deriving (Eq, Show)
 
 data Command = Empty
              | Exit
@@ -47,4 +48,4 @@ data Command = Empty
              | Double FirstCommand [(Maybe ElementType, Maybe String)]
              | IndexSingle FirstCommand [Integer]
              | PathSingle FirstCommand Path
-  deriving Show
+  deriving (Eq, Show)
