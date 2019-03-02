@@ -9,7 +9,8 @@ import qualified Trees as T
 import Data.List (isPrefixOf)
 import Data.Tree (Tree, unfoldTree, flatten)
 import Data.Char (toLower)
-import Data.Maybe (maybeToList, maybe, fromMaybe)
+import Data.Maybe (maybeToList, fromMaybe, catMaybes)
+import Control.Applicative (liftA2)
 
 type SearchTerm = String
 
@@ -24,6 +25,17 @@ selectedElements predicates project element =
   & T.levelFilteredTree predicates
   & T.treeprune (length predicates) 
   & T.cutEarlyLeafs (length predicates)
+
+-- Returns if the elements matches the element type and search term
+matchesAllGiven :: (Maybe ElementType, Maybe String) -> J.Element -> Bool
+matchesAllGiven (maybeType, maybeTerm) = allSatisfied $ catMaybes
+  [ matchesType <$> maybeType,
+    matchesTerm <$> maybeTerm
+  ]
+
+-- Creates a function that returns True iff all given functions return True.
+allSatisfied :: [a -> Bool] -> a -> Bool
+allSatisfied = foldr (liftA2 (&&)) (pure True)
 
 matchesTerm :: SearchTerm -> J.Element -> Bool
 matchesTerm term element = isPrefixOf (toLower <$> term) $ toLower <$> searchProperty element

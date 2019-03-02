@@ -27,14 +27,8 @@ focusFirstOfSelectedElements predicate state =
       [] -> state & output .~ (Error $ putStrLn "No focusable element in scope")
       ((Node e _):_) -> state & focus %~ F.focusDown e
 
-focusFirstSelectedElement :: String -> AppState -> AppState
-focusFirstSelectedElement = focusFirstOfSelectedElements . JA.matchesTerm
-
 focusFirstElement :: AppState -> AppState
 focusFirstElement = focusFirstOfSelectedElements (pure True)
-
-focusFirstElementOfType :: ElementType -> AppState -> AppState
-focusFirstElementOfType = focusFirstOfSelectedElements . JA.matchesType
 
 -- Focuses the previously focused element
 focusUp :: AppState -> AppState
