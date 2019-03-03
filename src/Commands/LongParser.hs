@@ -1,12 +1,14 @@
 module Commands.LongParser where
 
 import Commands.Types
+import Commands.Util
 
-import Text.ParserCombinators.Parsec (Parser, choice, string, (<?>))
+import Text.ParserCombinators.Parsec (Parser, string, (<?>))
 import Control.Lens hiding (List)
 
 keywordP :: Keyword a -> Parser a
-keywordP keyword = string (keyword ^. word) *> pure (keyword ^. model) <?> (keyword ^. description)
+keywordP keyword = keyword ^. model <$ string (keyword ^. word)
+  <?> (keyword ^. description)
 
 keywordFromTuple :: (String, a, String) -> Keyword a
 keywordFromTuple (word, model, description) =
@@ -23,7 +25,7 @@ firstCommands = keywordFromTuple <$>
   ]
 
 firstCommand :: Parser FirstCommand
-firstCommand = choice (keywordP <$> firstCommands)
+firstCommand = trychoice (keywordP <$> firstCommands)
   <?> "a first command 'read', 'focus' or 'list'"
 
 elementTypes :: [Keyword ElementType]
@@ -42,5 +44,5 @@ elementTypes = keywordFromTuple <$>
   ]
 
 elementType :: Parser ElementType
-elementType = choice (keywordP <$> elementTypes)
+elementType = trychoice (keywordP <$> elementTypes)
   <?> "an element type 'class', 'interface', 'enum', 'method', 'focus', 'variable', 'parameter', 'extension', 'name', 'type' or 'definition'"

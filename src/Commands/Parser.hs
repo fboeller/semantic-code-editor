@@ -2,11 +2,13 @@ module Commands.Parser where
 
 import Commands.Types
 import Commands.Lexer
+import Commands.Util
 import qualified Commands.ShortParser as SP
 import qualified Commands.LongParser as LP
 
-import Text.ParserCombinators.Parsec (Parser, choice, between, char, string, parse, try, (<|>), (<?>), newline, sepBy)
+import Text.ParserCombinators.Parsec (Parser, choice, between, char, string, parse, try, (<|>), (<?>), newline, sepBy, many1)
 import Control.Applicative hiding ((<|>))
+import Data.Bifunctor
 
 firstCommand :: ParserType -> Parser FirstCommand
 firstCommand Long = LP.firstCommand
@@ -17,41 +19,41 @@ elementType Long = LP.elementType
 elementType Short = SP.elementType
 
 runParser :: ParserType -> String -> Either String Command
-runParser parserType str =
-  let commandParser = command (firstCommand parserType) (elementType parserType) in
-    case parse commandParser "Parser for commands" (str ++ ";") of
-      Left err -> Left $ show err
-      Right val -> Right val
+runParser parserType =
+  first show . parse commandParser "Parser for commands" . (++";")
+  where commandParser = command (firstCommand parserType) (elementType parserType)
 
--- Parser for a sequence of filters by element type or/and a search term
--- Each of this filters is meant to filter on a subsequent element in the element tree
-selections :: Parser ElementType -> Parser [(Maybe ElementType, Maybe String)]
-selections elementType = many $ lexeme (selection elementType)
+selections elementType =
+  many1 (selection elementType <* many space)
+  <?> "selections"
 
 selection :: Parser ElementType -> Parser (Maybe ElementType, Maybe String)
-selection elementType = between (char '(') (char ')') (selection elementType)
-  <||> ((,) <$> (pure <$> lexeme elementType <* lexeme (char '|')) <*> (pure <$> lexeme stringLiteral))
-  <||> ((,) <$> (pure <$> lexeme elementType) <*> pure Nothing)
-  <||> ((,) <$> pure Nothing <*> (pure <$> lexeme stringLiteral))
-  <||> ((Nothing, Nothing) <$ char '*')
+selection elementType = trychoice
+  [ between (char '(' <* spaces) (spaces *> char ')') (selection elementType)
+  , (,) <$> (Just <$> elementType) <* (spaces *> char '|' <* spaces) <*> (Just <$> searchTerm)
+  , (,) <$> (Just <$> elementType) <*> pure Nothing
+  , (,) <$> pure Nothing <*> (Just <$> searchTerm)
+  , (Nothing, Nothing) <$ char '*'
+  ] <?> "selection"
+
+searchTerm :: Parser String
+searchTerm = char '\"' *> identifier <* char '\"'
 
 path :: Parser Path
 path = (Upper <$ string "..")
   <||> (Root <$ char '/')
   <?> "path"
 
-(<||>) :: Parser a -> Parser a -> Parser a
-p <||> q = try p <|> q
-
 quit :: Parser Command
-quit = Exit <$ char 'q' <* closer
+quit = Exit <$ char 'q'
   <?> "a 'q' to quit the program"
 
 emptyCommand :: Parser Command
-emptyCommand = Empty <$ (mempty :: Parser String) <* closer
+emptyCommand = Empty <$ (mempty :: Parser String)
 
 indexPath :: Parser [Integer]
 indexPath = integer `sepBy` char '.'
+  <?> "index path"
 
 dataDirPath :: String -> FilePath
 dataDirPath className = "data/" ++ className ++ ".java"
@@ -61,14 +63,21 @@ parserType = (Long <$ string "long")
   <||> (Short <$ string "short")
 
 metaCommand :: Parser MetaCommand
-metaCommand = (LoadFile . dataDirPath <$> (metaChar *> lexeme (string "load") *> identifier) <* closer)
-  <||> (LoadFile <$> (metaChar *> lexeme (string "load") *> stringLiteral) <* closer)
-  <||> (SwitchCommandParser <$> (metaChar *> lexeme (string "switch") *> parserType) <* closer)
+metaCommand = trychoice
+  [ closed $ LoadFile . dataDirPath <$> (metaChar *> lexeme (string "load") *> identifier)
+  , closed $ LoadFile <$> (metaChar *> lexeme (string "load") *> stringLiteral)
+  , closed $ SwitchCommandParser <$> (metaChar *> lexeme (string "switch") *> parserType)
+  ]
+
+closed p = p <* closer
 
 command :: Parser FirstCommand -> Parser ElementType -> Parser Command
-command firstCommand elementType = quit
-  <||> emptyCommand
-  <||> (IndexSingle <$> firstCommand <* space <*> indexPath <* closer)
-  <||> (Meta <$> metaCommand)
-  <||> (Double <$> lexeme firstCommand <*> selections elementType <* closer)
-  <||> (PathSingle <$> firstCommand <* space <*> path <* closer)
+command firstCommand elementType = many space *> trychoice
+  [ closed quit
+  , closed emptyCommand
+  , closed $ Double <$> firstCommand <*> pure []
+  , closed $ Double <$> firstCommand <* many1 space <*> selections elementType
+  , closed $ IndexSingle <$> firstCommand <* many1 space <*> indexPath
+  , closed $ PathSingle <$> firstCommand <* many1 space <*> path
+  , Meta <$> metaCommand
+  ]

@@ -1,10 +1,17 @@
 module Commands.ParserSpec where
 
 import Test.Hspec
+import Test.QuickCheck
 import Data.Either
+import Data.List (intercalate)
+import Control.Lens ((^.))
 
 import Commands.Parser
 import Commands.Types
+import Commands.LongParser (firstCommands, elementTypes)
+
+firstCommandWords = elements $ (^.word) <$> firstCommands
+elementTypeWords = elements $ (^.word) <$> elementTypes
 
 spec = describe "runParser" $ do
 
@@ -15,6 +22,20 @@ spec = describe "runParser" $ do
   
     it "parses only spaces" $ do
       runParser Long "  " `shouldBe` Right Empty
+
+  context "with whitespace" $ do
+
+    it "ignores leading spaces" $
+      forAll firstCommandWords $
+      \cmd -> runParser Long ("  " ++ cmd) `shouldSatisfy` isRight    
+
+    it "ignores trailing spaces" $
+      forAll firstCommandWords $
+      \cmd -> runParser Long (cmd ++ "  ") `shouldSatisfy` isRight    
+
+    it "ignores spaces between arguments of the list command" $
+      forAll (listOf elementTypeWords) $
+      \elementTypes -> runParser Long (intercalate "  " $ "list":elementTypes) `shouldSatisfy` isRight    
 
   context "on meta command" $ do
 
