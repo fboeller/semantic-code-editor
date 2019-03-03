@@ -6,7 +6,7 @@ import qualified Java.Types as J
 import qualified Java.Creators as JC
 import Commands.Types (ElementType(..))
 import qualified Trees as T
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, isInfixOf)
 import Data.Tree (Tree, unfoldTree, flatten)
 import Data.Char (toLower)
 import Data.Maybe (maybeToList, fromMaybe, catMaybes)
@@ -22,15 +22,24 @@ selectedElements predicates project =
 matchesAllGiven :: (Maybe ElementType, Maybe String) -> J.Element -> Bool
 matchesAllGiven (maybeType, maybeTerm) = allSatisfied $ catMaybes
   [ matchesType <$> maybeType,
-    matchesTerm <$> maybeTerm
+    matchesTermAsInfix <$> maybeTerm
   ]
 
 -- Creates a function that returns True iff all given functions return True.
 allSatisfied :: [a -> Bool] -> a -> Bool
 allSatisfied = foldr (liftA2 (&&)) (pure True)
 
-matchesTerm :: SearchTerm -> J.Element -> Bool
-matchesTerm term element = isPrefixOf (toLower <$> term) $ toLower <$> searchProperty element
+preprocess :: String -> String
+preprocess = fmap toLower
+
+matchesTermAsPrefix :: SearchTerm -> J.Element -> Bool
+matchesTermAsPrefix term = matchesTerm isPrefixOf term . searchProperty
+
+matchesTermAsInfix :: SearchTerm -> J.Element -> Bool
+matchesTermAsInfix term = matchesTerm isInfixOf term . searchProperty
+
+matchesTerm :: (String -> String -> Bool) -> SearchTerm -> String -> Bool
+matchesTerm matches term element = preprocess term `matches` preprocess element
 
 searchProperty :: J.Element -> String
 searchProperty (J.EProject p) = ""
