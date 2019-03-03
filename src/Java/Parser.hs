@@ -22,7 +22,7 @@ runParserOnPath path = do
     _ :/ tree <- readDirectoryWith return path
     dirtree <- traverse runParserOnFile $ filterDir myPred tree
     let maybeJavaFiles = foldr mappend ([], []) $ convertEither <$> dirtree -- TODO Not sure if the errors get concatenated
-    return $ filesToProject <$> maybeJavaFiles
+    return $ toProject path <$> maybeJavaFiles
   where myPred (Dir ('.':_) _) = False
         myPred (File n _) = takeExtension n == ".java"
         myPred _ = True
@@ -42,5 +42,8 @@ convertParseResult :: FilePath -> Either ParseError CompilationUnit -> Either Fi
 convertParseResult file (Left err) = Left $ FileParseError file $ show err
 convertParseResult file (Right val) = Right $ convertCompilationUnit file val
 
-filesToProject :: [J.JavaFile] -> J.Project
-filesToProject javaFiles = J.Project { J._javaFiles = javaFiles }
+toProject :: FilePath -> [J.JavaFile] -> J.Project
+toProject path javaFiles =
+  J.Project { J._srcDir = path
+            , J._javaFiles = javaFiles
+            }

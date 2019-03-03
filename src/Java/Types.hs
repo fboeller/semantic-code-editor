@@ -99,8 +99,9 @@ data JavaFile =
   deriving (Show)
 makeLenses ''JavaFile
 
-newtype Project =
-  Project { _javaFiles :: [JavaFile]
+data Project =
+  Project { _srcDir :: FilePath
+          , _javaFiles :: [JavaFile]
           }
   deriving (Show)
 makeLenses ''Project

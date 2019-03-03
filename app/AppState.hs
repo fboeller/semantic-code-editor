@@ -39,7 +39,7 @@ clearOutput state = state
               
 initialState :: AppState
 initialState =
-  AppState { _program = J.Project { J._javaFiles = [] }
+  AppState { _program = J.Project { J._srcDir = "/", J._javaFiles = [] }
            , _focus = []
            , _lastResultTree = Nothing
            , _output = Other mempty

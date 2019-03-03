@@ -20,7 +20,7 @@ printPrompt e =
     _ -> ""
   
 printProjectSignature :: Project -> String
-printProjectSignature p = "/"
+printProjectSignature = view srcDir
 
 printPackageSignature :: JavaFile -> String
 printPackageSignature p = unwords
