@@ -6,10 +6,12 @@ import Output (printOutput)
 import Evaluation (processCommand, processJavaInput)
 import Commands.AutoComplete
 
-import Control.Lens
 import System.Console.Haskeline
+import System.Environment (getArgs)
+import Control.Lens
 import Control.Monad.Trans.Class (lift)
 import Control.Monad (when)
+import Data.Maybe (fromMaybe)
        
 loop :: AppState -> InputT IO ()
 loop state = do
@@ -25,8 +27,16 @@ loop state = do
 settings :: Settings IO
 settings = setComplete commandCompletion defaultSettings
 
-main :: IO ()
-main = do
-  loadedState <- processJavaInput "./data" initialState
+run :: FilePath -> IO ()
+run srcPath = do
+  loadedState <- processJavaInput srcPath initialState
   printOutput $ loadedState ^. output
   runInputT settings $ loop loadedState
+
+main :: IO ()
+main = do
+  args <- getArgs
+  case args of
+    [] -> run "./data"
+    [srcPath] -> run srcPath
+    _ -> putStrLn "At most one single source directory or source file is supported."
