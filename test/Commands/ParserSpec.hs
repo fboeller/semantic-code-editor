@@ -145,6 +145,14 @@ spec = describe "runParser" $ do
     it "parses with single search term" $ do
       runParser Long "focus \"abc\"" `shouldBe` Right (Double Focus [(Nothing, Just "abc")])
 
+    context "without explicit keyword" $ do
+
+      it "parses with one digit number" $ do
+        runParser Long "1" `shouldBe` Right (IndexSingle Focus [1])      
+
+      it "parses with multiple number path" $ do
+        runParser Long "15.178.3" `shouldBe` Right (IndexSingle Focus [15, 178, 3])
+
   describe "read command" $ do
 
     it "parses without parameters" $ do

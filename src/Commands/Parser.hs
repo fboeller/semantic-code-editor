@@ -76,6 +76,7 @@ command firstCommand elementType = many space *> trychoice
   [ closed quit
   , closed emptyCommand
   , closed $ Double <$> firstCommand <*> pure []
+  , closed $ IndexSingle <$> pure Focus <*> indexPath
   , closed $ Double <$> firstCommand <* many1 space <*> selections elementType
   , closed $ IndexSingle <$> firstCommand <* many1 space <*> indexPath
   , closed $ PathSingle <$> firstCommand <* many1 space <*> path
