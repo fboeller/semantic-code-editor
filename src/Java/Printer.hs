@@ -107,10 +107,10 @@ printVisibilityCommon Protected = "protected"
 printVisibilityCommon Public = "public"
 
 printProjectCommon :: Project -> String
-printProjectCommon p = "/"
+printProjectCommon = view srcDir
 
 printPackageCommon :: JavaFile -> String
-printPackageCommon p = p ^. packageName . idName
+printPackageCommon = view $ packageName . idName
 
 printClassCommon :: Class -> String
 printClassCommon c = unwords
