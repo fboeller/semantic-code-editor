@@ -122,6 +122,16 @@ spec = describe "runParser" $ do
       runParser Long "list (class | \"abc\") * (method) \"hui\""
         `shouldBe` Right (Double List [(Just Class, Just "abc"), (Nothing, Nothing), (Just Method, Nothing), (Nothing, Just "hui")])
 
+  context "with double wildcard operator" $ do
+
+    it "rejects standalone" $ do
+      pendingWith "#40"
+      runParser Long "list **" `shouldSatisfy` isLeft
+
+    it "rejects ending in it" $ do
+      pendingWith "#40"
+      runParser Long "list class **" `shouldSatisfy` isLeft
+
   describe "focus command" $ do
 
     it "parses without parameters" $ do

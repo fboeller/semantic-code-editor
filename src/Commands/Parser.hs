@@ -23,6 +23,7 @@ runParser parserType =
   first show . parse commandParser "Parser for commands" . (++";")
   where commandParser = command (firstCommand parserType) (elementType parserType)
 
+selections :: Parser ElementType -> Parser [(Maybe ElementType, Maybe String)]
 selections elementType =
   many1 (selection elementType <* many space)
   <?> "selections"
