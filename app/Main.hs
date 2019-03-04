@@ -15,7 +15,9 @@ import Data.Maybe (fromMaybe)
        
 loop :: AppState -> InputT IO ()
 loop state = do
-  minput <- getInputLine $ printPrompt (state ^.to leafFocus) ++ " > "
+  -- TODO Since we can't put the colorized print into getInputLine, the prompt sometimes gets lost
+  lift $ printPrompt (state ^.to leafFocus)
+  minput <- getInputLine $ " > "
   case minput of
     Nothing -> return ()
     Just input -> do

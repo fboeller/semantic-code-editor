@@ -12,13 +12,9 @@ import Data.List (intercalate)
 import Data.Maybe (catMaybes)
 import System.Console.ANSI
 
-printPrompt :: Element -> String
-printPrompt e =
-  printSignature e ++ case e of
-    (EClass _) -> " { ... }"
-    (EMethod _) -> " { ... }"
-    _ -> ""
-  
+printPrompt :: Element -> IO ()
+printPrompt = printMinimal
+
 printProjectSignature :: Project -> String
 printProjectSignature = view srcDir
 
@@ -112,12 +108,19 @@ printProjectCommon = view srcDir
 printPackageCommon :: JavaFile -> String
 printPackageCommon = view $ packageName . idName
 
+printSignatureWithEllipsisBody :: Element -> String
+printSignatureWithEllipsisBody e =
+  printSignature e ++ case e of
+    (EClass _) -> " { ... }"
+    (EMethod _) -> " { ... }"
+    _ -> ""
+  
 printClassCommon :: Class -> String
 printClassCommon c = unwords
   [ printClassSignature c
   , "{"
   , concat $ ("\n  "++) . (++";") . printFieldSignature <$> c ^. classFields
-  , concat $ ("\n  "++) . printPrompt . EMethod <$> c ^. classMethods
+  , concat $ ("\n  "++) . printSignatureWithEllipsisBody . EMethod <$> c ^. classMethods
   , "\n}"
   ]
 
@@ -125,7 +128,7 @@ printInterfaceCommon :: Interface -> String
 printInterfaceCommon i = unwords
   [ printInterfaceSignature i
   , "{"
-  , concat $ ("\n  "++) . printPrompt . EMethod <$> i ^. interfaceMethods
+  , concat $ ("\n  "++) . printSignatureWithEllipsisBody . EMethod <$> i ^. interfaceMethods
   , "\n}"
   ]
 
@@ -135,7 +138,7 @@ printEnumCommon e = unwords
   , "{"
   , concat $ ("\n  "++) . (++";") <$> e ^. enumConstants ^.. traverse.idName
   , concat $ ("\n  "++) . (++";") . printFieldSignature <$> e ^. enumFields
-  , concat $ ("\n  "++) . printPrompt . EMethod <$> e ^. enumMethods
+  , concat $ ("\n  "++) . printSignatureWithEllipsisBody . EMethod <$> e ^. enumMethods
   , "\n}"
   ]
 
