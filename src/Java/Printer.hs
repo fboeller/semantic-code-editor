@@ -10,6 +10,7 @@ import Prelude hiding (Enum)
 import Control.Lens
 import Data.List (intercalate)
 import Data.Maybe (catMaybes)
+import System.Console.ANSI
 
 printPrompt :: Element -> String
 printPrompt e =
@@ -169,26 +170,77 @@ printCommon (EField f) = printFieldCommon f
 printCommon (EName n) = n ^. idName
 printCommon (EType t) = t ^. datatypeName
 
+-- TODO Duplicated in Output.hs
+withSGR :: SGR -> IO () -> IO ()
+withSGR sgr io = do
+  setSGR [sgr]
+  io
+  setSGR [Reset]
+
+colorize :: Color -> String -> IO ()
+colorize color = withSGR (SetColor Foreground Vivid color) . putStr
+
+keyword :: String -> IO ()
+keyword "package" = colorize Blue "package"
+keyword "class" = colorize Blue "class"
+keyword "interface" = colorize Blue "interface"
+keyword "enum" = colorize Blue "enum"
+keyword "method" = colorize Green "method"
+keyword "constructor" = colorize Magenta "constructor"
+keyword "field" = colorize Cyan "field"
+keyword "parameter" = colorize Yellow "parameter"
+keyword _ = error ""
+
 printMinimal :: Element -> IO ()
 printMinimal (EProject p) = putStr "/"
-printMinimal (EJavaFile p) = putStr $ "package " ++ p ^. packageName . idName
-printMinimal (EClass c) = putStr $ "class " ++ c ^. className . idName
-printMinimal (EInterface i) = putStr $ "interface " ++ i ^. interfaceName . idName
-printMinimal (EEnum e) = putStr $ "enum " ++ e ^. enumName . idName
+printMinimal (EJavaFile p) = mconcat
+  [ keyword "package"
+  , putStr " "
+  , putStr $ p ^. packageName . idName
+  ]
+printMinimal (EClass c) = mconcat
+  [ keyword "class"
+  , putStr " "
+  , putStr $ c ^. className . idName
+  ]
+printMinimal (EInterface i) = mconcat
+  [ keyword "interface"
+  , putStr " "
+  , putStr $ i ^. interfaceName . idName
+  ]
+printMinimal (EEnum e) = mconcat
+  [ keyword "enum"
+  , putStr " "
+  , putStr $ e ^. enumName . idName
+  ]
 printMinimal (EMethod m) = mconcat
-  [ putStr $ m ^. methodName . idName
+  [ keyword "method"
+  , putStr " "
+  , putStr $ m ^. methodName . idName
   , putStr $ "("
   , putStr $ intercalate "," $ m ^. methodParameters ^.. traverse.parameterType ^.. traverse.datatypeName
   , putStr $ "): "
   , putStr $ m ^. methodReturnType . datatypeName
   ]
 printMinimal (EConstructor c) = mconcat
-  [ putStr $ c ^. constructorName . idName
+  [ keyword "constructor"
+  , putStr " "
+  , putStr $ c ^. constructorName . idName
   , putStr $ "("
   , putStr $ intercalate "," $ c ^. constructorParameters ^.. traverse.parameterType ^.. traverse.datatypeName
   , putStr $ ")"
   ]
-printMinimal (EParameter p) = putStr $ "parameter " ++ p ^. parameterName . idName
-printMinimal (EField f) = putStr $ f ^. fieldName . idName ++ ": " ++ f ^. fieldType . datatypeName
+printMinimal (EParameter p) = mconcat
+  [ keyword "parameter"
+  , putStr " "
+  , putStr $ p ^. parameterName . idName
+  ]
+printMinimal (EField f) = mconcat
+  [ keyword "field"
+  , putStr " "
+  , putStr $ f ^. fieldName . idName
+  , putStr $ ": "
+  , putStr $ f ^. fieldType . datatypeName
+  ]
 printMinimal (EName n) = putStr $ "name " ++ n ^. idName
 printMinimal (EType t) = putStr $ "type " ++ t ^. datatypeName
