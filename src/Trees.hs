@@ -1,6 +1,9 @@
 module Trees where
 
 import Data.Tree
+import qualified Data.List as L
+import Data.Function (on)
+import Data.Ord (comparing)
 
 -- A tree of all elements beneath this element to which the given predicates apply.
 -- Elements are only included in the resulting tree iff...
@@ -34,6 +37,12 @@ isLeaf = null . subForest
 
 height :: Tree a -> Int
 height = length . levels
+
+sortOn :: (Ord b) => (a -> b) -> Tree a -> Tree a
+sortOn = sortBy . comparing
+
+sortBy :: (a -> a -> Ordering) -> Tree a -> Tree a
+sortBy compare = foldTree (\label -> Node label . L.sortBy (compare `on` rootLabel))
 
 -- Removes all elements from the tree that do not satisfy the given predicate for the level they are on.
 -- The given list defines the predicates where the nth predicate corresponds to the nth level of the tree.

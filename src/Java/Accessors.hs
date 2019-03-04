@@ -10,13 +10,15 @@ import Data.List (isPrefixOf, isInfixOf)
 import Data.Tree (Tree, unfoldTree, flatten)
 import Data.Char (toLower)
 import Data.Maybe (maybeToList, fromMaybe, catMaybes)
+import Data.Function (on)
+import Data.Ord (comparing)
 import Control.Applicative (liftA2)
 
 type SearchTerm = String
 
 selectedElements :: [J.Element -> Bool] -> J.Project -> J.Element -> Tree J.Element
 selectedElements predicates project =
-  T.selectedBranches predicates . T.recursively (allElements project)
+  T.sortBy (comparing elementTypeOf <> comparing searchProperty) . T.selectedBranches predicates . T.recursively (allElements project)
 
 -- Returns if the elements matches the element type and search term
 matchesAllGiven :: (Maybe ElementType, Maybe String) -> J.Element -> Bool
@@ -38,8 +40,8 @@ matchesTermAsPrefix term = matchesTerm isPrefixOf term . searchProperty
 matchesTermAsInfix :: SearchTerm -> J.Element -> Bool
 matchesTermAsInfix term = matchesTerm isInfixOf term . searchProperty
 
-matchesTerm :: (String -> String -> Bool) -> SearchTerm -> String -> Bool
-matchesTerm matches term element = preprocess term `matches` preprocess element
+matchesTerm :: (String -> String -> Bool) -> String -> String -> Bool
+matchesTerm = (`on` preprocess)
 
 searchProperty :: J.Element -> String
 searchProperty (J.EProject p) = ""
@@ -69,6 +71,19 @@ matchesType Definition (J.EClass _) = True
 matchesType Definition (J.EInterface _) = True
 matchesType Definition (J.EEnum _) = True
 matchesType _ _ = False
+
+elementTypeOf :: J.Element -> ElementType
+elementTypeOf (J.EClass _) = Class
+elementTypeOf (J.EInterface _) = Interface
+elementTypeOf (J.EEnum _) = Enum
+elementTypeOf (J.EField _) = Variable
+elementTypeOf (J.EMethod _) = Method
+elementTypeOf (J.EConstructor _) = Method
+elementTypeOf (J.EParameter _) = Parameter
+elementTypeOf (J.EName _) = Name
+elementTypeOf (J.EType _) = Type
+elementTypeOf (J.EJavaFile _) = error "Can't query the element type of a Java file"
+elementTypeOf (J.EProject _) = error "Can't query the element type of a project"
 
 -- All elements within an element that are of immediate interest
 -- This elements aren't redundant, they are the essential elements defining the scope of the element 

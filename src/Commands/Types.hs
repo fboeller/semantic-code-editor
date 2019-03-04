@@ -32,7 +32,7 @@ data ElementType = Class
                  | Name
                  | Type
                  | Definition
-  deriving (Eq, Show)
+  deriving (Eq, Show, Ord)
 
 data Path = Upper
           | Root
