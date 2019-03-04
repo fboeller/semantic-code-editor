@@ -22,9 +22,6 @@ listSelectedElements :: [J.Element -> Bool] -> AppState -> AppState
 listSelectedElements predicates state =
   state & output .~ (ResultTree $ JA.selectedElements predicates (state ^. program) (state ^.to leafFocus))
 
-listElementsOfIndex :: [Int] -> AppState -> AppState
-listElementsOfIndex _ = id
-
 -- Focuses the first direct subelement of the current focus that satisfies the predicate
 focusFirstOfSelectedElements :: (J.Element -> Bool) -> AppState -> AppState
 focusFirstOfSelectedElements predicate state =
@@ -66,11 +63,18 @@ focusLastOutputByIndex = withLastResultTree . focusEndOfPath
 readLastOutputByIndex :: [Int] -> AppState -> AppState
 readLastOutputByIndex = withLastResultTree . readEndOfPath
 
+listLastOutputByIndex :: [Int] -> AppState -> AppState
+listLastOutputByIndex = withLastResultTree . listEndOfPath
+
 focusEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
 focusEndOfPath = withElementAtIndex $ over focus . F.focusDown . rootLabel
 
 readEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
 readEndOfPath = withElementAtIndex $ set output . Other . putStrLn . printCommon . rootLabel
+
+listEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
+listEndOfPath path tree state =
+  (withElementAtIndex $ set output . ResultTree . JA.selectedElements [pure True] (state ^. program) . rootLabel) path tree state
 
 -- Causes the program to exit gracefully
 exit :: AppState -> AppState
