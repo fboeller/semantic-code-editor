@@ -18,15 +18,16 @@ type SearchTerm = String
 
 selectedElements :: [J.Element -> Bool] -> J.Project -> J.Element -> Tree J.Element
 selectedElements predicates project =
-  T.sortBy (comparing elementTypeOf <> comparing searchProperty)
+  T.sortBy (comparing elementTypeOf <> comparing name)
   . T.selectedBranches predicates
   . T.recursively (allElements project)
 
 -- Returns if the elements matches the element type and search term
-matchesAllGiven :: (Maybe ElementType, Maybe String) -> J.Element -> Bool
-matchesAllGiven (maybeType, maybeTerm) = allSatisfied $ catMaybes
-  [ matchesType <$> maybeType,
-    matchesTermAsInfix <$> maybeTerm
+matchesAllGiven :: (Maybe ElementType, Maybe String, Maybe String) -> J.Element -> Bool
+matchesAllGiven (maybeElementType, maybeNameTerm, maybeTypeTerm) = allSatisfied $ catMaybes
+  [ matchesElementType <$> maybeElementType,
+    matchesTermAsInfix <$> maybeNameTerm,
+    matchesTermAsInfixByType <$> maybeTypeTerm
   ]
 
 -- Creates a function that returns True iff all given functions return True.
@@ -37,42 +38,33 @@ preprocess :: String -> String
 preprocess = fmap toLower
 
 matchesTermAsPrefix :: SearchTerm -> J.Element -> Bool
-matchesTermAsPrefix term = matchesTerm isPrefixOf term . searchProperty
+matchesTermAsPrefix term = matchesTerm isPrefixOf term . name
 
 matchesTermAsInfix :: SearchTerm -> J.Element -> Bool
-matchesTermAsInfix term = matchesTerm isInfixOf term . searchProperty
+matchesTermAsInfix term = matchesTerm isInfixOf term . name
+
+matchesTermAsInfixByType :: SearchTerm -> J.Element -> Bool
+matchesTermAsInfixByType term element =
+  fromMaybe False $ matchesTerm isInfixOf term <$> view J.datatypeName <$> typeOf element
 
 matchesTerm :: (String -> String -> Bool) -> String -> String -> Bool
 matchesTerm = (`on` preprocess)
 
-searchProperty :: J.Element -> String
-searchProperty (J.EProject p) = ""
-searchProperty (J.EJavaFile j) = j ^. J.fileName
-searchProperty (J.EClass c) = c ^. J.className . J.idName
-searchProperty (J.EInterface i) = i ^. J.interfaceName . J.idName
-searchProperty (J.EEnum e) = e ^. J.enumName . J.idName
-searchProperty (J.EField f) = f ^. J.fieldName . J.idName
-searchProperty (J.EMethod m) = m ^. J.methodName . J.idName
-searchProperty (J.EConstructor c) = c ^. J.constructorName . J.idName
-searchProperty (J.EParameter p) = p ^. J.parameterName . J.idName
-searchProperty (J.EName n) = n ^. J.idName
-searchProperty (J.EType t) = t ^. J.datatypeName
-
-matchesType :: ElementType -> J.Element -> Bool
-matchesType Class (J.EClass _) = True
-matchesType Interface (J.EInterface _) = True
-matchesType Enum (J.EEnum _) = True
-matchesType Variable (J.EField _) = True
-matchesType Method (J.EMethod _) = True
-matchesType Method (J.EConstructor _) = True
-matchesType Parameter (J.EParameter _) = True
-matchesType Extension (J.EClass _) = True
-matchesType Name (J.EName _) = True
-matchesType Type (J.EType _) = True
-matchesType Definition (J.EClass _) = True
-matchesType Definition (J.EInterface _) = True
-matchesType Definition (J.EEnum _) = True
-matchesType _ _ = False
+matchesElementType :: ElementType -> J.Element -> Bool
+matchesElementType Class (J.EClass _) = True
+matchesElementType Interface (J.EInterface _) = True
+matchesElementType Enum (J.EEnum _) = True
+matchesElementType Variable (J.EField _) = True
+matchesElementType Method (J.EMethod _) = True
+matchesElementType Method (J.EConstructor _) = True
+matchesElementType Parameter (J.EParameter _) = True
+matchesElementType Extension (J.EClass _) = True
+matchesElementType Name (J.EName _) = True
+matchesElementType Type (J.EType _) = True
+matchesElementType Definition (J.EClass _) = True
+matchesElementType Definition (J.EInterface _) = True
+matchesElementType Definition (J.EEnum _) = True
+matchesElementType _ _ = False
 
 elementTypeOf :: J.Element -> ElementType
 elementTypeOf (J.EClass _) = Class
@@ -98,7 +90,7 @@ standardElements e = concat
   , J.EField <$> variables e
   , J.EMethod <$> methods e
   , J.EParameter <$> parameters e
-  , J.EType <$> types e
+  , maybeToList $ J.EType <$> typeOf e
   ]
 
 -- All elements that describe properties of the element
@@ -107,7 +99,7 @@ extendedElements :: J.Element -> [J.Element]
 extendedElements e = concat
   [ standardElements e
   , J.EClass <$> extensions e
-  , J.EName <$> names e
+  , pure $ J.EName $ J.Identifier $ name e
   ]
 
 -- All elements of an element that are of
@@ -155,21 +147,24 @@ extensions :: J.Element -> [J.Class]
 extensions (J.EClass c) = maybeToList $ JC.emptyClass <$> c ^. J.classExtends
 extensions _ = []
 
-names :: J.Element -> [J.Identifier]
-names (J.EClass c) = [c ^. J.className]
-names (J.EInterface i) = [i ^. J.interfaceName]
-names (J.EEnum e) = [e ^. J.enumName]
-names (J.EField f) = [f ^. J.fieldName]
-names (J.EMethod m) = [m ^. J.methodName]
-names (J.EConstructor c) = [c ^. J.constructorName]
-names (J.EParameter p) = [p ^. J.parameterName]
-names _ = []
+name :: J.Element -> String
+name (J.EProject p) = ""
+name (J.EJavaFile j) = j ^. J.fileName
+name (J.EClass c) = c ^. J.className . J.idName
+name (J.EInterface i) = i ^. J.interfaceName . J.idName
+name (J.EEnum e) = e ^. J.enumName . J.idName
+name (J.EField f) = f ^. J.fieldName . J.idName
+name (J.EMethod m) = m ^. J.methodName . J.idName
+name (J.EConstructor c) = c ^. J.constructorName . J.idName
+name (J.EParameter p) = p ^. J.parameterName . J.idName
+name (J.EName n) = n ^. J.idName
+name (J.EType t) = t ^. J.datatypeName
 
-types :: J.Element -> [J.Datatype]
-types (J.EField f) = [f ^. J.fieldType]
-types (J.EMethod m) = [m ^. J.methodReturnType]
-types (J.EParameter p) = [p ^. J.parameterType]
-types _ = []
+typeOf :: J.Element -> Maybe J.Datatype
+typeOf (J.EField f) = Just $ f ^. J.fieldType
+typeOf (J.EMethod m) = Just $ m ^. J.methodReturnType
+typeOf (J.EParameter p) = Just $ p ^. J.parameterType
+typeOf _ = Nothing
 
 definitions :: J.Project -> J.Element -> [J.Element]
 definitions project element = filter (isOfType element) $ flatten $ T.recursively standardElements $ J.EProject project

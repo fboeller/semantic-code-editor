@@ -89,38 +89,54 @@ spec = describe "runParser" $ do
       runParser Long "list" `shouldBe` Right (Double List [])
 
     it "parses with single wildcard" $ do
-      runParser Long "list *" `shouldBe` Right (Double List [(Nothing, Nothing)])
+      runParser Long "list *" `shouldBe` Right (Double List [(Nothing, Nothing, Nothing)])
 
     it "parses with single element type" $ do
-      runParser Long "list class" `shouldBe` Right (Double List [(Just Class, Nothing)])
+      runParser Long "list class" `shouldBe` Right (Double List [(Just Class, Nothing, Nothing)])
 
     it "parses with single element type in brackets" $ do
-      runParser Long "list (class)" `shouldBe` Right (Double List [(Just Class, Nothing)])
+      runParser Long "list (class)" `shouldBe` Right (Double List [(Just Class, Nothing, Nothing)])
 
     it "parses with multiple element types" $ do
       runParser Long "list class method parameter"
-        `shouldBe` Right (Double List [(Just Class, Nothing), (Just Method, Nothing), (Just Parameter, Nothing)])
+        `shouldBe` Right (Double List [(Just Class, Nothing, Nothing), (Just Method, Nothing, Nothing), (Just Parameter, Nothing, Nothing)])
 
     it "parses with single search term" $ do
-      runParser Long "list \"abc\"" `shouldBe` Right (Double List [(Nothing, Just "abc")])
+      runParser Long "list \"abc\"" `shouldBe` Right (Double List [(Nothing, Just "abc", Nothing)])
 
     it "parses with single search term in brackets" $ do
-      runParser Long "list (\"abc\")" `shouldBe` Right (Double List [(Nothing, Just "abc")])
+      runParser Long "list (\"abc\")" `shouldBe` Right (Double List [(Nothing, Just "abc", Nothing)])
 
     it "parses with multiple search terms" $ do
       runParser Long "list \"abc\" \"QWE\" \"hjk\""
-        `shouldBe` Right (Double List [(Nothing, Just "abc"), (Nothing, Just "QWE"), (Nothing, Just "hjk")])
-
-    it "parses with single search term applied to element type" $ do
-      runParser Long "list (method | \"abc\")" `shouldBe` Right (Double List [(Just Method, Just "abc")])
-
-    it "parses with single search term applied to a wildcard" $ do
-      pending
-      runParser Long "list (* | \"abc\")" `shouldBe` Right (Double List [(Nothing, Just "abc")])
+        `shouldBe` Right (Double List [(Nothing, Just "abc", Nothing), (Nothing, Just "QWE", Nothing), (Nothing, Just "hjk", Nothing)])
 
     it "parses with a complex mix" $ do
-      runParser Long "list (class | \"abc\") * (method) \"hui\""
-        `shouldBe` Right (Double List [(Just Class, Just "abc"), (Nothing, Nothing), (Just Method, Nothing), (Nothing, Just "hui")])
+      runParser Long "list (class && \"abc\") * (method) \"hui\""
+        `shouldBe` Right (Double List [(Just Class, Just "abc", Nothing), (Nothing, Nothing, Nothing), (Just Method, Nothing, Nothing), (Nothing, Just "hui", Nothing)])
+
+  context "with selections" $ do
+
+    it "parses with element type and name term" $ do
+      runParser Long "list (method && \"abc\")" `shouldBe` Right (Double List [(Just Method, Just "abc", Nothing)])
+
+    it "parses with element type and type term" $ do
+      runParser Long "list (enum && type \"abc\")" `shouldBe` Right (Double List [(Just Enum, Nothing, Just "abc")])
+
+    it "parses with explicit name term" $ do
+      runParser Long "list (name \"abc\")" `shouldBe` Right (Double List [(Nothing, Just "abc", Nothing)])
+
+    it "parses with type term" $ do
+      runParser Long "list (type \"abc\")" `shouldBe` Right (Double List [(Nothing, Nothing, Just "abc")])
+
+    it "parses with name term and type term" $ do
+      runParser Long "list (\"hjk\" && type \"abc\")" `shouldBe` Right (Double List [(Nothing, Just "hjk", Just "abc")])
+
+    it "parses with explicit name term and type term" $ do
+      runParser Long "list (name \"hjk\" && type \"abc\")" `shouldBe` Right (Double List [(Nothing, Just "hjk", Just "abc")])
+
+    it "parses with element type, explicit name term and type term" $ do
+      runParser Long "list (class && name \"hjk\" && type \"abc\")" `shouldBe` Right (Double List [(Just Class, Just "hjk", Just "abc")])
 
   context "with double wildcard operator" $ do
 
@@ -147,13 +163,13 @@ spec = describe "runParser" $ do
       runParser Long "focus 15.178.3" `shouldBe` Right (IndexSingle Focus [15, 178, 3])
 
     it "parses with single wildcard" $ do
-      runParser Long "focus *" `shouldBe` Right (Double Focus [(Nothing, Nothing)])
+      runParser Long "focus *" `shouldBe` Right (Double Focus [(Nothing, Nothing, Nothing)])
 
     it "parses with single element type" $ do
-      runParser Long "focus class" `shouldBe` Right (Double Focus [(Just Class, Nothing)])
+      runParser Long "focus class" `shouldBe` Right (Double Focus [(Just Class, Nothing, Nothing)])
 
     it "parses with single search term" $ do
-      runParser Long "focus \"abc\"" `shouldBe` Right (Double Focus [(Nothing, Just "abc")])
+      runParser Long "focus \"abc\"" `shouldBe` Right (Double Focus [(Nothing, Just "abc", Nothing)])
 
     context "without explicit keyword" $ do
 

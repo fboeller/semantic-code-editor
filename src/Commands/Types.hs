@@ -45,7 +45,7 @@ data MetaCommand = LoadFile String
 data Command = Empty
              | Exit
              | Meta MetaCommand
-             | Double FirstCommand [(Maybe ElementType, Maybe String)]
+             | Double FirstCommand [(Maybe ElementType, Maybe String, Maybe String)]
              | IndexSingle FirstCommand [Integer]
              | PathSingle FirstCommand Path
   deriving (Eq, Show)

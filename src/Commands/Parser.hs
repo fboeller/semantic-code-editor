@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 module Commands.Parser where
 
 import Commands.Types
@@ -23,22 +25,34 @@ runParser parserType =
   first show . parse commandParser "Parser for commands" . (++";")
   where commandParser = command (firstCommand parserType) (elementType parserType)
 
-selections :: Parser ElementType -> Parser [(Maybe ElementType, Maybe String)]
+type Selection = (Maybe ElementType, Maybe String, Maybe String)
+
+selections :: Parser ElementType -> Parser [Selection]
 selections elementType =
   many1 (selection elementType <* many space)
   <?> "selections"
 
-selection :: Parser ElementType -> Parser (Maybe ElementType, Maybe String)
+selection :: Parser ElementType -> Parser Selection
 selection elementType = trychoice
-  [ between (char '(' <* spaces) (spaces *> char ')') (selection elementType)
-  , (,) <$> (Just <$> elementType) <* (spaces *> char '|' <* spaces) <*> (Just <$> searchTerm)
-  , (,) <$> (Just <$> elementType) <*> pure Nothing
-  , (,) <$> pure Nothing <*> (Just <$> searchTerm)
-  , (Nothing, Nothing) <$ char '*'
+  [ inBrackets $ selection elementType
+  , (Nothing, Nothing, Nothing) <$ char '*'
+  , (Nothing, Nothing, ) <$> typeCond
+  , (Nothing, , ) <$> nameCond <* and <*> typeCond
+  , (Nothing, , Nothing) <$> nameCond
+  , ( , , ) <$> elementTypeCond <* and <*> nameCond <* and <*> typeCond
+  , ( , Nothing, ) <$> elementTypeCond <* and <*> typeCond
+  , ( , , Nothing) <$> elementTypeCond <* and <*> nameCond
+  , ( , Nothing, Nothing) <$> elementTypeCond -- Must be last to not match early
   ] <?> "selection"
+  where
+    elementTypeCond = Just <$> elementType
+    typeCond = string "type" *> many1 space *> (Just <$> searchTerm)
+    nameCond = (Just <$> searchTerm) <||> (string "name" *> many1 space *> (Just <$> searchTerm))
+    and = spaces *> string "&&" <* spaces
+    inBrackets = between (char '(' <* spaces) (spaces *> char ')')
 
 searchTerm :: Parser String
-searchTerm = char '\"' *> identifier <* char '\"'
+searchTerm = (char '\"' *> identifier <* char '\"') <||> (string "\"\"")
 
 path :: Parser Path
 path = (Upper <$ string "..")
