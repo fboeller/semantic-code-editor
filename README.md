@@ -1,5 +1,88 @@
 # Semantic Code Editor
 
+The semantic code editor is a REPL application that allows quick navigation within huge Java projects.
+In contrast to classical text editors, it focuses on navigating between syntactical elements instead of lines of code.
+
+## Example
+
+Find all classes defining a field of the custom type `System`:
+
+```> list class (variable && name "System")```
+
+List all interfaces with their methods:
+
+```> list interface method```
+
+## Usage
+
+The application currently allows the usage of three commands:
+
+* `list` for listing desired elements of your project
+* `focus` for switching the focus to a different part of your project
+* `read` for printing the source code of an element of your project
+
+Furthermore, the application distinguishes between different types of elements:
+
+* `class`: A class definition
+* `interface`: An interface definition
+* `enum`: An enum definition
+* `method`: A method definition
+* `variable`: A field definition
+* `parameter`: A parameter of a method signature
+* `extension`: A class extending another class
+* `type`: The type of a field, the return type of a method or the type of a parameter
+* `definition`: The definition of a type
+
+### List command
+
+The `list` command allows you to print a subset of the tree under your currently focused element.
+It is usable in two variants:
+
+* With an index path like `list 1.5`: It lists all elements of the fifth sub element of the first element of the last printed tree.
+* With a selection condition like `list method parameter`: It lists all parameters of all methods within the currently focused element.
+
+#### Examples
+
+Find the main method of the project:
+
+```
+list class (method && name "main")
+1: class App
+        1: method main(String[]): void
+```
+
+List all methods returning a string:
+
+```> list class (method && type "String")```
+
+List all parameters of a complex method:
+
+```> list class (method && name "myMethod") parameter```
+
+#### Shortcuts
+
+The list command provides different shortcuts for quicker navigation.
+
+* Use `list` instead of `list *`
+* Use `list "App"` instead of `list (name "App")`
+
+### Read command
+
+The `read` command allows you to print an element in Java syntax.
+In contrast to the `list` command, it also allows printing of method bodies.
+
+As a parameter, it only accepts an index path like `3.1`.
+
+#### Examples
+
+Read the currently focused element:
+
+```> read```
+
+Read the second sub element of the fourth element of the last printed tree:
+
+```> read 4.2```
+
 ## Installation
 
 There is currently no other way to install this application than building from source.
