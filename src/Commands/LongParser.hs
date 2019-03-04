@@ -34,7 +34,6 @@ elementTypes = keywordFromTuple <$>
   , ("interface", Interface, "interface")
   , ("enum", Enum, "enum")
   , ("method", Method, "method")
-  , ("function", Function, "function")
   , ("variable", Variable, "variable")
   , ("parameter", Parameter, "parameter")
   , ("extension", Extension, "extension")
