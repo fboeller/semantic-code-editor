@@ -1,6 +1,5 @@
 module Java.Printer
   ( printCommon
-  , printSignature
   , printPrompt
   , printMinimal
   ) where
@@ -170,26 +169,26 @@ printCommon (EField f) = printFieldCommon f
 printCommon (EName n) = n ^. idName
 printCommon (EType t) = t ^. datatypeName
 
-printMinimal :: Element -> String
-printMinimal (EProject p) = "/"
-printMinimal (EJavaFile p) = "package " ++ p ^. packageName . idName
-printMinimal (EClass c) = "class " ++ c ^. className . idName
-printMinimal (EInterface i) = "interface " ++ i ^. interfaceName . idName
-printMinimal (EEnum e) = "enum " ++ e ^. enumName . idName
-printMinimal (EMethod m) = concat
-  [ m ^. methodName . idName
-  , "("
-  , intercalate "," $ m ^. methodParameters ^.. traverse.parameterType ^.. traverse.datatypeName
-  , "): "
-  , m ^. methodReturnType . datatypeName
+printMinimal :: Element -> IO ()
+printMinimal (EProject p) = putStr "/"
+printMinimal (EJavaFile p) = putStr $ "package " ++ p ^. packageName . idName
+printMinimal (EClass c) = putStr $ "class " ++ c ^. className . idName
+printMinimal (EInterface i) = putStr $ "interface " ++ i ^. interfaceName . idName
+printMinimal (EEnum e) = putStr $ "enum " ++ e ^. enumName . idName
+printMinimal (EMethod m) = mconcat
+  [ putStr $ m ^. methodName . idName
+  , putStr $ "("
+  , putStr $ intercalate "," $ m ^. methodParameters ^.. traverse.parameterType ^.. traverse.datatypeName
+  , putStr $ "): "
+  , putStr $ m ^. methodReturnType . datatypeName
   ]
-printMinimal (EConstructor c) = concat
-  [ c ^. constructorName . idName
-  , "("
-  , intercalate "," $ c ^. constructorParameters ^.. traverse.parameterType ^.. traverse.datatypeName
-  , ")"
+printMinimal (EConstructor c) = mconcat
+  [ putStr $ c ^. constructorName . idName
+  , putStr $ "("
+  , putStr $ intercalate "," $ c ^. constructorParameters ^.. traverse.parameterType ^.. traverse.datatypeName
+  , putStr $ ")"
   ]
-printMinimal (EParameter p) = "parameter " ++ p ^. parameterName . idName
-printMinimal (EField f) = f ^. fieldName . idName ++ ": " ++ f ^. fieldType . datatypeName
-printMinimal (EName n) = "name " ++ n ^. idName
-printMinimal (EType t) = "type " ++ t ^. datatypeName
+printMinimal (EParameter p) = putStr $ "parameter " ++ p ^. parameterName . idName
+printMinimal (EField f) = putStr $ f ^. fieldName . idName ++ ": " ++ f ^. fieldType . datatypeName
+printMinimal (EName n) = putStr $ "name " ++ n ^. idName
+printMinimal (EType t) = putStr $ "type " ++ t ^. datatypeName
