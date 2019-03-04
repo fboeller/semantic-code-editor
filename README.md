@@ -160,6 +160,13 @@ Focus the project element:
 
 ```focus /```
 
+#### Shortcuts
+
+Each indexed `focus` command can only be executed without mentioning the keyword `focus` explicitely.
+
+* You can use `1` instead of `focus 1`.
+* You can use `14.6` instead of `focus 14.6`.
+
 ## Installation
 
 There is currently no other way to install this application than building from source.
