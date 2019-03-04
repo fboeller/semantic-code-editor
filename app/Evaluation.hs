@@ -32,6 +32,7 @@ eval (P.PathSingle P.Focus P.Upper) = A.focusUp
 eval (P.PathSingle P.Focus P.Root) = A.focusRoot
 eval (P.IndexSingle P.Focus numbers) = A.focusLastOutputByIndex (fromInteger <$> numbers)
 eval (P.IndexSingle P.Read numbers) = A.readLastOutputByIndex (fromInteger <$> numbers)
+eval (P.IndexSingle P.List numbers) = A.listElementsOfIndex (fromInteger <$> numbers)
 eval input = set output $ Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented"
 
 evalMeta :: P.Command -> AppState -> IO AppState

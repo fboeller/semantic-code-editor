@@ -14,6 +14,21 @@ selectedBranches :: [a -> Bool] -> Tree a -> Tree a
 selectedBranches predicates =
   cutLateAndEarlyLeafs (length predicates) . levelFilteredTree predicates
 
+-- Finds the element following the given path through the tree
+elementAtIndex :: [Int] -> Tree a -> Maybe (Tree a)
+elementAtIndex [] tree = Just tree
+elementAtIndex (index:restPath) (Node _ elements) =
+  findOrElse index elements (elementAtIndex restPath) Nothing
+
+-- Finds the element at the given index in the list and returns the transformation according to the given function
+-- or returns the default if the index is out of bounds
+findOrElse :: Int -> [a] -> (a -> b) -> b -> b
+findOrElse index list f d =
+  if index > 0 && index <= length list then
+    f $ list !! (index - 1)
+  else
+    d
+
 -- Cuts all branches from the tree that do not end on the given level
 -- The root node has level 1.
 cutLateAndEarlyLeafs :: Int -> Tree a -> Tree a
