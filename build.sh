@@ -6,4 +6,4 @@ if [ $# -eq 0 ]
     tag=$1
 fi
 
-docker build -t sce:$tag .
+docker build -t fboeller/semantic-code-editor:$tag .
