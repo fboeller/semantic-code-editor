@@ -38,38 +38,39 @@ focusFirstElement = focusFirstOfSelectedElements (pure True)
 
 -- Focuses the previously focused element
 focusUp :: AppState -> AppState
-focusUp state = state & focus %~ F.focusUp
+focusUp = focus %~ F.focusUp
 
 -- Focuses the top most element in the project
 focusRoot :: AppState -> AppState
-focusRoot state = state & focus %~ F.focusRoot
+focusRoot = focus %~ F.focusRoot
+
+-- Executes the given function if there is a last result tree
+-- Otherwise, writes an error into the state
+withLastResultTree :: (Tree J.Element -> AppState -> AppState) -> AppState -> AppState
+withLastResultTree f state =
+  case state ^. lastResultTree of
+    Just tree -> f tree state
+    Nothing -> state & output .~ Error (putStrLn "The last output was not a result tree")
+
+-- Executes the given function if an element at the index can be found
+-- Otherwise, writes an error into the state
+withElementAtIndex :: (Tree J.Element -> AppState -> AppState) -> [Int] -> Tree J.Element -> AppState -> AppState
+withElementAtIndex f path tree state =
+  case T.elementAtIndex path tree of
+    Just tree -> f tree state
+    Nothing -> state & output .~ Error (putStrLn "The index does not exist in the last result tree")
 
 focusLastOutputByIndex :: [Int] -> AppState -> AppState
-focusLastOutputByIndex indexPath state =
-  case state ^. lastResultTree of
-    Just tree -> focusEndOfPath indexPath tree state
-    _ -> state & output .~ Error (putStrLn "The last output was not a result tree")
+focusLastOutputByIndex = withLastResultTree . focusEndOfPath
 
 readLastOutputByIndex :: [Int] -> AppState -> AppState
-readLastOutputByIndex indexPath state =
-  case state ^. lastResultTree of
-    Just tree -> readEndOfPath indexPath tree state
-    _ -> state & output .~ Error (putStrLn "The last output was not a result tree")
+readLastOutputByIndex = withLastResultTree . readEndOfPath
 
 focusEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
-focusEndOfPath path tree state = maybe
-  (withIndexError state)
-  ((\e -> state & focus %~ e) . F.focusDown . rootLabel)
-  (T.elementAtIndex path tree)
+focusEndOfPath = withElementAtIndex $ over focus . F.focusDown . rootLabel
 
 readEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
-readEndOfPath path tree state = maybe
-  (withIndexError state)
-  ((\e -> state & output .~ e) . Other . putStrLn . printCommon . rootLabel)
-  (T.elementAtIndex path tree)
-
-withIndexError :: AppState -> AppState
-withIndexError state = state & output .~ Error (putStrLn "The index does not exist in the last result tree")
+readEndOfPath = withElementAtIndex $ set output . Other . putStrLn . printCommon . rootLabel
 
 -- Causes the program to exit gracefully
 exit :: AppState -> AppState
