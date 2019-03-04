@@ -7,7 +7,7 @@ import Data.Maybe (maybe)
 import qualified Java.Types as J
 import qualified Java.Accessors as JA
 import Java.Printer (printCommon)
-import AppState (AppState, program, focus, output, running, lastResultTree, leafFocus)
+import AppState (AppState, project, focus, output, running, lastResultTree, leafFocus)
 import Output
 import qualified Focus as F
 import Commands.Types (ElementType(..))
@@ -20,12 +20,12 @@ readFocus state =
 
 listSelectedElements :: [J.Element -> Bool] -> AppState -> AppState
 listSelectedElements predicates state =
-  state & output .~ (ResultTree $ JA.selectedElements predicates (state ^. program) (state ^.to leafFocus))
+  state & output .~ (ResultTree $ JA.selectedElements predicates (state ^. project) (state ^.to leafFocus))
 
 -- Focuses the first direct subelement of the current focus that satisfies the predicate
 focusFirstOfSelectedElements :: (J.Element -> Bool) -> AppState -> AppState
 focusFirstOfSelectedElements predicate state =
-  let (Node _ elements) = JA.selectedElements [predicate] (state ^. program) (state ^.to leafFocus) in
+  let (Node _ elements) = JA.selectedElements [predicate] (state ^. project) (state ^.to leafFocus) in
     case elements of
       [] -> state & output .~ (Error $ putStrLn "No focusable element in scope")
       ((Node e _):_) -> state & focus %~ F.focusDown e
@@ -74,7 +74,7 @@ readEndOfPath = withElementAtIndex $ set output . Other . putStrLn . printCommon
 
 listEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
 listEndOfPath path tree state =
-  (withElementAtIndex $ set output . ResultTree . JA.selectedElements [pure True] (state ^. program) . rootLabel) path tree state
+  (withElementAtIndex $ set output . ResultTree . JA.selectedElements [pure True] (state ^. project) . rootLabel) path tree state
 
 -- Causes the program to exit gracefully
 exit :: AppState -> AppState

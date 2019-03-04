@@ -11,7 +11,7 @@ import Control.Lens
 import Data.Tree (Tree)
 
 data AppState =
-  AppState { _program :: J.Project
+  AppState { _project :: J.Project
            , _focus :: Focus
            , _lastResultTree :: Maybe (Tree J.Element)
            , _output :: Output
@@ -25,7 +25,7 @@ makeLenses ''AppState
 leafFocus :: AppState -> J.Element
 leafFocus state =
   case state ^. focus of
-    [] -> J.EProject $ state ^. program
+    [] -> J.EProject $ state ^. project
     leaf:_ -> leaf
 
 -- Sets the last output to the current output if it is not an error and clears the current output
@@ -39,7 +39,7 @@ clearOutput state = state
               
 initialState :: AppState
 initialState =
-  AppState { _program = J.Project { J._srcDir = "/", J._javaFiles = [] }
+  AppState { _project = J.Project { J._srcDir = "/", J._javaFiles = [] }
            , _focus = []
            , _lastResultTree = Nothing
            , _output = Other mempty

@@ -5,7 +5,7 @@ import Java.Parser (runParserOnPath, FileParseError(..))
 import qualified Commands.Parser as P
 import qualified Commands.Types as P
 import qualified Java.Accessors as JA
-import AppState (AppState, program, focus, output, config)
+import AppState (AppState, project, focus, output, config)
 import Output
 import Configuration (commandParserType)
 
@@ -46,10 +46,10 @@ switchCommandParser parserType state =
 
 processJavaInput :: String -> AppState -> IO AppState
 processJavaInput path state = do
-  (errors, javaProgram) <- runParserOnPath path
+  (errors, javaProject) <- runParserOnPath path
   return $ state
     & output .~ Error (putStr $ printErrors errors)
-    & program .~ javaProgram
+    & project .~ javaProject
     & focus .~ []
 
 printErrors :: [FileParseError] -> String
