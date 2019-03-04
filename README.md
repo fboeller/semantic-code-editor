@@ -59,7 +59,12 @@ The `list` command allows you to print a subset of the tree under your currently
 It is usable in two variants:
 
 * With an index path like `list 1.5`: It lists all elements of the fifth sub element of the first element of the last printed tree.
-* With a selection condition like `list method parameter`: It lists all parameters of all methods within the currently focused element.
+* With a selection condition like `list method parameter`: 
+  It lists all parameters of all methods within the currently focused element.
+  It accepts an arbitrary number of arguments, each representing a selection condition on a subsequent layer of the syntax tree beneath the currently focused element.
+  Such a selection condition can be a simple element type such as `method` 
+  or a more complex one matching sub strings of the name or type of an element such as `variable && name "app" && type "App"`.
+  Use the wildcard character `*` to represent an arbitrary element type.
 
 #### Examples
 
@@ -68,16 +73,30 @@ Find the main method of the project:
 ```
 > list class (method && name "main")
 1: class App
-        1: method main(String[]): void
+  1: method main(String[]): void
 ```
 
 List all methods returning a string:
 
-```> list class (method && type "String")```
+```
+> list class (method && type "String")
+1: class BaseEntity
+  1: method getName(): String
+2: class Entity
+  1: method getName(): String
+  2: method toString(): String
+```
 
 List all parameters of a complex method:
 
-```> list class (method && name "myMethod") parameter```
+```
+> list class (method && name "myMethod") parameter
+1: class ServiceImpl
+  1: method myMethod(EntityDao,SubentityDao,ModelDao): void
+    1: parameter entityDao: EntityDao
+    2: parameter subentityDao: SubentityDao
+    3: parameter modelDao: ModelDao
+```
 
 #### Shortcuts
 
@@ -91,17 +110,55 @@ The list command provides different shortcuts for quicker navigation.
 The `read` command allows you to print an element in Java syntax.
 In contrast to the `list` command, it also allows printing of method bodies.
 
-As a parameter, it only accepts an index path like `3.1`.
+As a parameter, it accepts an index path like `3.1`.
 
 #### Examples
 
 Read the currently focused element:
 
-```> read```
+```
+public class App { ... } > read
+public class App { 
+  private static final Logger LOGGER; 
+  public static void main (String[] args) { ... }
+  public static void initData () { ... }
+  public static void queryData () { ... } 
+}
+```
 
 Read the second sub element of the fourth element of the last printed tree:
 
 ```> read 4.2```
+
+### Focus command
+
+The `focus` command allows you to switch to a different element within your project.
+In contrast to the `list` and `read` commands, this is a stateful operation.
+It allows you to navigate deeper into your project and to focus only on a part of it.
+
+#### Examples
+
+Focus on the first sub element of the second element of the last printed tree:
+
+```
+1: class App
+  1: method initData(): void
+  2: method main(String[]): void
+  3: method queryData(): void
+2: class AppTest
+  1: method tearDown(): void
+  2: method test(): void
+> focus 2.1
+public void tearDown() { ... } > 
+```
+
+Focus the previously focused element:
+
+```focus ..```
+
+Focus the project element:
+
+```focus /```
 
 ## Installation
 
