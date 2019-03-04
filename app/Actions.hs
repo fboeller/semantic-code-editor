@@ -10,7 +10,7 @@ import Java.Printer (printCommon)
 import AppState (AppState, project, focus, output, running, lastResultTree, leafFocus)
 import Output
 import qualified Focus as F
-import Commands.Types (ElementType(..))
+import qualified Commands.Types as P
 
 import qualified Trees as T
 
@@ -57,14 +57,13 @@ withElementAtIndex f path tree state =
     Just tree -> f tree state
     Nothing -> state & output .~ Error (putStrLn "The index does not exist in the last result tree")
 
-focusLastOutputByIndex :: [Int] -> AppState -> AppState
-focusLastOutputByIndex = withLastResultTree . focusEndOfPath
+onLastOutputByIndex :: P.FirstCommand -> [Int] -> AppState -> AppState
+onLastOutputByIndex cmd = withLastResultTree . onEndOfPath cmd
 
-readLastOutputByIndex :: [Int] -> AppState -> AppState
-readLastOutputByIndex = withLastResultTree . readEndOfPath
-
-listLastOutputByIndex :: [Int] -> AppState -> AppState
-listLastOutputByIndex = withLastResultTree . listEndOfPath
+onEndOfPath :: P.FirstCommand -> [Int] -> Tree J.Element -> AppState -> AppState
+onEndOfPath P.Focus = focusEndOfPath
+onEndOfPath P.Read = readEndOfPath
+onEndOfPath P.List = listEndOfPath
 
 focusEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
 focusEndOfPath = withElementAtIndex $ over focus . F.focusDown . rootLabel

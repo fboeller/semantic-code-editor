@@ -30,9 +30,7 @@ eval (P.Double P.List []) = A.listSelectedElements [pure True]
 eval (P.Double P.List criteria) = A.listSelectedElements $ JA.matchesAllGiven <$> criteria
 eval (P.PathSingle P.Focus P.Upper) = A.focusUp
 eval (P.PathSingle P.Focus P.Root) = A.focusRoot
-eval (P.IndexSingle P.Focus numbers) = A.focusLastOutputByIndex (fromInteger <$> numbers)
-eval (P.IndexSingle P.Read numbers) = A.readLastOutputByIndex (fromInteger <$> numbers)
-eval (P.IndexSingle P.List numbers) = A.listLastOutputByIndex (fromInteger <$> numbers)
+eval (P.IndexSingle cmd numbers) = A.onLastOutputByIndex cmd (fromInteger <$> numbers)
 eval input = set output $ Error $ putStrLn $ "The command '" ++ show input ++ "' is not yet implemented"
 
 evalMeta :: P.Command -> AppState -> IO AppState
