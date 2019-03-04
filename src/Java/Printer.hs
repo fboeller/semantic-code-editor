@@ -189,6 +189,7 @@ keyword "method" = colorize Green "method"
 keyword "constructor" = colorize Magenta "constructor"
 keyword "field" = colorize Cyan "field"
 keyword "parameter" = colorize Yellow "parameter"
+keyword "type" = colorize Magenta "type"
 keyword _ = error ""
 
 printMinimal :: Element -> IO ()
@@ -245,4 +246,8 @@ printMinimal (EField f) = mconcat
   , putStr $ f ^. fieldType . datatypeName
   ]
 printMinimal (EName n) = putStr $ "name " ++ n ^. idName
-printMinimal (EType t) = putStr $ "type " ++ t ^. datatypeName
+printMinimal (EType t) = mconcat
+  [ keyword "type"
+  , putStr " "
+  , putStr $ t ^. datatypeName
+  ]

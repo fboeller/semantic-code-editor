@@ -18,7 +18,9 @@ type SearchTerm = String
 
 selectedElements :: [J.Element -> Bool] -> J.Project -> J.Element -> Tree J.Element
 selectedElements predicates project =
-  T.sortBy (comparing elementTypeOf <> comparing searchProperty) . T.selectedBranches predicates . T.recursively (allElements project)
+  T.sortBy (comparing elementTypeOf <> comparing searchProperty)
+  . T.selectedBranches predicates
+  . T.recursively (allElements project)
 
 -- Returns if the elements matches the element type and search term
 matchesAllGiven :: (Maybe ElementType, Maybe String) -> J.Element -> Bool
@@ -96,6 +98,7 @@ standardElements e = concat
   , J.EField <$> variables e
   , J.EMethod <$> methods e
   , J.EParameter <$> parameters e
+  , J.EType <$> types e
   ]
 
 -- All elements that describe properties of the element
@@ -105,7 +108,6 @@ extendedElements e = concat
   [ standardElements e
   , J.EClass <$> extensions e
   , J.EName <$> names e
-  , J.EType <$> types e
   ]
 
 -- All elements of an element that are of
@@ -150,7 +152,7 @@ constructors (J.EClass c) = c ^. J.classConstructors
 constructors _ = []
 
 extensions :: J.Element -> [J.Class]
-extensions (J.EClass c) = maybeToList $ JC.emptyClass <$> (c ^. J.classExtends)
+extensions (J.EClass c) = maybeToList $ JC.emptyClass <$> c ^. J.classExtends
 extensions _ = []
 
 names :: J.Element -> [J.Identifier]
@@ -170,17 +172,15 @@ types (J.EParameter p) = [p ^. J.parameterType]
 types _ = []
 
 definitions :: J.Project -> J.Element -> [J.Element]
-definitions project element = filter isOfType $ flatten $ T.recursively standardElements $ J.EProject project
-  where
-    isOfType :: J.Element -> Bool
-    isOfType candidate = fromMaybe False $
-      (==) <$> getTypeDefName candidate <*> getTypeUsageName element
+definitions project element = filter (isOfType element) $ flatten $ T.recursively standardElements $ J.EProject project
 
-getTypeUsageName :: J.Element -> Maybe String
-getTypeUsageName (J.EField f) = Just $ f ^. J.fieldType . J.datatypeName
-getTypeUsageName (J.EMethod m) = Just $ m ^. J.methodReturnType . J.datatypeName
-getTypeUsageName (J.EParameter p) = Just $ p ^. J.parameterType . J.datatypeName
-getTypeUsageName _ = Nothing
+isOfType :: J.Element -> J.Element -> Bool
+isOfType element candidate = fromMaybe False $
+  (==) <$> getTypeDefName candidate <*> typeName element
+
+typeName :: J.Element -> Maybe String
+typeName (J.EType t) = Just $ t ^. J.datatypeName
+typeName _ = Nothing
 
 getTypeDefName :: J.Element -> Maybe String
 getTypeDefName (J.EClass c) = Just $ c ^. J.className . J.idName
