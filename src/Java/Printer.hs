@@ -234,6 +234,8 @@ printMinimal (EParameter p) = mconcat
   [ keyword "parameter"
   , putStr " "
   , putStr $ p ^. parameterName . idName
+  , putStr $ ": "
+  , putStr $ p ^. parameterType . datatypeName
   ]
 printMinimal (EField f) = mconcat
   [ keyword "field"
