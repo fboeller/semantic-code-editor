@@ -7,11 +7,31 @@ In contrast to classical text editors, it focuses on navigating between syntacti
 
 Find all classes defining a field of the custom type `System`:
 
-```> list class (variable && name "System")```
+```
+> list class (variable && name "System")
+1: class AppController
+  1: field system: System
+2: class AppModel
+  1: field system1: System
+  2: field system2: System
+3: class AppTest
+  1: field system: System
+```
 
 List all interfaces with their methods:
 
-```> list interface method```
+```
+> list interface method
+1: interface Dao
+  1: method delete(E): void
+  2: method find(Long): E
+  3: method findAll(): List<E>
+  4: method merge(E): E
+  5: method persist(E): void
+2: interface ModelService
+  1: method findAllModels(): List<Model>
+  2: method findAllSubmodels(): List<Submodel>
+```
 
 ## Usage
 
@@ -46,7 +66,7 @@ It is usable in two variants:
 Find the main method of the project:
 
 ```
-list class (method && name "main")
+> list class (method && name "main")
 1: class App
         1: method main(String[]): void
 ```
