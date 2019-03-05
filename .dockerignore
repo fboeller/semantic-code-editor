@@ -1,0 +1,8 @@
+.stack-work/
+semantic-code-editor.cabal
+*~
+dist
+dist-newstyle
+sketcharea.txt
+/.markdown-preview.html
+/.dir-locals.el
