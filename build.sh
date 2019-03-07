@@ -6,4 +6,6 @@ if [ $# -eq 0 ]
     tag=$1
 fi
 
-docker build -t fboeller/semantic-code-editor:$tag .
+docker build -t fboeller/semantic-code-editor:$tag --target app .
+
+docker build -t fboeller/semantic-code-editor-webterminal:$tag --target webterminal .
