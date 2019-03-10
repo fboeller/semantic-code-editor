@@ -107,6 +107,9 @@ data Project =
   deriving (Show, Eq)
 makeLenses ''Project
 
+instance Semigroup Project where
+  x <> y = Project { _srcDir = "/", _javaFiles = x ^. javaFiles ++ y ^. javaFiles }
+
 data Element = EField Field
              | EParameter Parameter
              | EMethod Method

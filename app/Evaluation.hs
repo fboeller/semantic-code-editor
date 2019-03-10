@@ -47,7 +47,7 @@ processJavaInput path state = do
   (errors, javaProject) <- runParserOnPath path
   return $ state
     & output .~ Error (putStr $ printErrors errors)
-    & project .~ javaProject
+    & project %~ (<>javaProject)
     & focus .~ []
 
 printErrors :: [FileParseError] -> String
