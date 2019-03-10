@@ -63,18 +63,13 @@ spec = describe "runParser" $ do
       it "rejects without parameter" $ do
         runParser Long ":load" `shouldSatisfy` isLeft
 
-      it "parses class name" $ do
-        runParser Long ":load Example" `shouldBe` Right (Meta $ LoadFile "data/Example.java")
-
       it "parses java file path" $ do
-        pending
         runParser Long ":load ../abc/Example.java" `shouldBe` Right (Meta $ LoadFile "../abc/Example.java")
 
       it "parses java file path as literal" $ do
         runParser Long ":load \"../abc/Example.java\"" `shouldBe` Right (Meta $ LoadFile "../abc/Example.java")
 
       it "parses directory" $ do
-        pending
         runParser Long ":load /abc/example" `shouldBe` Right (Meta $ LoadFile "/abc/example")
 
       it "parses directory as literal" $ do

@@ -8,9 +8,9 @@ import Commands.Util
 import qualified Commands.ShortParser as SP
 import qualified Commands.LongParser as LP
 
-import Text.ParserCombinators.Parsec (Parser, choice, between, char, string, parse, try, (<|>), (<?>), newline, sepBy, many1)
-import Control.Applicative hiding ((<|>))
+import Text.ParserCombinators.Parsec hiding (space, spaces)
 import Data.Bifunctor
+import Data.Char (isPrint)
 
 firstCommand :: ParserType -> Parser FirstCommand
 firstCommand Long = LP.firstCommand
@@ -51,8 +51,12 @@ selection elementType = trychoice
     and = spaces *> string "&&" <* spaces
     inBrackets = between (char '(' <* spaces) (spaces *> char ')')
 
+quoted :: Parser String -> Parser String
+quoted content = quote *> content <* quote
+  where quote = char '\"'
+
 searchTerm :: Parser String
-searchTerm = (char '\"' *> identifier <* char '\"') <||> (string "\"\"")
+searchTerm = quoted identifier <||> quoted mempty
 
 path :: Parser Path
 path = (Upper <$ string "..")
@@ -70,21 +74,21 @@ indexPath :: Parser [Integer]
 indexPath = integer `sepBy` char '.'
   <?> "index path"
 
-dataDirPath :: String -> FilePath
-dataDirPath className = "data/" ++ className ++ ".java"
-
 parserType :: Parser ParserType
 parserType = (Long <$ string "long")
-  <||> (Short <$ string "short")
+  <|> (Short <$ string "short")
+
+javaFilePath :: Parser FilePath
+javaFilePath = quoted fileChars <||> fileChars
+  where fileChars = many1 $ satisfy (\c -> isPrint c && c /= ';' && c /= '\"')
+
+closed p = p <* closer
 
 metaCommand :: Parser MetaCommand
 metaCommand = trychoice
-  [ closed $ LoadFile . dataDirPath <$> (metaChar *> lexeme (string "load") *> identifier)
-  , closed $ LoadFile <$> (metaChar *> lexeme (string "load") *> stringLiteral)
-  , closed $ SwitchCommandParser <$> (metaChar *> lexeme (string "switch") *> parserType)
+  [ closed $ metaChar *> (LoadFile <$> (lexeme (string "load") *> javaFilePath))
+  , closed $ metaChar *> (SwitchCommandParser <$> (lexeme (string "switch") *> parserType))
   ]
-
-closed p = p <* closer
 
 command :: Parser FirstCommand -> Parser ElementType -> Parser Command
 command firstCommand elementType = many space *> trychoice

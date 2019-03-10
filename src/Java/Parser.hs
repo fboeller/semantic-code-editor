@@ -17,18 +17,19 @@ import System.Directory.Tree (AnchoredDirTree((:/)), DirTree(..), filterDir, rea
 
 data FileParseError = FileParseError FilePath String deriving (Show, Eq)
 
+convertEither :: Either a b -> ([a], [b])
+convertEither (Left l) = ([l], [])
+convertEither (Right r) = ([], [r])
+
 runParserOnPath :: FilePath -> IO ([FileParseError], J.Project)
 runParserOnPath path = do
     _ :/ tree <- readDirectoryWith return path
     dirtree <- traverse runParserOnFile $ filterDir myPred tree
-    let maybeJavaFiles = foldr mappend ([], []) $ convertEither <$> dirtree -- TODO Not sure if the errors get concatenated
+    let maybeJavaFiles = foldr mappend mempty $ convertEither <$> dirtree -- TODO Not sure if the errors get concatenated
     return $ toProject path <$> maybeJavaFiles
   where myPred (Dir ('.':_) _) = False
         myPred (File n _) = takeExtension n == ".java"
         myPred _ = True
-        convertEither :: Either a b -> ([a], [b])
-        convertEither (Left l) = ([l], [])
-        convertEither (Right r) = ([], [r])
 
 runParser :: String -> Either FileParseError J.JavaFile
 runParser = convertParseResult "" . parser compilationUnit
