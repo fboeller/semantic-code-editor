@@ -159,7 +159,7 @@ withBraceBlock sig block = sig <+> lbrace $+$ block $+$ rbrace
 printMethodCommon :: PrintMode -> Method -> Doc
 printMethodCommon Complete m =
   case m ^. methodBody of
-    Nothing -> printMethodSignature m <+> semi
+    Nothing -> printMethodSignature m <> semi
     Just body -> withBraceBlock (printMethodSignature m) (nested $ sep $ pretty <$> body)
 printMethodCommon Abbreviated m = printMethodSignature m <+> text "{ ... }"
 

@@ -26,7 +26,7 @@ metaCommands = keywordFromTuple <$>
   ]
 
 completesTo :: String -> Completion -> Bool
-completesTo text completion = text `isPrefixOf` replacement completion
+completesTo text = (text `isPrefixOf`) . replacement
 
 allDocumentedCompletions :: [Completion]
 allDocumentedCompletions = concat
@@ -34,10 +34,19 @@ allDocumentedCompletions = concat
   , documentedCompletion <$> metaCommands
   ]
 
+ifEmpty :: [a] -> [a] -> [a]
+ifEmpty list alternative = if null list then alternative else list
+
+firstNonEmpty :: [[a]] -> [a]
+firstNonEmpty = foldr ifEmpty []
+
 possibilities :: String -> String -> IO [Completion]
 possibilities "" "" = return allDocumentedCompletions
 possibilities "" enteredText = return $ filter (enteredText `completesTo`) allDocumentedCompletions
 possibilities preCursorText enteredText
-  | "list" `isPrefixOf` reverse preCursorText = return $ filter (enteredText `completesTo`) (documentedCompletion <$> elementTypes)
+  | "list" `isPrefixOf` reverse preCursorText = return $ firstNonEmpty
+    [ filter (enteredText `completesTo`) (documentedCompletion <$> elementTypes)
+    , [simpleCompletion $ "\"" ++ enteredText ++ "\""]
+    ]
 possibilities _ _ = return []
 
