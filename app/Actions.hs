@@ -6,7 +6,7 @@ import Data.Maybe (maybe)
 
 import qualified Java.Types as J
 import qualified Java.Accessors as JA
-import Java.Printer (printCommon)
+import Java.Printer (printCommon, PrintMode(..))
 import AppState (AppState, project, focus, output, running, lastResultTree, leafFocus)
 import Output
 import qualified Focus as F
@@ -16,7 +16,7 @@ import qualified Trees as T
 
 readFocus :: AppState -> AppState
 readFocus state =
-  state & output .~ (Other $ putStrLn $ printCommon $ state ^.to leafFocus)
+  state & output .~ (Other $ putStrLn $ printCommon Complete $ state ^.to leafFocus)
 
 listSelectedElements :: [J.Element -> Bool] -> AppState -> AppState
 listSelectedElements predicates state =
@@ -69,7 +69,7 @@ focusEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
 focusEndOfPath = withElementAtIndex $ over focus . F.focusDown . rootLabel
 
 readEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
-readEndOfPath = withElementAtIndex $ set output . Other . putStrLn . printCommon . rootLabel
+readEndOfPath = withElementAtIndex $ set output . Other . putStrLn . printCommon Complete . rootLabel
 
 listEndOfPath :: [Int] -> Tree J.Element -> AppState -> AppState
 listEndOfPath path tree state =

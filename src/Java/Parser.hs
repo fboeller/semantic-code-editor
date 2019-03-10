@@ -15,7 +15,7 @@ import System.Directory
 import System.FilePath (takeExtension)
 import System.Directory.Tree (AnchoredDirTree((:/)), DirTree(..), filterDir, readDirectoryWith)
 
-data FileParseError = FileParseError FilePath String
+data FileParseError = FileParseError FilePath String deriving (Show, Eq)
 
 runParserOnPath :: FilePath -> IO ([FileParseError], J.Project)
 runParserOnPath path = do
@@ -31,7 +31,7 @@ runParserOnPath path = do
         convertEither (Right r) = ([], [r])
 
 runParser :: String -> Either FileParseError J.JavaFile
-runParser programStr = convertParseResult "" $ parser compilationUnit programStr
+runParser = convertParseResult "" . parser compilationUnit
 
 runParserOnFile :: FilePath -> IO (Either FileParseError J.JavaFile)
 runParserOnFile file =

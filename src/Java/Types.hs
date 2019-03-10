@@ -3,22 +3,23 @@
 module Java.Types where
 
 import Prelude hiding (Enum)
+import Language.Java.Syntax (BlockStmt)
 import Control.Lens
 
 newtype Identifier =
   Identifier { _idName :: String
              }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''Identifier
 
 newtype Datatype =
   Datatype { _datatypeName :: String
            }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''Datatype
 
 data Visibility = Private | Protected | Public
-  deriving (Show)
+  deriving (Show, Eq)
 
 data Field =
   Field { _fieldName :: Identifier
@@ -27,14 +28,14 @@ data Field =
         , _fieldStatic :: Bool
         , _fieldFinal :: Bool
         }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''Field
 
 data Parameter =
   Parameter { _parameterName :: Identifier
             , _parameterType :: Datatype
             }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''Parameter
 
 data Method =
@@ -42,19 +43,19 @@ data Method =
          , _methodParameters :: [Parameter]
          , _methodReturnType :: Datatype
          , _methodVisibility :: Visibility
-         , _methodBody :: String -- TODO Include syntactic information
+         , _methodBody :: Maybe [BlockStmt] -- TODO Include syntactic information
          , _methodStatic :: Bool
          }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''Method
 
 data Constructor =
   Constructor { _constructorName :: Identifier
               , _constructorParameters :: [Parameter]
               , _constructorVisibility :: Visibility
-              , _constructorBody :: String -- TODO Include syntactic information
+              , _constructorBody :: [BlockStmt] -- TODO Include syntactic information
               }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''Constructor
 
 data Class =
@@ -67,7 +68,7 @@ data Class =
         , _classImplements :: [Identifier]
         , _classFinal :: Bool
         }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''Class
 
 data Interface =
@@ -76,7 +77,7 @@ data Interface =
             , _interfaceVisibility :: Visibility
             , _interfaceExtends :: [Identifier]
         }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''Interface
 
 data Enum =
@@ -86,7 +87,7 @@ data Enum =
        , _enumMethods :: [Method]
        , _enumVisibility :: Visibility
        }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''Enum
 
 data JavaFile =
@@ -96,14 +97,14 @@ data JavaFile =
            , _interfaces :: [Interface]
            , _enums :: [Enum]
            }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''JavaFile
 
 data Project =
   Project { _srcDir :: FilePath
           , _javaFiles :: [JavaFile]
           }
-  deriving (Show)
+  deriving (Show, Eq)
 makeLenses ''Project
 
 data Element = EField Field
@@ -117,3 +118,4 @@ data Element = EField Field
              | EProject Project
              | EName Identifier
              | EType Datatype
+  deriving (Show, Eq)

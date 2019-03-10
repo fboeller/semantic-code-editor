@@ -73,22 +73,22 @@ declToMethod (MemberDecl memberDecl) = memberDeclToMethod memberDecl
 declToMethod (InitDecl _ _) = Nothing
 
 memberDeclToMethod :: MemberDecl -> Maybe J.Method
-memberDeclToMethod (MethodDecl modifiers _ maybeT ident formalParams _ _ body) = Just $
+memberDeclToMethod (MethodDecl modifiers _ maybeT ident formalParams _ _ (MethodBody maybeBodyBlock)) = Just $
   J.Method { J._methodName = JC.identifier $ prettyPrint ident
            , J._methodParameters = toParameter <$> formalParams
            , J._methodReturnType = maybe (J.Datatype { J._datatypeName = "void" }) varDeclToType maybeT
            , J._methodVisibility = toVisibility modifiers
-           , J._methodBody = prettyPrint body
+           , J._methodBody = (\(Block stmts) -> stmts) <$> maybeBodyBlock
            , J._methodStatic = isStatic modifiers
            }
 memberDeclToMethod _ = Nothing
 
 memberDeclToConstructor :: MemberDecl -> Maybe J.Constructor
-memberDeclToConstructor (ConstructorDecl modifiers _ ident formalParams _ body) = Just $
+memberDeclToConstructor (ConstructorDecl modifiers _ ident formalParams _ (ConstructorBody _ bodyBlock)) = Just $
   J.Constructor { J._constructorName = JC.identifier $ prettyPrint ident
                 , J._constructorParameters = toParameter <$> formalParams
                 , J._constructorVisibility = toVisibility modifiers
-                , J._constructorBody = prettyPrint body
+                , J._constructorBody = bodyBlock
                 }
 memberDeclToConstructor _ = Nothing
 

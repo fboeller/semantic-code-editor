@@ -2,176 +2,193 @@ module Java.Printer
   ( printCommon
   , printPrompt
   , printMinimal
+  , printSignature
+  , PrintMode(..)
   ) where
 
 import Java.Types
 
-import Prelude hiding (Enum)
-import Control.Lens
+import Prelude hiding (Enum, (<>))
+import Control.Lens hiding (enum)
 import Data.List (intercalate)
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, fromMaybe)
 import System.Console.ANSI
+import Text.PrettyPrint
+import Language.Java.Pretty (pretty)
+
+data PrintMode = Complete | Abbreviated
+
+vsep :: [Doc] -> Doc
+vsep = foldr ($+$) empty
+
+nested = nest 4
+
+static = text "static"
+final = text "final"
+enum = text "enum"
+package = text "package"
+extends = text "extends"
+implements = text "implements"
+clazz = text "class"
+interface = text "interface"
 
 printPrompt :: Element -> IO ()
 printPrompt = printMinimal
 
-printProjectSignature :: Project -> String
-printProjectSignature = view srcDir
+printProjectSignature :: Project -> Doc
+printProjectSignature = text . view srcDir
 
-printPackageSignature :: JavaFile -> String
-printPackageSignature p = unwords
-  [ "package"
-  , p ^. packageName . idName -- TODO Fix this
+printPackageSignature :: JavaFile -> Doc
+printPackageSignature p = package <+> text (p ^. packageName . idName) -- TODO Fix this
+
+printClassSignature :: Class -> Doc
+printClassSignature c = hsep
+  [ printVisibilityCommon $ c ^. classVisibility
+  , if c ^. classFinal then final else empty
+  , clazz
+  , text $ c ^. className . idName
+  , fromMaybe empty $ (extends <+>) . text . view idName <$> c ^. classExtends
+  , if null $ c ^. classImplements then empty else implements <+> hsep (punctuate comma $ text . view idName <$> c ^. classImplements)
+  ]
+  
+printInterfaceSignature :: Interface -> Doc
+printInterfaceSignature i = hsep
+  [ printVisibilityCommon $ i ^. interfaceVisibility
+  , interface
+  , text $ i ^. interfaceName . idName
+  , if null $ i ^. interfaceExtends then empty else extends <+> hsep (punctuate comma $ text . view idName <$> i ^. interfaceExtends)
   ]
 
-printClassSignature :: Class -> String
-printClassSignature c = unwords $ catMaybes
-  [ Just $ printVisibilityCommon $ c ^. classVisibility
-  , if c ^. classFinal then Just "final" else Nothing
-  , Just "class"
-  , Just $ c ^. className . idName
-  , ("extends "++) . view idName <$> c ^. classExtends
-  , fmap ("implements "++) . notEmpty . intercalate ", " . fmap (view idName) $ c ^. classImplements
-  ]
-  where notEmpty "" = Nothing
-        notEmpty str = Just str
-
-printInterfaceSignature :: Interface -> String
-printInterfaceSignature i = unwords $ catMaybes
-  [ Just $ printVisibilityCommon $ i ^. interfaceVisibility
-  , Just "interface"
-  , Just $ i ^. interfaceName . idName
-  , fmap ("extends "++) $ notEmpty $ intercalate ", " $ view idName <$> i ^. interfaceExtends
-  ]
-  where notEmpty "" = Nothing
-        notEmpty str = Just str
-
-printEnumSignature :: Enum -> String
-printEnumSignature e = unwords $ catMaybes
-  [ Just $ printVisibilityCommon $ e ^. enumVisibility
-  , Just "enum"
-  , Just $ e ^. enumName . idName
+printEnumSignature :: Enum -> Doc
+printEnumSignature e = hsep
+  [ printVisibilityCommon $ e ^. enumVisibility
+  , enum
+  , text $ e ^. enumName . idName
   ]
 
-printMethodSignature :: Method -> String
-printMethodSignature m = unwords $ catMaybes
-  [ Just $ printVisibilityCommon $ m ^. methodVisibility
-  , if m ^. methodStatic then Just "static" else Nothing
-  , Just $ m ^. methodReturnType . datatypeName
-  , Just $ m ^. methodName . idName
-  , Just $ "(" ++ intercalate ", " (printParameterSignature <$> m ^. methodParameters) ++ ")"
+printMethodSignature :: Method -> Doc
+printMethodSignature m = hsep
+  [ printVisibilityCommon $ m ^. methodVisibility
+  , if m ^. methodStatic then static else empty
+  , text $ m ^. methodReturnType . datatypeName
+  , text $ m ^. methodName . idName
+  , parens . hsep . punctuate comma $ printParameterSignature <$> m ^. methodParameters
   ]
 
-printConstructorSignature :: Constructor -> String
-printConstructorSignature c = unwords $ catMaybes
-  [ Just $ printVisibilityCommon $ c ^. constructorVisibility
-  , Just $ c ^. constructorName . idName
-  , Just $ "(" ++ intercalate ", " (printParameterSignature <$> c ^. constructorParameters) ++ ")"
+printConstructorSignature :: Constructor -> Doc
+printConstructorSignature c = hsep
+  [ printVisibilityCommon $ c ^. constructorVisibility
+  , text $ c ^. constructorName . idName
+  , parens . hsep . punctuate comma $ printParameterSignature <$> c ^. constructorParameters
   ]
 
-printParameterSignature :: Parameter -> String
-printParameterSignature p = unwords
-  [ p ^. parameterType . datatypeName
-  , p ^. parameterName . idName
+printParameterSignature :: Parameter -> Doc
+printParameterSignature p = hsep
+  [ text $ p ^. parameterType . datatypeName
+  , text $ p ^. parameterName . idName
   ]
 
-printFieldSignature :: Field -> String
-printFieldSignature f = unwords $ catMaybes
-  [ Just $ printVisibilityCommon $ f ^. fieldVisibility
-  , if f ^. fieldStatic then Just "static" else Nothing
-  , if f ^. fieldFinal then Just "final" else Nothing
-  , Just $ f ^. fieldType . datatypeName
-  , Just $ f ^. fieldName . idName
+printFieldSignature :: Field -> Doc
+printFieldSignature f = hsep
+  [ printVisibilityCommon $ f ^. fieldVisibility
+  , if f ^. fieldStatic then static else empty
+  , if f ^. fieldFinal then final else empty
+  , text $ f ^. fieldType . datatypeName
+  , text $ f ^. fieldName . idName
   ]
 
 printSignature :: Element -> String
-printSignature (EProject p) = printProjectSignature p
-printSignature (EJavaFile p) = printPackageSignature p
-printSignature (EClass c) = printClassSignature c
-printSignature (EInterface i) = printInterfaceSignature i
-printSignature (EEnum e) = printEnumSignature e
-printSignature (EMethod m) = printMethodSignature m
-printSignature (EConstructor c) = printConstructorSignature c
-printSignature (EParameter p) = printParameterSignature p
-printSignature (EField f) = printFieldSignature f
-printSignature (EName n) = n ^. idName
-printSignature (EType t) = t ^. datatypeName
+printSignature = render . printSignature_
 
-printVisibilityCommon :: Visibility -> String
-printVisibilityCommon Private = "private"
-printVisibilityCommon Protected = "protected"
-printVisibilityCommon Public = "public"
+printSignature_ :: Element -> Doc
+printSignature_ (EProject p) = printProjectSignature p
+printSignature_ (EJavaFile p) = printPackageSignature p
+printSignature_ (EClass c) = printClassSignature c
+printSignature_ (EInterface i) = printInterfaceSignature i
+printSignature_ (EEnum e) = printEnumSignature e
+printSignature_ (EMethod m) = printMethodSignature m
+printSignature_ (EConstructor c) = printConstructorSignature c
+printSignature_ (EParameter p) = printParameterSignature p
+printSignature_ (EField f) = printFieldSignature f
+printSignature_ (EName n) = text $ n ^. idName
+printSignature_ (EType t) = text $ t ^. datatypeName
 
-printProjectCommon :: Project -> String
-printProjectCommon = view srcDir
+printVisibilityCommon :: Visibility -> Doc
+printVisibilityCommon Private = text "private"
+printVisibilityCommon Protected = text "protected"
+printVisibilityCommon Public = text "public"
 
-printPackageCommon :: JavaFile -> String
-printPackageCommon = view $ packageName . idName
+printProjectCommon :: Project -> Doc
+printProjectCommon = text . view srcDir
 
-printSignatureWithEllipsisBody :: Element -> String
-printSignatureWithEllipsisBody e =
-  printSignature e ++ case e of
-    (EClass _) -> " { ... }"
-    (EMethod _) -> " { ... }"
-    _ -> ""
-  
-printClassCommon :: Class -> String
-printClassCommon c = unwords
-  [ printClassSignature c
-  , "{"
-  , concat $ ("\n  "++) . (++";") . printFieldSignature <$> c ^. classFields
-  , concat $ ("\n  "++) . printSignatureWithEllipsisBody . EMethod <$> c ^. classMethods
-  , "\n}"
+printJavaFileCommon :: PrintMode -> JavaFile -> Doc
+printJavaFileCommon printMode file = vsep $ concat
+  [ printClassCommon printMode <$> file ^. classes
+  , printInterfaceCommon printMode <$> file ^. interfaces
+  , printEnumCommon printMode <$> file ^. enums
   ]
 
-printInterfaceCommon :: Interface -> String
-printInterfaceCommon i = unwords
-  [ printInterfaceSignature i
-  , "{"
-  , concat $ ("\n  "++) . printSignatureWithEllipsisBody . EMethod <$> i ^. interfaceMethods
-  , "\n}"
-  ]
+printClassCommon :: PrintMode -> Class -> Doc
+printClassCommon printMode c =
+  withBraceBlock (printClassSignature c) (nested body)
+  where
+    body = vsep $ concat
+      [ (<>semi) . printFieldSignature <$> c ^. classFields
+      , printMethodCommon printMode <$> c ^. classMethods
+      ]
 
-printEnumCommon :: Enum -> String
-printEnumCommon e = unwords
-  [ printEnumSignature e
-  , "{"
-  , concat $ ("\n  "++) . (++";") <$> e ^. enumConstants ^.. traverse.idName
-  , concat $ ("\n  "++) . (++";") . printFieldSignature <$> e ^. enumFields
-  , concat $ ("\n  "++) . printSignatureWithEllipsisBody . EMethod <$> e ^. enumMethods
-  , "\n}"
-  ]
+printInterfaceCommon :: PrintMode -> Interface -> Doc
+printInterfaceCommon printMode i =
+  withBraceBlock (printInterfaceSignature i) (nested body)
+  where
+    body = vsep $ printMethodCommon printMode <$> i ^. interfaceMethods
 
-printMethodCommon :: Method -> String
-printMethodCommon m = unwords
-  [ printMethodSignature m
-  , m ^. methodBody
-  ]
+printEnumCommon :: PrintMode -> Enum -> Doc
+printEnumCommon printMode e =
+  withBraceBlock (printEnumSignature e) (nested body)
+  where
+    body = vsep
+      [ (hsep $ punctuate comma $ text <$> e ^. enumConstants ^.. traverse.idName) <> semi
+      , vsep $ (<>semi) . printFieldSignature <$> e ^. enumFields
+      , vsep $ printMethodCommon printMode <$> e ^. enumMethods
+      ]
 
-printConstructorCommon :: Constructor -> String
-printConstructorCommon c = unwords
-  [ printConstructorSignature c
-  , c ^. constructorBody
-  ]
+withBraceBlock :: Doc -> Doc -> Doc
+withBraceBlock sig block = sig <+> lbrace $+$ block $+$ rbrace
 
-printParameterCommon :: Parameter -> String
-printParameterCommon p = p ^. parameterName . idName
+printMethodCommon :: PrintMode -> Method -> Doc
+printMethodCommon Complete m =
+  case m ^. methodBody of
+    Nothing -> printMethodSignature m <+> semi
+    Just body -> withBraceBlock (printMethodSignature m) (nested $ sep $ pretty <$> body)
+printMethodCommon Abbreviated m = printMethodSignature m <+> text "{ ... }"
 
-printFieldCommon :: Field -> String
-printFieldCommon f = f ^. fieldName . idName
+printConstructorCommon :: PrintMode -> Constructor -> Doc
+printConstructorCommon Complete c =
+  withBraceBlock (printConstructorSignature c) (nested $ sep $ pretty <$> c ^. constructorBody)
+printConstructorCommon Abbreviated c = printConstructorSignature c <+> text "{ ... }"
 
-printCommon :: Element -> String
-printCommon (EProject p) = printProjectCommon p
-printCommon (EJavaFile p) = printPackageCommon p
-printCommon (EClass c) = printClassCommon c
-printCommon (EInterface i) = printInterfaceCommon i
-printCommon (EEnum e) = printEnumCommon e
-printCommon (EMethod m) = printMethodCommon m
-printCommon (EConstructor c) = printConstructorCommon c
-printCommon (EParameter p) = printParameterCommon p
-printCommon (EField f) = printFieldCommon f
-printCommon (EName n) = n ^. idName
-printCommon (EType t) = t ^. datatypeName
+printParameterCommon :: Parameter -> Doc
+printParameterCommon p = text $ p ^. parameterName . idName
+
+printFieldCommon :: Field -> Doc
+printFieldCommon f = text $ f ^. fieldName . idName
+
+printCommon :: PrintMode -> Element -> String
+printCommon printMode = render . printCommon_ printMode
+
+printCommon_ :: PrintMode -> Element -> Doc
+printCommon_ _ (EProject p) = printProjectCommon p
+printCommon_ printMode (EJavaFile p) = printJavaFileCommon printMode p
+printCommon_ printMode (EClass c) = printClassCommon printMode c
+printCommon_ printMode (EInterface i) = printInterfaceCommon printMode i
+printCommon_ printMode (EEnum e) = printEnumCommon printMode e
+printCommon_ printMode (EMethod m) = printMethodCommon printMode m
+printCommon_ printMode (EConstructor c) = printConstructorCommon printMode c
+printCommon_ _ (EParameter p) = printParameterCommon p
+printCommon_ _ (EField f) = printFieldCommon f
+printCommon_ _ (EName n) = text $ n ^. idName
+printCommon_ _ (EType t) = text $ t ^. datatypeName
 
 -- TODO Duplicated in Output.hs
 withSGR :: SGR -> IO () -> IO ()

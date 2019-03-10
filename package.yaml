@@ -27,6 +27,8 @@ dependencies:
 - language-java >= 0.2.9
 # Colors for the terminal
 - ansi-terminal
+# Printing to strings
+- pretty
 # Path manipulation
 - filepath
 # Reading files
