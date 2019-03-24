@@ -33,6 +33,7 @@ dependencies:
 - filepath
 # Reading files
 - bytestring
+- base64-bytestring
 # File encodings
 - text
 # Reading whole recursive directories from file system
@@ -44,6 +45,7 @@ dependencies:
 - haskeline
 # Monad transformers
 - transformers
+- github >= 0.21
 
 library:
   source-dirs: src

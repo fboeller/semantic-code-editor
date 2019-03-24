@@ -1,3 +1,5 @@
+{-# LANGUAGE TupleSections #-}
+
 module Evaluation where
 
 import qualified Actions as A
@@ -5,12 +7,15 @@ import Java.Parser (runParserOnPath, FileParseError(..))
 import qualified Commands.Parser as P
 import qualified Commands.Types as P
 import qualified Java.Accessors as JA
+import qualified Java.Types as J
 import AppState (AppState, project, focus, output, config)
 import Output
 import Configuration (commandParserType)
+import GitHubLoader (load)
 
-import Data.List (intercalate)
-import Data.Maybe (maybe)
+import Data.List (intercalate, isPrefixOf)
+import Data.Maybe (maybe, fromMaybe)
+import Data.Bifunctor (first)
 import Control.Lens
 
 processCommand :: String -> AppState -> IO AppState
@@ -44,11 +49,19 @@ switchCommandParser parserType state =
 
 processJavaInput :: String -> AppState -> IO AppState
 processJavaInput path state = do
-  (errors, javaProject) <- runParserOnPath path
+  (errors, javaProject) <- loadJavaInput path
   return $ state
-    & output .~ Error (putStr $ printErrors errors)
+    & output .~ Error (putStr errors)
     & project %~ (<>javaProject)
     & focus .~ []
+
+loadJavaInput :: String -> IO (String, J.Project)
+loadJavaInput path =
+  if "github:" `isPrefixOf` path then
+    either (,J.Project { J._srcDir = path, J._javaFiles = [] }) ("",) <$> load path
+  else
+    first printErrors <$> runParserOnPath path
+
 
 printErrors :: [FileParseError] -> String
 printErrors =

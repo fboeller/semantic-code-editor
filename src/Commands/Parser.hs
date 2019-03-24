@@ -81,6 +81,7 @@ parserType = (Long <$ string "long")
 javaFilePath :: Parser FilePath
 javaFilePath = quoted fileChars <||> fileChars
   where fileChars = many1 $ satisfy (\c -> isPrint c && c /= ';' && c /= '\"')
+        githubPath = string "github:" *> fileChars
 
 closed p = p <* closer
 
