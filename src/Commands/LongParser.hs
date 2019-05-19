@@ -26,7 +26,7 @@ firstCommands = keywordFromTuple <$>
 
 firstCommand :: Parser FirstCommand
 firstCommand = trychoice (keywordP <$> firstCommands)
-  <?> "a first command 'read', 'focus' or 'list'"
+  <?> "one of the commands 'read', 'focus' and 'list'"
 
 elementTypes :: [Keyword ElementType]
 elementTypes = keywordFromTuple <$>

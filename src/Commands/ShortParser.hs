@@ -9,7 +9,7 @@ firstCommand = choice
   [ Read <$ char 'r'
   , Focus <$ char 'f'
   , List <$ char 'l'
-  ] <?> "a first command symbol 'r', 'f' or 'l'"
+  ] <?> "one of the commands 'r' for 'read', 'f' for 'focus' and 'l' for 'list'"
 
 elementType :: Parser ElementType
 elementType = choice
@@ -24,4 +24,4 @@ elementType = choice
   , Name <$ char 'n'
   , Type <$ char 't'
   , Definition <$ char 'd'
-  ] <?> "an element type 'c', 'i', 'e', 'm', 'f', 'v', 'p', 'x', 'n', 't' or 'd'"
+  ] <?> "an element type 'c' for 'class', 'i' for 'interface', 'e' for 'enum', 'm' for 'method', 'f' for 'function', 'v' for 'variable', 'p' for 'parameter', 'x' for 'extension', 'n' for 'name', 't' for 'type' or 'd' for 'definition'"

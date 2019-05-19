@@ -22,7 +22,7 @@ elementType Short = SP.elementType
 
 runParser :: ParserType -> String -> Either String Command
 runParser parserType =
-  first show . parse commandParser "Parser for commands" . (++";")
+  first show . parse commandParser "Invalid command" . (++"\n")
   where commandParser = command (firstCommand parserType) (elementType parserType)
 
 type Selection = (Maybe ElementType, Maybe String, Maybe String)
@@ -30,7 +30,7 @@ type Selection = (Maybe ElementType, Maybe String, Maybe String)
 selections :: Parser ElementType -> Parser [Selection]
 selections elementType =
   many1 (selection elementType <* many space)
-  <?> "selections"
+  <?> "a hierarchical selection pattern"
 
 selection :: Parser ElementType -> Parser Selection
 selection elementType = trychoice
@@ -43,7 +43,7 @@ selection elementType = trychoice
   , ( , Nothing, ) <$> elementTypeCond <* and <*> typeCond
   , ( , , Nothing) <$> elementTypeCond <* and <*> nameCond
   , ( , Nothing, Nothing) <$> elementTypeCond -- Must be last to not match early
-  ] <?> "selection"
+  ] <?> "a selection pattern"
   where
     elementTypeCond = Just <$> elementType
     typeCond = string "type" *> many1 space *> (Just <$> searchTerm)
@@ -59,9 +59,8 @@ searchTerm :: Parser String
 searchTerm = quoted identifier <||> quoted mempty
 
 path :: Parser Path
-path = (Upper <$ string "..")
-  <||> (Root <$ char '/')
-  <?> "path"
+path = (Upper <$ string ".." <?> "'..' for the parent")
+  <||> (Root <$ char '/' <?> "'/' for the root")
 
 quit :: Parser Command
 quit = Exit <$ char 'q'
@@ -72,7 +71,7 @@ emptyCommand = Empty <$ (mempty :: Parser String)
 
 indexPath :: Parser [Integer]
 indexPath = integer `sepBy` char '.'
-  <?> "index path"
+  <?> "an index path like '2.3.5'"
 
 parserType :: Parser ParserType
 parserType = (Long <$ string "long")
@@ -80,7 +79,7 @@ parserType = (Long <$ string "long")
 
 javaFilePath :: Parser FilePath
 javaFilePath = quoted fileChars <||> fileChars
-  where fileChars = many1 $ satisfy (\c -> isPrint c && c /= ';' && c /= '\"')
+  where fileChars = many1 $ satisfy (\c -> isPrint c && c /= '\n' && c /= '\"')
         githubPath = string "github:" *> fileChars
 
 closed p = p <* closer
@@ -92,7 +91,7 @@ metaCommand = trychoice
   ]
 
 command :: Parser FirstCommand -> Parser ElementType -> Parser Command
-command firstCommand elementType = many space *> trychoice
+command firstCommand elementType = (many space <?> "") *> trychoice
   [ closed quit
   , closed emptyCommand
   , closed $ Double <$> firstCommand <*> pure []
