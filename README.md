@@ -3,12 +3,21 @@
 The semantic code editor is a REPL application that allows quick navigation within huge Java projects.
 In contrast to classical text editors, it focuses on navigating between syntactical elements instead of lines of code.
 
+## Try it out
+
+```
+docker run -v /path/to/your/source/code:/data -ti fboeller/semantic-code-editor
+```
+
+Starts the semantic code editor and allows the navigation through a Java source directory from your local machine.
+Exchange `/path/to/your/source/code` with a path to your source directory.
+
 ## Example
 
 Find all classes defining a field of the custom type `System`:
 
 ```
-> list class (variable && name "System")
+> list class (variable && type "System")
 1: class AppController
   1: field system: System
 2: class AppModel
@@ -167,21 +176,17 @@ Each indexed `focus` command can only be executed without mentioning the keyword
 * You can use `1` instead of `focus 1`.
 * You can use `14.6` instead of `focus 14.6`.
 
-## Installation
-
-There is currently no other way to install this application than building from source.
-
 ## Build from source
 
 The project is written in Haskell and uses `stack` as a build system.
 There are two ways provided to build the project:
 
-* With `stack` on the host configured to build inside of a `docker` container (recommended).
+* With `stack` configured on the host to build inside of a `docker` container (recommended).
 * Completely inside of a `docker` container
 
 Both ways require `docker` to be installed on the host.
-Also, both ways do have the advantage that no haskell compiler needs to be installed on the host.
-While the second way does not require `stack` to be installed on the host, it is much slower since it does not utilize `stack`s caching abilities.
+For both ways, no haskell compiler needs to be installed.
+The second way has the advantage of not requiring `stack`, but is much slower since it does not utilize `stack`s caching abilities.
 
 ### Build with `stack` on the host
 
@@ -205,6 +210,6 @@ While the second way does not require `stack` to be installed on the host, it is
 * Clone this repository `git clone git@github.com:fboeller/semantic-code-editor.git`.
 * Change the working directory to the cloned repository `semantic-code-editor`.
 * Run `./build.sh`.
-  This will build a docker container `sce:latest`.
+  This will build a docker container `fboeller/semantic-code-editor:latest`.
   It takes an aweful amount of time since it is requiring a huge docker container (~4GB) with a whole haskell build environment.
-* Start the program with `docker run -ti -v <srcdir>:/data sce:latest` where `<srcdir>` is an absolute path to a directory on your host containing Java source code.
+* Start the program with `docker run -v /path/to/your/source/code:/data -ti fboeller/semantic-code-editor` where `/path/to/your/source/code` is an absolute path to a directory on your host containing Java source code.
