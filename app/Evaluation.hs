@@ -26,6 +26,7 @@ processCommand input state =
 
 eval :: P.Command -> AppState -> AppState
 eval P.Exit = A.exit
+eval P.Help = A.help
 eval P.Empty = id
 eval (P.Meta _) = id
 eval (P.Double P.Read []) = A.readFocus

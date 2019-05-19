@@ -11,6 +11,7 @@ import AppState (AppState, project, focus, output, running, lastResultTree, leaf
 import Output
 import qualified Focus as F
 import qualified Commands.Types as P
+import Commands.Parser (helpText)
 
 import qualified Trees as T
 
@@ -80,3 +81,7 @@ exit :: AppState -> AppState
 exit state = state
   & output .~ (Other $ putStr "Bye!")
   & running .~ False
+
+help :: AppState -> AppState
+help state = state
+  & output .~ (Other $ putStr helpText)

@@ -44,6 +44,7 @@ data MetaCommand = LoadFile String
 
 data Command = Empty
              | Exit
+             | Help
              | Meta MetaCommand
              | Double FirstCommand [(Maybe ElementType, Maybe String, Maybe String)]
              | IndexSingle FirstCommand [Integer]

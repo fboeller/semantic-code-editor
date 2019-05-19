@@ -76,7 +76,7 @@ spec = describe "runParser" $ do
         runParser Long ":load \"/abc/example\"" `shouldBe` Right (Meta $ LoadFile "/abc/example")
 
   it "parses a quit command" $ do
-    runParser Long "q" `shouldBe` Right Exit
+    runParser Long "quit" `shouldBe` Right Exit
 
   describe "list command" $ do
 

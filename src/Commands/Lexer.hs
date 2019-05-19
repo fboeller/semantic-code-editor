@@ -30,4 +30,4 @@ whiteSpace = P.whiteSpace lexer
 space = char ' ' <?> "" :: Parser Char
 spaces = many space <?> ""
 metaChar = char ':' <?> "the meta symbol ':' to start a meta command" :: Parser Char
-closer = spaces <* char '\n' <?> ""
+closer = spaces <* semi <?> ""

@@ -9,8 +9,34 @@ import qualified Commands.ShortParser as SP
 import qualified Commands.LongParser as LP
 
 import Text.ParserCombinators.Parsec hiding (space, spaces)
+import Text.Parsec.Error (messageString, showErrorMessages, errorMessages)
 import Data.Bifunctor
 import Data.Char (isPrint)
+
+helpText = "Usage:\n\
+           \  list [<elementType> [&& name \"<string>\"] [&& type \"<string>\"]]...\n\
+           \  read [<number> [.<number>]]...\n\
+           \  focus [<number> [.<number>]]...\n\
+           \  [<number> [.<number>]]...\n\
+           \  focus /\n\
+           \  focus ..\n\
+           \  :switch (long|short)\n\
+           \  :load <path>\n\
+           \  quit\n\
+           \  help\n\
+           \\n\
+           \where\n\
+           \  elementType = (*|class|interface|enum|method|function|variable|parameter|extension|name|type|definition)\n\
+           \\n\
+           \Examples:\n\
+           \  list class method\n\
+           \  list (name \"App\")\n\
+           \  list class (variable && type \"int\")\n\
+           \  list class method (parameter && type \"String\")\n\
+           \  list (class && name \"Factory\") method (type \"Builder\") definition\n\
+           \  read 1.3\n\
+           \  focus 2.4\n\
+           \  2.4\n"
 
 firstCommand :: ParserType -> Parser FirstCommand
 firstCommand Long = LP.firstCommand
@@ -22,8 +48,12 @@ elementType Short = SP.elementType
 
 runParser :: ParserType -> String -> Either String Command
 runParser parserType =
-  first show . parse commandParser "Invalid command" . (++"\n")
+  first showParseError . parse commandParser "Invalid command" . (++";")
   where commandParser = command (firstCommand parserType) (elementType parserType)
+
+showParseError :: ParseError -> String
+showParseError err =
+  "Unexpected " ++ messageString (head (errorMessages err)) ++ " at position " ++ show (sourceColumn (errorPos err)) ++ ". See 'help'."
 
 type Selection = (Maybe ElementType, Maybe String, Maybe String)
 
@@ -63,8 +93,12 @@ path = (Upper <$ string ".." <?> "'..' for the parent")
   <||> (Root <$ char '/' <?> "'/' for the root")
 
 quit :: Parser Command
-quit = Exit <$ char 'q'
-  <?> "a 'q' to quit the program"
+quit = Exit <$ string "quit"
+  <?> "'quit' to quit the program"
+
+help :: Parser Command
+help = Help <$ string "help"
+  <?> "'help' to get more info"
 
 emptyCommand :: Parser Command
 emptyCommand = Empty <$ (mempty :: Parser String)
@@ -79,7 +113,7 @@ parserType = (Long <$ string "long")
 
 javaFilePath :: Parser FilePath
 javaFilePath = quoted fileChars <||> fileChars
-  where fileChars = many1 $ satisfy (\c -> isPrint c && c /= '\n' && c /= '\"')
+  where fileChars = many1 $ satisfy (\c -> isPrint c && c /= ';' && c /= '\"')
         githubPath = string "github:" *> fileChars
 
 closed p = p <* closer
@@ -93,6 +127,7 @@ metaCommand = trychoice
 command :: Parser FirstCommand -> Parser ElementType -> Parser Command
 command firstCommand elementType = (many space <?> "") *> trychoice
   [ closed quit
+  , closed help
   , closed emptyCommand
   , closed $ Double <$> firstCommand <*> pure []
   , closed $ IndexSingle <$> pure Focus <*> indexPath

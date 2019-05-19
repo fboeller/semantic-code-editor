@@ -10,7 +10,7 @@ import System.Console.Haskeline
 import Control.Lens
 
 commandCompletion :: CompletionFunc IO
-commandCompletion = completeWordWithPrev Nothing [' '] possibilities
+commandCompletion = completeWordWithPrev Nothing [' '] (\a b -> return (possibilities a b))
 
 documentedCompletion :: Keyword a -> Completion
 documentedCompletion keyword =
@@ -25,12 +25,19 @@ metaCommands = keywordFromTuple <$>
   , (":switch", "", ":switch (Switch the mode of the command parser to accept either long or short commands)")
   ]
 
+stdCommands :: [Keyword String]
+stdCommands = keywordFromTuple <$>
+  [ ("help", "", "help (Show a help text listing different options and examples)")
+  , ("quit", "", "quit (Quit the program)")
+  ]
+
 completesTo :: String -> Completion -> Bool
 completesTo text = (text `isPrefixOf`) . replacement
 
 allDocumentedCompletions :: [Completion]
 allDocumentedCompletions = concat
-  [ documentedCompletion <$> firstCommands
+  [ documentedCompletion <$> stdCommands
+  , documentedCompletion <$> firstCommands
   , documentedCompletion <$> metaCommands
   ]
 
@@ -40,13 +47,13 @@ ifEmpty list alternative = if null list then alternative else list
 firstNonEmpty :: [[a]] -> [a]
 firstNonEmpty = foldr ifEmpty []
 
-possibilities :: String -> String -> IO [Completion]
-possibilities "" "" = return allDocumentedCompletions
-possibilities "" enteredText = return $ filter (enteredText `completesTo`) allDocumentedCompletions
+possibilities :: String -> String -> [Completion]
+possibilities "" "" = allDocumentedCompletions
+possibilities "" enteredText = filter (enteredText `completesTo`) allDocumentedCompletions
 possibilities preCursorText enteredText
-  | "list" `isPrefixOf` reverse preCursorText = return $ firstNonEmpty
+  | "list" `isPrefixOf` reverse preCursorText = firstNonEmpty
     [ filter (enteredText `completesTo`) (documentedCompletion <$> elementTypes)
     , [simpleCompletion $ "\"" ++ enteredText ++ "\""]
     ]
-possibilities _ _ = return []
+possibilities _ _ = []
 
