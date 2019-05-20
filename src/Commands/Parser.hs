@@ -26,7 +26,7 @@ helpText = "Usage:\n\
            \  help\n\
            \\n\
            \where\n\
-           \  elementType = (*|class|interface|enum|method|function|variable|parameter|extension|name|type|definition)\n\
+           \  elementType = (*|class|interface|enum|method|variable|parameter|extension|name|type|definition)\n\
            \\n\
            \Examples:\n\
            \  list class method\n\

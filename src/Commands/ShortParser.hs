@@ -17,11 +17,10 @@ elementType = choice
   , Interface <$ char 'i'
   , Enum <$ char 'e'
   , Method <$ char 'm'
-  , Function <$ char 'f'
   , Variable <$ char 'v'
   , Parameter <$ char 'p'
   , Extension <$ char 'x'
   , Name <$ char 'n'
   , Type <$ char 't'
   , Definition <$ char 'd'
-  ] <?> "an element type 'c' for 'class', 'i' for 'interface', 'e' for 'enum', 'm' for 'method', 'f' for 'function', 'v' for 'variable', 'p' for 'parameter', 'x' for 'extension', 'n' for 'name', 't' for 'type' or 'd' for 'definition'"
+  ] <?> "an element type 'c' for 'class', 'i' for 'interface', 'e' for 'enum', 'm' for 'method', 'v' for 'variable', 'p' for 'parameter', 'x' for 'extension', 'n' for 'name', 't' for 'type' or 'd' for 'definition'"
