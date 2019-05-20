@@ -54,7 +54,7 @@ matchesElementType :: ElementType -> J.Element -> Bool
 matchesElementType Class (J.EClass _) = True
 matchesElementType Interface (J.EInterface _) = True
 matchesElementType Enum (J.EEnum _) = True
-matchesElementType Variable (J.EField _) = True
+matchesElementType Field (J.EField _) = True
 matchesElementType Method (J.EMethod _) = True
 matchesElementType Method (J.EConstructor _) = True
 matchesElementType Parameter (J.EParameter _) = True
@@ -70,7 +70,7 @@ elementTypeOf :: J.Element -> ElementType
 elementTypeOf (J.EClass _) = Class
 elementTypeOf (J.EInterface _) = Interface
 elementTypeOf (J.EEnum _) = Enum
-elementTypeOf (J.EField _) = Variable
+elementTypeOf (J.EField _) = Field
 elementTypeOf (J.EMethod _) = Method
 elementTypeOf (J.EConstructor _) = Method
 elementTypeOf (J.EParameter _) = Parameter
@@ -87,7 +87,7 @@ standardElements e = concat
   , J.EInterface <$> interfaces e
   , J.EEnum <$> enums e
   , J.EConstructor <$> constructors e
-  , J.EField <$> variables e
+  , J.EField <$> fields e
   , J.EMethod <$> methods e
   , J.EParameter <$> parameters e
   , maybeToList $ J.EType <$> typeOf e
@@ -123,10 +123,10 @@ enums (J.EProject p) = J.EJavaFile <$> (p ^. J.javaFiles) >>= enums
 enums (J.EJavaFile p) = p ^. J.enums
 enums _ = []
 
-variables :: J.Element -> [J.Field]
-variables (J.EClass c) = c ^. J.classFields
-variables (J.EEnum e) = e ^. J.enumFields
-variables _ = []
+fields :: J.Element -> [J.Field]
+fields (J.EClass c) = c ^. J.classFields
+fields (J.EEnum e) = e ^. J.enumFields
+fields _ = []
 
 parameters :: J.Element -> [J.Parameter]
 parameters (J.EMethod p) = p ^. J.methodParameters

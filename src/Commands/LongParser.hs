@@ -34,7 +34,7 @@ elementTypes = keywordFromTuple <$>
   , ("interface", Interface, "interface")
   , ("enum", Enum, "enum")
   , ("method", Method, "method")
-  , ("variable", Variable, "variable")
+  , ("field", Field, "field")
   , ("parameter", Parameter, "parameter")
   , ("extension", Extension, "extension")
   , ("name", Name, "name")
@@ -44,4 +44,4 @@ elementTypes = keywordFromTuple <$>
 
 elementType :: Parser ElementType
 elementType = trychoice (keywordP <$> elementTypes)
-  <?> "an element type 'class', 'interface', 'enum', 'method', 'focus', 'variable', 'parameter', 'extension', 'name', 'type' or 'definition'"
+  <?> "an element type 'class', 'interface', 'enum', 'method', 'field', 'parameter', 'extension', 'name', 'type' or 'definition'"

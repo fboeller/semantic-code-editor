@@ -25,7 +25,7 @@ data ElementType = Class
                  | Interface
                  | Enum
                  | Method
-                 | Variable
+                 | Field
                  | Parameter
                  | Extension
                  | Name

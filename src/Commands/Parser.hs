@@ -26,12 +26,12 @@ helpText = "Usage:\n\
            \  help\n\
            \\n\
            \where\n\
-           \  elementType = (*|class|interface|enum|method|variable|parameter|extension|name|type|definition)\n\
+           \  elementType = (*|class|interface|enum|method|field|parameter|extension|name|type|definition)\n\
            \\n\
            \Examples:\n\
            \  list class method\n\
            \  list (name \"App\")\n\
-           \  list class (variable && type \"int\")\n\
+           \  list class (field && type \"int\")\n\
            \  list class method (parameter && type \"String\")\n\
            \  list (class && name \"Factory\") method (type \"Builder\") definition\n\
            \  read 1.3\n\
