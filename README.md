@@ -17,7 +17,7 @@ Exchange `/path/to/your/source/code` with a path to your source directory.
 Find all classes defining a field of the custom type `System`:
 
 ```
-> list class (variable && type "System")
+> list class (field && type "System")
 1: class AppController
   1: field system: System
 2: class AppModel
@@ -56,7 +56,7 @@ Furthermore, the application distinguishes between different types of elements:
 * `interface`: An interface definition
 * `enum`: An enum definition
 * `method`: A method definition
-* `variable`: A field definition
+* `field`: A field definition
 * `parameter`: A parameter of a method signature
 * `extension`: A class extending another class
 * `type`: The type of a field, the return type of a method or the type of a parameter
@@ -72,7 +72,7 @@ It is usable in two variants:
   It lists all parameters of all methods within the currently focused element.
   It accepts an arbitrary number of arguments, each representing a selection condition on a subsequent layer of the syntax tree beneath the currently focused element.
   Such a selection condition can be a simple element type such as `method` 
-  or a more complex one matching sub strings of the name or type of an element such as `variable && name "app" && type "App"`.
+  or a more complex one matching sub strings of the name or type of an element such as `field && name "app" && type "App"`.
   Use the wildcard character `*` to represent an arbitrary element type.
 
 #### Examples
