@@ -10,7 +10,16 @@ import System.Console.Haskeline
 import Control.Lens
 
 commandCompletion :: CompletionFunc IO
-commandCompletion = completeWordWithPrev Nothing [' '] (\a b -> return (possibilities a b))
+commandCompletion = fallbackCompletion
+  (completeWordWithPrev Nothing [' '] (\a b -> return (possibilities a b)))
+  loadFileCompletion
+
+loadFileCompletion :: CompletionFunc IO
+loadFileCompletion (preCursorText, enteredText) =
+     complete (preCursorText, enteredText)
+     where complete = if ":load" `isPrefixOf` reverse preCursorText
+             then completeFilename
+             else noCompletion
 
 documentedCompletion :: Keyword a -> Completion
 documentedCompletion keyword =
