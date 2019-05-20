@@ -76,17 +76,14 @@ selection elementType = trychoice
   ] <?> "a selection pattern"
   where
     elementTypeCond = Just <$> elementType
-    typeCond = string "type" *> many1 space *> (Just <$> searchTerm)
-    nameCond = (Just <$> searchTerm) <||> (string "name" *> many1 space *> (Just <$> searchTerm))
+    typeCond = string "type" *> many1 space *> (Just <$> stringLiteral)
+    nameCond = (Just <$> stringLiteral) <||> (string "name" *> many1 space *> (Just <$> stringLiteral))
     and = spaces *> string "&&" <* spaces
     inBrackets = between (char '(' <* spaces) (spaces *> char ')')
 
 quoted :: Parser String -> Parser String
 quoted content = quote *> content <* quote
   where quote = char '\"'
-
-searchTerm :: Parser String
-searchTerm = quoted identifier <||> quoted mempty
 
 path :: Parser Path
 path = (Upper <$ string ".." <?> "'..' for the parent")
